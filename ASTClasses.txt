@@ -14,13 +14,13 @@ IfStatement(Expression * condExpr, Statement * ifStmt, Statement * elseStmt) : S
 ExpressionStatement(Expression * expr) : Statement
 EmptyStatement() : Statement
 BlockStatement(Declarations * declarations, Statements * statements) : Statement
-DefaultStatement(Statement * statement);
+DefaultStatement(Statement * statement) : Statement
 CaseStatement(Expression * constExpr, Statement * statement) : Statement
 LabelStatement(std::string& label, Statement * statement) : Statement
 Declarator() : Node
 FunctionDeclarator(Declarator * baseDeclarator, ParameterDeclarations * parameterList) : Declarator
 NoIdentifierDeclarator() : Declarator
-IdentifierDeclarator() : Declarator
+IdentifierDeclarator(sdt::string& name) : Declarator
 ArrayDeclarator(Declarator * baseDeclarator, Expression * constExpr) : Declarator
 TypeName(DeclarationSpecifiers * declSpecifiers, Declarator * abstrDeclarator) : Node
 Declaration(DeclarationSpecifiers * declSpecifiers, Declarators * declarators) : ExternalDeclaration
@@ -43,3 +43,5 @@ ArrayAccessOperator(Expression * lhsExpr, Expression * rhsExpr) : Expression
 StringLiteral(std::string& str) : Expression
 Constant(int token) : Expression
 Identifier(std::string& name) : Expression
+ChainExpressions() : Expression
+Program(ExternalDeclarations* decls) : Node

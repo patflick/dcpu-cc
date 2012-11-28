@@ -16,7 +16,8 @@
 
 // include needed nodes
 #include "Node.h"
-
+#include "Expressions.h"
+#include "Pointers.h"
 
 namespace dtcc
 {
@@ -30,7 +31,8 @@ namespace dtcc
         class Declarator : public Node
         {
         public:
-
+            Expressions* initializers;
+            Pointers* pointers;
         
         private:
             ///
@@ -42,9 +44,18 @@ namespace dtcc
         public:
             ///
             /// @brief      The constructor of the Declarator AST node.
-
             ///
-            Declarator()  {}
+            Declarator() : initializers(NULL) {}
+            
+            ///
+            /// @brief          Sets initializer expressions to this declarator.
+            /// @param inits    The initialization expressions.
+            void setInitializer(Expressions* inits);
+            
+            ///
+            /// @brief              Sets pointers of this declarator.
+            /// @param pointers    The pointers to be set.
+            void setPointers(Pointers* pointers);
             
             ///
             /// @brief          The accept method of the Visitor pattern.

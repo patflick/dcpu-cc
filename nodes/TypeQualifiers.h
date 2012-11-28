@@ -9,10 +9,10 @@
 /// @author     Patrick Flick
 ///
 
+#include "Node.h"
 #ifndef __DCPU_CC_AST_NODES_TYPEQUALIFIERS_H
 #define __DCPU_CC_AST_NODES_TYPEQUALIFIERS_H
 
-#include "Node.h"
 #include "TypeQualifier.h"
 #include <vector>
 

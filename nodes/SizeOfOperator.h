@@ -32,6 +32,7 @@ namespace dtcc
         {
         public:
             TypeName * typeName;
+            Expression * expr;
 
         
         private:
@@ -47,7 +48,14 @@ namespace dtcc
             /// @param typeName TODO: FILLOUT
 
             ///
-            SizeOfOperator(TypeName * typeName) : typeName(typeName) {}
+            SizeOfOperator(TypeName * typeName) : typeName(typeName), expr(NULL) {}
+            
+            ///
+            /// @brief      The constructor of the SizeOfOperator AST node.
+            /// @param typeName TODO: FILLOUT
+            
+            ///
+            SizeOfOperator(Expression * expr) : typeName(NULL), expr(expr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

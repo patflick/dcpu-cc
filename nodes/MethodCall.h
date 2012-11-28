@@ -16,7 +16,7 @@
 
 // include needed nodes
 #include "Expression.h"
-
+#include "Expressions.h"
 
 namespace dtcc
 {
@@ -31,7 +31,7 @@ namespace dtcc
         {
         public:
             Expression * lhsExpr;
-            Expression * rhsExpr;
+            Expressions * rhsExprs;
 
         
         private:
@@ -45,10 +45,10 @@ namespace dtcc
             ///
             /// @brief      The constructor of the MethodCall AST node.
             /// @param lhsExpr TODO: FILLOUT
-            /// @param rhsExpr TODO: FILLOUT
+            /// @param rhsExprs TODO: FILLOUT
 
             ///
-            MethodCall(Expression * lhsExpr, Expression * rhsExpr) : lhsExpr(lhsExpr), rhsExpr(rhsExpr) {}
+            MethodCall(Expression * lhsExpr, Expressions * rhsExprs) : lhsExpr(lhsExpr), rhsExprs(rhsExprs) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

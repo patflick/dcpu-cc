@@ -16,7 +16,7 @@
 
 // include needed nodes
 #include "Declarator.h"
-
+#include <string>
 
 namespace dtcc
 {
@@ -30,7 +30,7 @@ namespace dtcc
         class IdentifierDeclarator : public Declarator
         {
         public:
-
+            std::string name;
         
         private:
             ///
@@ -44,7 +44,7 @@ namespace dtcc
             /// @brief      The constructor of the IdentifierDeclarator AST node.
 
             ///
-            IdentifierDeclarator()  {}
+            IdentifierDeclarator(std::string& name) : name(name)  {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

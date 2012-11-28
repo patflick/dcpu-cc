@@ -9,8 +9,8 @@
 /// @author     Patrick Flick
 ///
 
-#ifndef __DCPU_CC_AST_NODES_TYPEQUALIFIERS_H
-#define __DCPU_CC_AST_NODES_TYPEQUALIFIERS_H
+#ifndef __DCPU_CC_AST_NODES_PARAMETERDECLARATIONS_H
+#define __DCPU_CC_AST_NODES_PARAMETERDECLARATIONS_H
 
 #include "Node.h"
 #include "Declaration.h"

@@ -2,6 +2,11 @@
 #include <stdio.h>
 // only within toolchain
 //#include <lexfix.h>
+
+#include <string>
+#include <nodes/allnodes.h>
+using namespace dtcc::astnodes;
+
 #include "parser.hpp"
 
 // only within toolchain
@@ -15,6 +20,7 @@ extern "C"
 void count();
 bool comment();
 int check_type();
+extern int string_return;
 %}
 
 
@@ -27,6 +33,8 @@ FS                      (f|F|l|L)
 IS                      (u|U|l|L)*
 
 
+%x IN_CHAR
+%x IN_STRING
 
 %%
 "/*"                    { comment(); }
@@ -75,6 +83,32 @@ L?'(\\.|[^\\'])+'       { count(); return(CONSTANT); }
 {D}*"."{D}+({E})?{FS}?  { count(); return(CONSTANT); }
 {D}+"."{D}*({E})?{FS}?  { count(); return(CONSTANT); }
 
+
+    /* String and character analysis */
+
+\'                                      { count(); yylval.string = new std::string(); BEGIN(IN_CHAR); }
+\"                                      { count(); yylval.string = new std::string(); BEGIN(IN_STRING); }
+<IN_CHAR>\'                             { count(); BEGIN(string_return); return CHARACTER_LITERAL; }
+<IN_STRING>\"                           { count(); BEGIN(string_return); return STRING_LITERAL; }
+<IN_STRING,IN_CHAR>\\a                  { count(); *yylval.string += '\a'; }
+<IN_STRING,IN_CHAR>\\b                  { count(); *yylval.string += '\b'; }
+<IN_STRING,IN_CHAR>\\f                  { count(); *yylval.string += '\f'; }
+<IN_STRING,IN_CHAR>\\n                  { count(); *yylval.string += '\n'; }
+<IN_STRING,IN_CHAR>\\r                  { count(); *yylval.string += '\r'; }
+<IN_STRING,IN_CHAR>\\t                  { count(); *yylval.string += '\t'; }
+<IN_STRING,IN_CHAR>\\v                  { count(); *yylval.string += '\v'; }
+<IN_STRING,IN_CHAR>\\\'                 { count(); *yylval.string += '\''; }
+<IN_STRING,IN_CHAR>\\\"                 { count(); *yylval.string += '\"'; }
+<IN_STRING,IN_CHAR>\\\\                 { count(); *yylval.string += '\\'; }
+<IN_STRING,IN_CHAR>\\\?                 { count(); *yylval.string += '\?'; }
+<IN_STRING,IN_CHAR>\\[0-7]{1,3}         { count(); *yylval.string += (char)strtoul(yytext + 1, NULL, 8); }
+<IN_STRING,IN_CHAR>\\x[a-fA-F0-9]{2}    { count(); *yylval.string += (char)strtoul(yytext + 2, NULL, 16); }
+<IN_STRING,IN_CHAR>\\[0-9]+             { count(); return ERROR; }
+<IN_STRING,IN_CHAR>\\(.|\n)             { count(); *yylval.string += yytext[1]; }
+<IN_STRING>[^\\\n\"]+                   { count(); *yylval.string += yytext; }
+<IN_CHAR>[^\\\n\']+                     { count(); *yylval.string += yytext; }
+
+
 L?\"(\\.|[^\\"])*\"     { count(); return(STRING_LITERAL); }
 
 "..."                   { count(); return(ELLIPSIS); }
@@ -99,35 +133,39 @@ L?\"(\\.|[^\\"])*\"     { count(); return(STRING_LITERAL); }
 ">="                    { count(); return(GE_OP); }
 "=="                    { count(); return(EQ_OP); }
 "!="                    { count(); return(NE_OP); }
-";"                     { count(); return(';'); }
-("{"|"<%")              { count(); return('{'); }
-("}"|"%>")              { count(); return('}'); }
-","                     { count(); return(','); }
-":"                     { count(); return(':'); }
-"="                     { count(); return('='); }
-"("                     { count(); return('('); }
-")"                     { count(); return(')'); }
-("["|"<:")              { count(); return('['); }
-("]"|":>")              { count(); return(']'); }
-"."                     { count(); return('.'); }
-"&"                     { count(); return('&'); }
-"!"                     { count(); return('!'); }
-"~"                     { count(); return('~'); }
-"-"                     { count(); return('-'); }
-"+"                     { count(); return('+'); }
-"*"                     { count(); return('*'); }
-"/"                     { count(); return('/'); }
-"%"                     { count(); return('%'); }
-"<"                     { count(); return('<'); }
-">"                     { count(); return('>'); }
-"^"                     { count(); return('^'); }
-"|"                     { count(); return('|'); }
-"?"                     { count(); return('?'); }
+";"                     { count(); return(SEMICOLON); }
+("{"|"<%")              { count(); return(BRACE_OPEN); }
+("}"|"%>")              { count(); return(BRACE_CLOSE); }
+","                     { count(); return(COMMA); }
+":"                     { count(); return(COLON); }
+"="                     { count(); return(ASSIGN_EQUAL); }
+"("                     { count(); return(CURVED_OPEN); }
+")"                     { count(); return(CURVED_CLOSE); }
+("["|"<:")              { count(); return(SQUARE_OPEN); }
+("]"|":>")              { count(); return(SQUARE_CLOSE); }
+"."                     { count(); return(DOT); }
+"&"                     { count(); return(BIN_AND_OP); }
+"!"                     { count(); return(NOT_OP); }
+"~"                     { count(); return(BIN_INV_OP); }
+"-"                     { count(); return(SUB_OP); }
+"+"                     { count(); return(ADD_OP); }
+"*"                     { count(); return(MUL_OP); }
+"/"                     { count(); return(DIV_OP); }
+"%"                     { count(); return(MOD_OP); }
+"<"                     { count(); return(LT_OP); }
+">"                     { count(); return(GT_OP); }
+"^"                     { count(); return(BIN_XOR_OP); }
+"|"                     { count(); return(BIN_OR_OP); }
+"?"                     { count(); return(TERNARY_IF); }
 
 [ \t\v\n\f]             { count(); }
 .                       { /* ignore bad characters */ }
 
 %%
+
+// state variable
+int string_return = INITIAL;
+
 
 int yywrap()
 {
@@ -186,6 +224,7 @@ void count()
 
 int check_type()
 {
+    yylval.string = new std::string(yytext);
 /*
 * pseudo code --- this is what it should check
 *
@@ -199,5 +238,5 @@ int check_type()
 *       it actually will only return IDENTIFIER
 */
 
-        return(IDENTIFIER);
+    return(IDENTIFIER);
 }

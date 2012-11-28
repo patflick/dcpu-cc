@@ -34,6 +34,7 @@ namespace dtcc
         public:
             DeclarationSpecifiers * declSpecifiers;
             Declarators * declarators;
+            Declarator * singleDeclarator;
 
         
         private:
@@ -48,9 +49,16 @@ namespace dtcc
             /// @brief      The constructor of the Declaration AST node.
             /// @param declSpecifiers TODO: FILLOUT
             /// @param declarators TODO: FILLOUT
-
+            Declaration(DeclarationSpecifiers * declSpecifiers, Declarators * declarators) :
+                declSpecifiers(declSpecifiers), declarators(declarators), singleDeclarator(NULL) {}
+            
             ///
-            Declaration(DeclarationSpecifiers * declSpecifiers, Declarators * declarators) : declSpecifiers(declSpecifiers), declarators(declarators) {}
+            /// @brief      The constructor of the Declaration AST node.
+            /// @param declSpecifiers TODO: FILLOUT
+            /// @param declarator TODO: FILLOUT
+            Declaration(DeclarationSpecifiers * declSpecifiers, Declarator * declarator) :
+            declSpecifiers(declSpecifiers), declarators(NULL), singleDeclarator(declarator) {}
+            
             
             ///
             /// @brief          The accept method of the Visitor pattern.

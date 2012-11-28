@@ -28,7 +28,7 @@ namespace dtcc
         /// @class      DefaultStatement
         /// @brief      The DefaultStatement AST node.
         ///
-        class DefaultStatement : public Node
+        class DefaultStatement : public Statement
         {
         public:
             Statement * statement;

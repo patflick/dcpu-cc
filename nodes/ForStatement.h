@@ -31,8 +31,8 @@ namespace dtcc
         class ForStatement : public Statement
         {
         public:
-            Expression * initExpr;
-            Expression * condExpr;
+            Statement * initExpr;
+            Statement * condExpr;
             Expression * loopExpr;
             Statement * statement;
 
@@ -53,7 +53,7 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            ForStatement(Expression * initExpr, Expression * condExpr, Expression * loopExpr, Statement * statement) : initExpr(initExpr), condExpr(condExpr), loopExpr(loopExpr), statement(statement) {}
+            ForStatement(Statement * initExpr, Statement * condExpr, Expression * loopExpr, Statement * statement) : initExpr(initExpr), condExpr(condExpr), loopExpr(loopExpr), statement(statement) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

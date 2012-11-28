@@ -15,7 +15,6 @@
 #define __DCPU_CC_AST_NODES_POINTER_H
 
 // include needed nodes
-#include "Node.h"
 #include "TypeQualifiers.h"
 
 
