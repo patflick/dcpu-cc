@@ -18,6 +18,7 @@
 #include "Node.h"
 #include "Expressions.h"
 #include "Pointers.h"
+#include <cstdlib>
 
 namespace dtcc
 {

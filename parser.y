@@ -51,7 +51,7 @@ void yyerror(const char *str);
     Declarator* declarator;
     Declarators* declarators;
     DeclarationSpecifiers* declspecs;
-    //TypeName* typename;
+    TypeName* typeName;
     TypeQualifier* typequal;
     TypeQualifiers* typequals;
     TypeSpecifier* typespec;
@@ -108,7 +108,7 @@ void yyerror(const char *str);
 %type <declarator> init_declarator direct_declarator declarator direct_abstract_declarator abstract_declarator
 %type <declarators> init_declarator_list
 %type <declspecs> specifier_qualifier_list declaration_specifiers
-%type <typename> type_name
+%type <typeName> type_name
 %type <typequal> type_qualifier
 %type <typequals> type_qualifier_list
 %type <typespec> type_specifier

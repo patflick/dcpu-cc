@@ -18,7 +18,7 @@
 #include "ExternalDeclaration.h"
 #include "DeclarationSpecifiers.h"
 #include "Declarators.h"
-
+#include <cstdlib>
 
 namespace dtcc
 {

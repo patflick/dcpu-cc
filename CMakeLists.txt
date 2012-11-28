@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.5)
 project(dtcc2tests)
 
-SET(CMAKE_C_COMPILER "clang")
-SET(CMAKE_CXX_COMPILER "clang")
+#SET(CMAKE_C_COMPILER "clang")
+#SET(CMAKE_CXX_COMPILER "clang")
 
 if(NOT DEFINED FLEX_EXECUTABLE)
     find_program(FLEX_EXECUTABLE NAMES flex.exe flex)

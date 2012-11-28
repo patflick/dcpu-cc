@@ -204,7 +204,7 @@ bool comment_line()
 }
 
 
-int column = 0;
+int yycolumn = 0;
 
 void count()
 {
@@ -212,11 +212,11 @@ void count()
 
         for (i = 0; yytext[i] != '\0'; i++)
                 if (yytext[i] == '\n')
-                        column = 0;
+                        yycolumn = 0;
                 else if (yytext[i] == '\t')
-                        column += 8 - (column % 8);
+                        yycolumn += 8 - (yycolumn % 8);
                 else
-                        column++;
+                        yycolumn++;
 
         ECHO;
 }

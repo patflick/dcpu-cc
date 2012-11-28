@@ -43,7 +43,7 @@ void MethodCall::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 MethodCall::~MethodCall()
 {
     delete this->lhsExpr;
-    delete this->rhsExpr;
+    delete this->rhsExprs;
 
 }
 
