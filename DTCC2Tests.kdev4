@@ -1,0 +1,4 @@
+[Project]
+Name=DTCC2Tests
+Manager=KDevCMakeManager
+VersionControl=kdevgit
