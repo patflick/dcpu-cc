@@ -66,10 +66,14 @@ namespace dtcc
     } // namespace dtcc
 } // namespace astnode
 
+
 // include this at the end, so that first all the nodes are in the pp'ed code
 // and only then the visitor, this order should be kept at all time
 // to not having to mess around with more forward declarations
+// only include if not all nodes are included
+#ifndef __DCPU_CC_AST_NODES_ALLNODES_H
 #include <visitor/Visitor.h>
+#endif
 
 #endif
 

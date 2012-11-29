@@ -72,8 +72,11 @@ IS                      (u|U|l|L)*
 "volatile"              { count(); return(VOLATILE); }
 "while"                 { count(); return(WHILE); }
 
+    /* Identifier or possibly typedef (TODO) */
 {L}({L}|{D})*           { count(); return(check_type()); }
 
+
+    /* numerical constants/literals TODO do this correctly */
 0[xX]{H}+{IS}?          { count(); return(CONSTANT); }
 0{D}+{IS}?              { count(); return(CONSTANT); }
 {D}+{IS}?               { count(); return(CONSTANT); }

@@ -111,7 +111,35 @@ def parserow(row):
     with open(OUTPUT_FOLDER + "/" + ClassName + ".cpp", 'w') as f:
         f.write(cppResult)
         
-    print "#include \"" + ClassName + ".h\""
+    className = ClassName[0].lower() + ClassName[1:]
+    ##print "#include \"" + ClassName + ".h\""
+    
+    # # for printing out the abstract visitor
+    #print " "*12 + "///"
+    #print " "*12 + "/// @brief      Visit function of the visitor pattern."
+    #print " "*12 + "/// @sa         http://en.wikipedia.org/wiki/Visitor_pattern"
+    #print " "*12 + "/// @param " + className + "    The node to visit this visitor"
+    #print " "*12 + "virtual void visit(astnodes::" + ClassName + " * " + className + ") = 0;"
+    #print " "*12
+    #print " "*12
+    
+    # # for printing out a print-out-visitor
+    #print " "*12 + "///"
+    #print " "*12 + "/// @brief      Visit function of the visitor pattern."
+    #print " "*12 + "/// @sa         http://en.wikipedia.org/wiki/Visitor_pattern"
+    #print " "*12 + "/// @param " + className + "    The node to visit this visitor"
+    #print " "*12 + "virtual void visit(astnodes::" + ClassName + " * " + className + ");"
+    #print " "*12
+    #print " "*12
+    
+    print "void PrintAstVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
+    print "{"
+    print " "*4 + "printAstName(\"" + ClassName + "\");"
+    print "}"
+    print ""
+    print ""
+    
+    
     
 def main():
     parsefile(CLASS_NAMES_FILE)

@@ -31,329 +31,329 @@ namespace dtcc
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param functionDefinition    The node to visit this visitor
-            virtual void visit(astnodes::FunctionDefinition * functionDefinition) = 0;
+            virtual void visit(astnodes::FunctionDefinition * functionDefinition);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param gotoStatement    The node to visit this visitor
-            virtual void visit(astnodes::GotoStatement * gotoStatement) = 0;
+            virtual void visit(astnodes::GotoStatement * gotoStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param continueStatement    The node to visit this visitor
-            virtual void visit(astnodes::ContinueStatement * continueStatement) = 0;
+            virtual void visit(astnodes::ContinueStatement * continueStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param breakStatement    The node to visit this visitor
-            virtual void visit(astnodes::BreakStatement * breakStatement) = 0;
+            virtual void visit(astnodes::BreakStatement * breakStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param expression    The node to visit this visitor
-            virtual void visit(astnodes::Expression * expression) = 0;
+            virtual void visit(astnodes::Expression * expression);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param statement    The node to visit this visitor
-            virtual void visit(astnodes::Statement * statement) = 0;
+            virtual void visit(astnodes::Statement * statement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param externalDeclaration    The node to visit this visitor
-            virtual void visit(astnodes::ExternalDeclaration * externalDeclaration) = 0;
+            virtual void visit(astnodes::ExternalDeclaration * externalDeclaration);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param returnStatement    The node to visit this visitor
-            virtual void visit(astnodes::ReturnStatement * returnStatement) = 0;
+            virtual void visit(astnodes::ReturnStatement * returnStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param forStatement    The node to visit this visitor
-            virtual void visit(astnodes::ForStatement * forStatement) = 0;
+            virtual void visit(astnodes::ForStatement * forStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param doWhileStatement    The node to visit this visitor
-            virtual void visit(astnodes::DoWhileStatement * doWhileStatement) = 0;
+            virtual void visit(astnodes::DoWhileStatement * doWhileStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param whileStatement    The node to visit this visitor
-            virtual void visit(astnodes::WhileStatement * whileStatement) = 0;
+            virtual void visit(astnodes::WhileStatement * whileStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param switchStatement    The node to visit this visitor
-            virtual void visit(astnodes::SwitchStatement * switchStatement) = 0;
+            virtual void visit(astnodes::SwitchStatement * switchStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param ifStatement    The node to visit this visitor
-            virtual void visit(astnodes::IfStatement * ifStatement) = 0;
+            virtual void visit(astnodes::IfStatement * ifStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param expressionStatement    The node to visit this visitor
-            virtual void visit(astnodes::ExpressionStatement * expressionStatement) = 0;
+            virtual void visit(astnodes::ExpressionStatement * expressionStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param emptyStatement    The node to visit this visitor
-            virtual void visit(astnodes::EmptyStatement * emptyStatement) = 0;
+            virtual void visit(astnodes::EmptyStatement * emptyStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param blockStatement    The node to visit this visitor
-            virtual void visit(astnodes::BlockStatement * blockStatement) = 0;
+            virtual void visit(astnodes::BlockStatement * blockStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param defaultStatement    The node to visit this visitor
-            virtual void visit(astnodes::DefaultStatement * defaultStatement) = 0;
+            virtual void visit(astnodes::DefaultStatement * defaultStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param caseStatement    The node to visit this visitor
-            virtual void visit(astnodes::CaseStatement * caseStatement) = 0;
+            virtual void visit(astnodes::CaseStatement * caseStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param labelStatement    The node to visit this visitor
-            virtual void visit(astnodes::LabelStatement * labelStatement) = 0;
+            virtual void visit(astnodes::LabelStatement * labelStatement);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param declarator    The node to visit this visitor
-            virtual void visit(astnodes::Declarator * declarator) = 0;
+            virtual void visit(astnodes::Declarator * declarator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param functionDeclarator    The node to visit this visitor
-            virtual void visit(astnodes::FunctionDeclarator * functionDeclarator) = 0;
+            virtual void visit(astnodes::FunctionDeclarator * functionDeclarator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param noIdentifierDeclarator    The node to visit this visitor
-            virtual void visit(astnodes::NoIdentifierDeclarator * noIdentifierDeclarator) = 0;
+            virtual void visit(astnodes::NoIdentifierDeclarator * noIdentifierDeclarator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param identifierDeclarator    The node to visit this visitor
-            virtual void visit(astnodes::IdentifierDeclarator * identifierDeclarator) = 0;
+            virtual void visit(astnodes::IdentifierDeclarator * identifierDeclarator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param arrayDeclarator    The node to visit this visitor
-            virtual void visit(astnodes::ArrayDeclarator * arrayDeclarator) = 0;
+            virtual void visit(astnodes::ArrayDeclarator * arrayDeclarator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeName    The node to visit this visitor
-            virtual void visit(astnodes::TypeName * typeName) = 0;
+            virtual void visit(astnodes::TypeName * typeName);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param declaration    The node to visit this visitor
-            virtual void visit(astnodes::Declaration * declaration) = 0;
+            virtual void visit(astnodes::Declaration * declaration);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param pointer    The node to visit this visitor
-            virtual void visit(astnodes::Pointer * pointer) = 0;
+            virtual void visit(astnodes::Pointer * pointer);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeQualifier    The node to visit this visitor
-            virtual void visit(astnodes::TypeQualifier * typeQualifier) = 0;
+            virtual void visit(astnodes::TypeQualifier * typeQualifier);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeSpecifier    The node to visit this visitor
-            virtual void visit(astnodes::TypeSpecifier * typeSpecifier) = 0;
+            virtual void visit(astnodes::TypeSpecifier * typeSpecifier);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeNameSpecifier    The node to visit this visitor
-            virtual void visit(astnodes::TypeNameSpecifier * typeNameSpecifier) = 0;
+            virtual void visit(astnodes::TypeNameSpecifier * typeNameSpecifier);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeBaseSpecifier    The node to visit this visitor
-            virtual void visit(astnodes::TypeBaseSpecifier * typeBaseSpecifier) = 0;
+            virtual void visit(astnodes::TypeBaseSpecifier * typeBaseSpecifier);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param storageSpecifier    The node to visit this visitor
-            virtual void visit(astnodes::StorageSpecifier * storageSpecifier) = 0;
+            virtual void visit(astnodes::StorageSpecifier * storageSpecifier);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param assignmentOperator    The node to visit this visitor
-            virtual void visit(astnodes::AssignmentOperator * assignmentOperator) = 0;
+            virtual void visit(astnodes::AssignmentOperator * assignmentOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param conditionalOperator    The node to visit this visitor
-            virtual void visit(astnodes::ConditionalOperator * conditionalOperator) = 0;
+            virtual void visit(astnodes::ConditionalOperator * conditionalOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param binaryOperator    The node to visit this visitor
-            virtual void visit(astnodes::BinaryOperator * binaryOperator) = 0;
+            virtual void visit(astnodes::BinaryOperator * binaryOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param explicitCastOperator    The node to visit this visitor
-            virtual void visit(astnodes::ExplicitCastOperator * explicitCastOperator) = 0;
+            virtual void visit(astnodes::ExplicitCastOperator * explicitCastOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param sizeOfOperator    The node to visit this visitor
-            virtual void visit(astnodes::SizeOfOperator * sizeOfOperator) = 0;
+            virtual void visit(astnodes::SizeOfOperator * sizeOfOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param unaryOperator    The node to visit this visitor
-            virtual void visit(astnodes::UnaryOperator * unaryOperator) = 0;
+            virtual void visit(astnodes::UnaryOperator * unaryOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param preIncDec    The node to visit this visitor
-            virtual void visit(astnodes::PreIncDec * preIncDec) = 0;
+            virtual void visit(astnodes::PreIncDec * preIncDec);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param postIncDec    The node to visit this visitor
-            virtual void visit(astnodes::PostIncDec * postIncDec) = 0;
+            virtual void visit(astnodes::PostIncDec * postIncDec);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param methodCall    The node to visit this visitor
-            virtual void visit(astnodes::MethodCall * methodCall) = 0;
+            virtual void visit(astnodes::MethodCall * methodCall);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param arrayAccessOperator    The node to visit this visitor
-            virtual void visit(astnodes::ArrayAccessOperator * arrayAccessOperator) = 0;
+            virtual void visit(astnodes::ArrayAccessOperator * arrayAccessOperator);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param stringLiteral    The node to visit this visitor
-            virtual void visit(astnodes::StringLiteral * stringLiteral) = 0;
+            virtual void visit(astnodes::StringLiteral * stringLiteral);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param constant    The node to visit this visitor
-            virtual void visit(astnodes::Constant * constant) = 0;
+            virtual void visit(astnodes::Constant * constant);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param identifier    The node to visit this visitor
-            virtual void visit(astnodes::Identifier * identifier) = 0;
+            virtual void visit(astnodes::Identifier * identifier);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param chainExpressions    The node to visit this visitor
-            virtual void visit(astnodes::ChainExpressions * chainExpressions) = 0;
+            virtual void visit(astnodes::ChainExpressions * chainExpressions);
             
             
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param program    The node to visit this visitor
-            virtual void visit(astnodes::Program * program) = 0;
+            virtual void visit(astnodes::Program * program);
             
             
             

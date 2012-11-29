@@ -84,6 +84,8 @@
 #include "UnaryOperator.h"
 #include "WhileStatement.h"
 
+#include <visitor/Visitor.h>
+
 #endif
 
 ///
