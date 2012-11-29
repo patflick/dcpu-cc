@@ -17,6 +17,8 @@ using namespace dtcc::astnodes;
 void SizeOfOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+    this->typeName->accept(visitor);
+
 }
 
 // implements the visitor pattern

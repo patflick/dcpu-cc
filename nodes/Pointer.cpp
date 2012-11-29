@@ -16,7 +16,9 @@ using namespace dtcc::astnodes;
 // calls accept(visitor) for all children nodes of this AST node
 void Pointer::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
+    // TODO do we need to visit type qualifiers??
+    //this->typeQualifiers->accept(visitor);
+
 }
 
 // implements the visitor pattern

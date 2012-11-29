@@ -20,7 +20,7 @@ LabelStatement(std::string& label, Statement * statement) : Statement
 Declarator() : Node
 FunctionDeclarator(Declarator * baseDeclarator, ParameterDeclarations * parameterList) : Declarator
 NoIdentifierDeclarator() : Declarator
-IdentifierDeclarator(sdt::string& name) : Declarator
+IdentifierDeclarator(std::string& name) : Declarator
 ArrayDeclarator(Declarator * baseDeclarator, Expression * constExpr) : Declarator
 TypeName(DeclarationSpecifiers * declSpecifiers, Declarator * abstrDeclarator) : Node
 Declaration(DeclarationSpecifiers * declSpecifiers, Declarators * declarators) : ExternalDeclaration

@@ -33,13 +33,6 @@ namespace dtcc
             int optoken;
             Expression * expr;
 
-        
-        private:
-            ///
-            /// @brief          Calls accept(visitor) on all children nodes.
-            /// @param visitor  The visitor to be accepted.
-            ///
-            void allChildrenAccept(dtcc::visitor::Visitor & visitor);
             
         public:
             ///
@@ -78,6 +71,12 @@ namespace dtcc
             /// it first calls accept(visitor) for
             /// all its children nodes and only then visit(this).
             void acceptPreRecursive(dtcc::visitor::Visitor & visitor);
+            
+            ///
+            /// @brief          Calls accept(visitor) on all children nodes.
+            /// @param visitor  The visitor to be accepted.
+            ///
+            void allChildrenAccept(dtcc::visitor::Visitor & visitor);
             
             ///
             /// @brief      The destructor of the PreIncDec AST node.

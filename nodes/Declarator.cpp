@@ -28,6 +28,7 @@ void Declarator::setPointers(Pointers* pointers)
 void Declarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+
 }
 
 // implements the visitor pattern

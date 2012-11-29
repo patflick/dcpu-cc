@@ -17,6 +17,9 @@ using namespace dtcc::astnodes;
 void ArrayDeclarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+    this->baseDeclarator->accept(visitor);
+    this->constExpr->accept(visitor);
+
 }
 
 // implements the visitor pattern

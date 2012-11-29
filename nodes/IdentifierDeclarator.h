@@ -16,7 +16,9 @@
 
 // include needed nodes
 #include "Declarator.h"
+
 #include <string>
+
 
 namespace dtcc
 {
@@ -30,19 +32,11 @@ namespace dtcc
         class IdentifierDeclarator : public Declarator
         {
         public:
-            std::string name;
-        
-        private:
-            ///
-            /// @brief          Calls accept(visitor) on all children nodes.
-            /// @param visitor  The visitor to be accepted.
-            ///
-            void allChildrenAccept(dtcc::visitor::Visitor & visitor);
-            
+            std::string& name;
+
         public:
             ///
             /// @brief      The constructor of the IdentifierDeclarator AST node.
-
             ///
             IdentifierDeclarator(std::string& name) : name(name)  {}
             
@@ -74,6 +68,12 @@ namespace dtcc
             /// it first calls accept(visitor) for
             /// all its children nodes and only then visit(this).
             void acceptPreRecursive(dtcc::visitor::Visitor & visitor);
+            
+            ///
+            /// @brief          Calls accept(visitor) on all children nodes.
+            /// @param visitor  The visitor to be accepted.
+            ///
+            void allChildrenAccept(dtcc::visitor::Visitor & visitor);
             
             ///
             /// @brief      The destructor of the IdentifierDeclarator AST node.

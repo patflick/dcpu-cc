@@ -74,6 +74,9 @@ def parserow(row):
     for s in param_names:
         doxygenparams += " "*12 + "/// @param " + s + " TODO: FILLOUT\n"
     
+    childaccept = ""
+    for s in param_names:
+        childaccept += "    this->" + s + "->accept(visitor);\n"
     
     hTemplate = ""
     with open(H_TEMPLATE, 'r') as f:
@@ -95,16 +98,18 @@ def parserow(row):
     with open(CPP_TEMPLATE, 'r') as f:
         cppTemplate = f.read()
         
-        cppResult = cppTemplate
-        cppResult = cppResult.replace("%ClassName%", ClassName);
-        cppResult = cppResult.replace("%CLASSNAME%", CLASSNAME);
-        cppResult = cppResult.replace("%SuperClassName%", superclass);
-        cppResult = cppResult.replace("%DoxygenConstructorParams%", doxygenparams);
-        cppResult = cppResult.replace("%Params%", params_argument_list);
-        cppResult = cppResult.replace("%ClassMembers%", classmember);
-        cppResult = cppResult.replace("%ParamInit%", contr_init);
-        cppResult = cppResult.replace("%deleteClassMembers%", deleteclassmembers);
-        cppResult = cppResult.replace("%nodes_include%", includes);
+    cppResult = cppTemplate
+    cppResult = cppResult.replace("%ClassName%", ClassName);
+    cppResult = cppResult.replace("%CLASSNAME%", CLASSNAME);
+    cppResult = cppResult.replace("%SuperClassName%", superclass);
+    cppResult = cppResult.replace("%DoxygenConstructorParams%", doxygenparams);
+    cppResult = cppResult.replace("%Params%", params_argument_list);
+    cppResult = cppResult.replace("%ClassMembers%", classmember);
+    cppResult = cppResult.replace("%ParamInit%", contr_init);
+    cppResult = cppResult.replace("%deleteClassMembers%", deleteclassmembers);
+    cppResult = cppResult.replace("%nodes_include%", includes);
+    cppResult = cppResult.replace("%ChildrenVisitor%", childaccept);
+    
     
     with open(OUTPUT_FOLDER + "/" + ClassName + ".h", 'w') as f:
         f.write(hResult)

@@ -17,6 +17,10 @@ using namespace dtcc::astnodes;
 void FunctionDeclarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+    this->baseDeclarator->accept(visitor);
+    for (Declarations::iterator i = parameterList->declarations.begin(); i != parameterList->declarations.end(); ++i)
+        (*i)->accept(visitor);
+
 }
 
 // implements the visitor pattern

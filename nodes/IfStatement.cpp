@@ -17,6 +17,10 @@ using namespace dtcc::astnodes;
 void IfStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+    this->condExpr->accept(visitor);
+    this->ifStmt->accept(visitor);
+    this->elseStmt->accept(visitor);
+
 }
 
 // implements the visitor pattern

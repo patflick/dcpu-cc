@@ -16,7 +16,11 @@ using namespace dtcc::astnodes;
 // calls accept(visitor) for all children nodes of this AST node
 void Declaration::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
+    // TODO do we have to visit declspecifiers??
+    // this->declSpecifiers->accept(visitor);
+    for (Declarators::iterator i = this->declarators->begin(); i != this->declarators->end(); ++i)
+        (*i)->accept(visitor);
+
 }
 
 // implements the visitor pattern

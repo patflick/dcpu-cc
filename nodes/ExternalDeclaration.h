@@ -60,6 +60,12 @@ namespace dtcc
             /// all its children nodes and only then visit(this).
             virtual void acceptPreRecursive(dtcc::visitor::Visitor & visitor) = 0;
             
+            ///
+            /// @brief          Calls accept(visitor) on all children nodes.
+            /// @param visitor  The visitor to be accepted.
+            ///
+            virtual void allChildrenAccept(dtcc::visitor::Visitor & visitor) = 0;
+            
         };
 
     } // namespace dtcc

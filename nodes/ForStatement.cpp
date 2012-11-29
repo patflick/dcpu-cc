@@ -17,6 +17,11 @@ using namespace dtcc::astnodes;
 void ForStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+    this->initExpr->accept(visitor);
+    this->condExpr->accept(visitor);
+    this->loopExpr->accept(visitor);
+    this->statement->accept(visitor);
+
 }
 
 // implements the visitor pattern

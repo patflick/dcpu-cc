@@ -17,6 +17,7 @@ using namespace dtcc::astnodes;
 void %ClassName%::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
+%ChildrenVisitor%
 }
 
 // implements the visitor pattern

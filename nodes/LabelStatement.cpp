@@ -16,7 +16,7 @@ using namespace dtcc::astnodes;
 // calls accept(visitor) for all children nodes of this AST node
 void LabelStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
+    this->statement->accept(visitor);
 }
 
 // implements the visitor pattern
