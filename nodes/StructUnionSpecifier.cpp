@@ -13,10 +13,25 @@
 
 using namespace dtcc::astnodes;
 
+// calls acceptPreRecursive(visitor) for all children nodes of this AST node
+void StructUnionSpecifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->declarations != NULL)
+        for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
+            (*i)->acceptPreRecursive(visitor);
+}
+
+// calls acceptPostRecursive(visitor) for all children nodes of this AST node
+void StructUnionSpecifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->declarations != NULL)
+        for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
+            (*i)->acceptPostRecursive(visitor);
+}
+
 // calls accept(visitor) for all children nodes of this AST node
 void StructUnionSpecifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
     if (this->declarations != NULL)
         for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
             (*i)->accept(visitor);
@@ -32,13 +47,13 @@ void StructUnionSpecifier::accept(dtcc::visitor::Visitor & visitor)
 void StructUnionSpecifier::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
 void StructUnionSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 {
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);
 }
 

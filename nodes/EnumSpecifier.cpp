@@ -13,6 +13,22 @@
 
 using namespace dtcc::astnodes;
 
+// calls acceptPreRecursive(visitor) for all children nodes of this AST node
+void EnumSpecifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->enums != NULL)
+        for(Enumerators::iterator i = this->enums->begin(); i != this->enums->end(); ++i)
+            (*i)->acceptPreRecursive(visitor);
+}
+
+// calls acceptPostRecursive(visitor) for all children nodes of this AST node
+void EnumSpecifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->enums != NULL)
+        for(Enumerators::iterator i = this->enums->begin(); i != this->enums->end(); ++i)
+            (*i)->acceptPostRecursive(visitor);
+}
+
 // calls accept(visitor) for all children nodes of this AST node
 void EnumSpecifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
@@ -31,13 +47,13 @@ void EnumSpecifier::accept(dtcc::visitor::Visitor & visitor)
 void EnumSpecifier::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
 void EnumSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 {
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);
 }
 

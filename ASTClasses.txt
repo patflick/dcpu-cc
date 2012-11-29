@@ -38,7 +38,7 @@ SizeOfOperator(TypeName * typeName) : Expression
 UnaryOperator(int optoken, Expression * expr) : Expression
 PreIncDec(int optoken, Expression * expr) : Expression
 PostIncDec(int optoken, Expression * expr) : Expression
-MethodCall(Expression * lhsExpr, Expression * rhsExpr) : Expression
+MethodCall(Expression * lhsExpr, Expressions * rhsExprs) : Expression
 ArrayAccessOperator(Expression * lhsExpr, Expression * rhsExpr) : Expression
 StringLiteral(std::string& str) : Expression
 Constant(int token) : Expression

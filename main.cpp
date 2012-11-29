@@ -48,5 +48,7 @@ int main(int argc, char **argv) {
     
     program->accept(*printVisitor);
     
+    delete program;
+    
     return 0;
 }

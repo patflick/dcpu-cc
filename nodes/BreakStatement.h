@@ -29,6 +29,19 @@ namespace dtcc
         ///
         class BreakStatement : public Statement
         {
+        private:
+            ///
+            /// @brief          Calls acceptPreRecursive(visitor) on all children nodes.
+            /// @param visitor  The visitor to be accepted.
+            ///
+            void allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor);
+            
+            ///
+            /// @brief          Calls acceptPostRecursive(visitor) on all children nodes.
+            /// @param visitor  The visitor to be accepted.
+            ///
+            void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
+            
         public:
 
             

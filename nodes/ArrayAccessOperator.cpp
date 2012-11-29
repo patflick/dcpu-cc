@@ -13,6 +13,26 @@
 
 using namespace dtcc::astnodes;
 
+// calls acceptPreRecursive(visitor) for all children nodes of this AST node
+void ArrayAccessOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->lhsExpr != NULL)
+        this->lhsExpr->acceptPreRecursive(visitor);
+    if (this->rhsExpr != NULL)
+        this->rhsExpr->acceptPreRecursive(visitor);
+
+}
+
+// calls acceptPostRecursive(visitor) for all children nodes of this AST node
+void ArrayAccessOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->lhsExpr != NULL)
+        this->lhsExpr->acceptPostRecursive(visitor);
+    if (this->rhsExpr != NULL)
+        this->rhsExpr->acceptPostRecursive(visitor);
+
+}
+
 // calls accept(visitor) for all children nodes of this AST node
 void ArrayAccessOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
@@ -30,13 +50,13 @@ void ArrayAccessOperator::accept(dtcc::visitor::Visitor & visitor)
 void ArrayAccessOperator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
 void ArrayAccessOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 {
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);
 }
 

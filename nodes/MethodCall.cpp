@@ -13,10 +13,32 @@
 
 using namespace dtcc::astnodes;
 
+// calls acceptPreRecursive(visitor) for all children nodes of this AST node
+void MethodCall::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->lhsExpr != NULL)
+        this->lhsExpr->acceptPreRecursive(visitor);
+    if (this->rhsExprs != NULL)
+        for (Expressions::iterator i = this->rhsExprs->begin(); i != this->rhsExprs->end(); ++i)
+            (*i)->acceptPreRecursive(visitor);
+}
+
+// calls acceptPostRecursive(visitor) for all children nodes of this AST node
+void MethodCall::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+{
+    if (this->lhsExpr != NULL)
+        this->lhsExpr->acceptPostRecursive(visitor);
+    if (this->rhsExprs != NULL)
+        for (Expressions::iterator i = this->rhsExprs->begin(); i != this->rhsExprs->end(); ++i)
+            (*i)->acceptPostRecursive(visitor);
+}
+
 // calls accept(visitor) for all children nodes of this AST node
 void MethodCall::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    this->lhsExpr->accept(visitor);
+    if (this->lhsExpr != NULL)
+        this->lhsExpr->accept(visitor);
+    if (this->rhsExprs != NULL)
     for (Expressions::iterator i = this->rhsExprs->begin(); i != this->rhsExprs->end(); ++i)
         (*i)->accept(visitor);
 
@@ -32,13 +54,13 @@ void MethodCall::accept(dtcc::visitor::Visitor & visitor)
 void MethodCall::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
 void MethodCall::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 {
-    this->allChildrenAccept(visitor);
+    this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);
 }
 

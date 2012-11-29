@@ -77,6 +77,16 @@ def parserow(row):
     childaccept = ""
     for s in param_names:
         childaccept += "    this->" + s + "->accept(visitor);\n"
+        
+    childacceptPre = ""
+    for s in param_names:
+        childacceptPre += "    if (this->" + s + " != NULL)\n"
+        childacceptPre += "        this->" + s + "->acceptPreRecursive(visitor);\n"
+    
+    childacceptPost = ""
+    for s in param_names:
+        childacceptPost += "    if (this->" + s + " != NULL)\n"
+        childacceptPost += "        this->" + s + "->acceptPostRecursive(visitor);\n"
     
     hTemplate = ""
     with open(H_TEMPLATE, 'r') as f:
@@ -109,6 +119,8 @@ def parserow(row):
     cppResult = cppResult.replace("%deleteClassMembers%", deleteclassmembers);
     cppResult = cppResult.replace("%nodes_include%", includes);
     cppResult = cppResult.replace("%ChildrenVisitor%", childaccept);
+    cppResult = cppResult.replace("%ChildrenPreVisitor%", childacceptPre);
+    cppResult = cppResult.replace("%ChildrenPostVisitor%", childacceptPost);
     
     
     with open(OUTPUT_FOLDER + "/" + ClassName + ".h", 'w') as f:
@@ -137,15 +149,15 @@ def parserow(row):
     #print " "*12
     #print " "*12
     
-    print "void PrintAstVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
-    print "{"
-    print " "*4 + "printAstName(\"" + ClassName + "\");"
-    print " "*4 + "increaseIdentation();"
-    print " "*4 + className + "->allChildrenAccept(*this);"
-    print " "*4 + "decreaseIdentation();"
-    print "}"
-    print ""
-    print ""
+    #print "void PrintAstVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
+    #print "{"
+    #print " "*4 + "printAstName(\"" + ClassName + "\");"
+    #print " "*4 + "increaseIdentation();"
+    #print " "*4 + className + "->allChildrenAccept(*this);"
+    #print " "*4 + "decreaseIdentation();"
+    #print "}"
+    #print ""
+    #print ""
     
     
     
