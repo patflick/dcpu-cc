@@ -45,3 +45,7 @@ Constant(int token) : Expression
 Identifier(std::string& name) : Expression
 ChainExpressions() : Expression
 Program(ExternalDeclarations* decls) : Node
+StructUnionSpecifier(int token, Declarations * declarations, std::string& name) : TypeSpecifier
+EnumSpecifier(Enumerators * enums, std::string& name) : TypeSpecifier
+Enumerator(std::string& name, Expression * expr) : Node
+StructureResolutionOperator(Expression * lhsExpr, std::string& fieldName, bool isPointered) : Expression

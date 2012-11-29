@@ -445,3 +445,38 @@ void PrintAstVisitor::visit(astnodes::Program * program)
     program->allChildrenAccept(*this);
     decreaseIdentation();
 }
+
+void PrintAstVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpecifier)
+{
+    printAstName("StructUnionSpecifier");
+    increaseIdentation();
+    structUnionSpecifier->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::EnumSpecifier * enumSpecifier)
+{
+    printAstName("EnumSpecifier");
+    increaseIdentation();
+    enumSpecifier->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::Enumerator * enumerator)
+{
+    printAstName("Enumerator");
+    increaseIdentation();
+    enumerator->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::StructureResolutionOperator * structureResolutionOperator)
+{
+    printAstName("StructureResolutionOperator");
+    increaseIdentation();
+    structureResolutionOperator->allChildrenAccept(*this);
+    decreaseIdentation();
+}

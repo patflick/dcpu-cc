@@ -39,9 +39,9 @@ add_executable(dtcc2tests
     ${BISON_libdcpu-ci-lang-c-parser_OUTPUTS}
     parser.y
     lexer.l
-    ${nodesSrc}
     ${nodesHdr}
-    ${visitorSrc}
+    ${nodesSrc}
     ${visitorHdr}
+    ${visitorSrc}
 )
 

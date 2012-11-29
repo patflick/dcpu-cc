@@ -58,6 +58,8 @@ void yyerror(const char *str);
     StorageSpecifier* storspec;
     ExternalDeclarations* extDecls;
     Pointers* pointers;
+    Enumerator* enumerator;
+    Enumerators* enumerators;
     std::string* string;
     int token;
 }
@@ -95,8 +97,8 @@ void yyerror(const char *str);
 %type <function> function_definition
 %type <extDecl> external_declaration
 %type <extDecls> translation_unit
-%type <declaration> parameter_declaration declaration
-%type <declarations> declaration_list
+%type <declaration> parameter_declaration declaration struct_declaration
+%type <declarations> declaration_list struct_declaration_list
 %type <paramdeclarations> parameter_list parameter_type_list
 %type <stmt> statement labeled_statement jump_statement iteration_statement selection_statement expression_statement
 %type <blkStmt> compound_statement
@@ -104,17 +106,18 @@ void yyerror(const char *str);
 %type <expr> primary_expression postfix_expression unary_expression cast_expression multiplicative_expression additive_expression shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression constant_expression
 %type <exprs> argument_expression_list initializer_list initializer
 %type <chainexprs> expression
-%type <declarator> init_declarator direct_declarator declarator direct_abstract_declarator abstract_declarator
-%type <declarators> init_declarator_list
+%type <declarator> init_declarator direct_declarator declarator direct_abstract_declarator abstract_declarator struct_declarator
+%type <declarators> init_declarator_list struct_declarator_list
 %type <declspecs> specifier_qualifier_list declaration_specifiers
 %type <typeName> type_name
 %type <typequal> type_qualifier
 %type <typequals> type_qualifier_list
-%type <typespec> type_specifier
+%type <typespec> type_specifier struct_or_union_specifier enum_specifier
 %type <storspec> storage_class_specifier
 %type <pointers> pointer
-%type <token> unary_operator assignment_operator
-
+%type <token> unary_operator assignment_operator struct_or_union
+%type <enumerator> enumerator
+%type <enumerators> enumerator_list
 
 /* Start point of parsing */
 %start program
@@ -158,10 +161,14 @@ postfix_expression
         {
             $$ = new MethodCall($1, $3);
         }
-/* TODO structs and enums
         | postfix_expression DOT IDENTIFIER
+        {
+            $$ = new StructureResolutionOperator($1, *$3, false);
+        }
         | postfix_expression PTR_OP IDENTIFIER
-*/
+        {
+            $$ = new StructureResolutionOperator($1, *$3, true);
+        }
         | postfix_expression INC_OP
         {
             $$ = new PostIncDec($2, $1);
@@ -559,22 +566,35 @@ type_specifier
         {
             $$ = new TypeBaseSpecifier($1);
         }
-/*
-        // TODO structs and enums
         | struct_or_union_specifier
+        {
+            $$ = $1;
+        }
         | enum_specifier
-*/
+        {
+            $$ = $1;
+        }
         | TYPE_NAME
         {
             $$ = new TypeNameSpecifier(*$1);
         }
         ;
 
-/*
+
 struct_or_union_specifier
         : struct_or_union IDENTIFIER BRACE_OPEN struct_declaration_list BRACE_CLOSE
+        {
+            $$ = new StructUnionSpecifier($1, $4, *$2);
+        }
         | struct_or_union BRACE_OPEN struct_declaration_list BRACE_CLOSE
+        {
+            // anonymous struct
+            $$ = new StructUnionSpecifier($1, $3);
+        }
         | struct_or_union IDENTIFIER
+        {
+            $$ = new StructUnionSpecifier($1, NULL, *$2);
+        }
         ;
 
 struct_or_union
@@ -584,13 +604,24 @@ struct_or_union
 
 struct_declaration_list
         : struct_declaration
+        {
+            $$ = new Declarations();
+            $$->push_back($1);
+        }
         | struct_declaration_list struct_declaration
+        {
+            $1->push_back($2);
+            $$ = $1;
+        }
         ;
 
 struct_declaration
         : specifier_qualifier_list struct_declarator_list SEMICOLON
+        {
+            $$ = new Declaration($1, $2);
+        }
         ;
-*/
+
 
 
 specifier_qualifier_list
@@ -615,38 +646,71 @@ specifier_qualifier_list
             $$ = $2;
         }
         ;
-/*
+
 struct_declarator_list
         : struct_declarator
+        {
+            $$ = new Declarators();
+            $$->push_back($1);
+        }
         | struct_declarator_list COMMA struct_declarator
+        {
+            $1->push_back($3);
+            $$ = $1;
+        }
         ;
 
 struct_declarator
         : declarator
+        {
+            $$ = $1;
+        }
+/* No support for bit fields (well, at least not yet)
         | COLON constant_expression
         | declarator COLON constant_expression
-        ;
 */
+        ;
 
 
-// TODO support enums
-/*
 enum_specifier
         : ENUM BRACE_OPEN enumerator_list BRACE_CLOSE
+        {
+            $$ = new EnumSpecifier($3);
+        }
         | ENUM IDENTIFIER BRACE_OPEN enumerator_list BRACE_CLOSE
+        {
+            $$ = new EnumSpecifier($4, *$2);
+        }
         | ENUM IDENTIFIER
+        {
+            $$ = new EnumSpecifier(NULL, *$2);
+        }
         ;
 
 enumerator_list
         : enumerator
+        {
+            $$ = new Enumerators();
+            $$->push_back($1);
+        }
         | enumerator_list COMMA enumerator
+        {
+            $1->push_back($3);
+            $$ = $1;
+        }
         ;
 
 enumerator
         : IDENTIFIER
+        {
+            $$ = new Enumerator(*$1, NULL);
+        }
         | IDENTIFIER ASSIGN_EQUAL constant_expression
+        {
+            $$ = new Enumerator(*$1, $3);
+        }
         ;
-*/
+
 
 
 type_qualifier

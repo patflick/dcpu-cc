@@ -356,7 +356,32 @@ namespace dtcc
             virtual void visit(astnodes::Program * program) = 0;
             
             
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param structUnionSpecifier    The node to visit this visitor
+            virtual void visit(astnodes::StructUnionSpecifier * structUnionSpecifier) = 0;
             
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param enumSpecifier    The node to visit this visitor
+            virtual void visit(astnodes::EnumSpecifier * enumSpecifier) = 0;
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param enumerator    The node to visit this visitor
+            virtual void visit(astnodes::Enumerator * enumerator) = 0;
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param structureResolutionOperator    The node to visit this visitor
+            virtual void visit(astnodes::StructureResolutionOperator * structureResolutionOperator) = 0;
         };
         
     } // namespace dtcc
