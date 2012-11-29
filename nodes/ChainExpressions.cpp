@@ -17,7 +17,9 @@ using namespace dtcc::astnodes;
 void ChainExpressions::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
-
+    if (this->exprs != NULL)
+        for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
+            (*i)->accept(visitor);
 }
 
 // implements the visitor pattern

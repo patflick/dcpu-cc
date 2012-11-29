@@ -17,11 +17,12 @@ using namespace dtcc::astnodes;
 void BlockStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // call accept for all children
-    for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
-        (*i)->accept(visitor);
-    for (Statements::iterator i = this->statements->begin(); i != this->statements->end(); ++i)
-        (*i)->accept(visitor);
-
+    if (this->declarations != NULL)
+        for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
+            (*i)->accept(visitor);
+    if (this->statements != NULL)
+        for (Statements::iterator i = this->statements->begin(); i != this->statements->end(); ++i)
+            (*i)->accept(visitor);
 }
 
 // implements the visitor pattern

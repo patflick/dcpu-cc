@@ -9,11 +9,12 @@
 /// @author     Patrick Flick
 ///
 
-#ifndef __DCPU_CC_VISITOR_VISITOR_H
-#define __DCPU_CC_VISITOR_VISITOR_H
+#ifndef __DCPU_CC_VISITOR_PRINT_AST_VISITOR_H
+#define __DCPU_CC_VISITOR_PRINT_AST_VISITOR_H
 
 // include all AST nodes
 #include <nodes/allnodes.h>
+#include "Visitor.h"
 
 namespace dtcc
 {
@@ -24,9 +25,19 @@ namespace dtcc
         /// @class      Visitor
         /// @brief      The AST Visitor interface.
         ///
-        class Visitor
+        class PrintAstVisitor : public Visitor
         {
+        private:
+            int identation;
+            
+            void printAstName(const char * name);
+            void increaseIdentation();
+            void decreaseIdentation();
+            
         public:
+            
+            PrintAstVisitor() : identation(0) {}
+            
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern

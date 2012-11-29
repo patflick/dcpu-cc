@@ -18,8 +18,11 @@ void Declaration::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO do we have to visit declspecifiers??
     // this->declSpecifiers->accept(visitor);
-    for (Declarators::iterator i = this->declarators->begin(); i != this->declarators->end(); ++i)
-        (*i)->accept(visitor);
+    if (this->declarators != NULL)
+        for (Declarators::iterator i = this->declarators->begin(); i != this->declarators->end(); ++i)
+            (*i)->accept(visitor);
+    if (this->singleDeclarator != NULL)
+        this->singleDeclarator->accept(visitor);
 
 }
 

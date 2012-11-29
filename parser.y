@@ -24,7 +24,7 @@ using namespace dtcc::astnodes;
 #define YYERROR_VERBOSE
 
 // Defines the root node.
-//NDeclarations* program;
+Program* program;
 
 // YY-stuff.
 extern int yylex();
@@ -56,7 +56,6 @@ void yyerror(const char *str);
     TypeQualifiers* typequals;
     TypeSpecifier* typespec;
     StorageSpecifier* storspec;
-    Program* program;
     ExternalDeclarations* extDecls;
     Pointers* pointers;
     std::string* string;
@@ -1085,7 +1084,7 @@ function_definition
 program
         : translation_unit
         {
-            $$ = new Program($1);
+            program = new Program($1);
         }
         ;
 
