@@ -54,7 +54,6 @@ void GotoStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 GotoStatement::~GotoStatement()
 {
-
 }
 
 ///

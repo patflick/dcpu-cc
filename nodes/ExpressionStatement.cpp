@@ -60,7 +60,7 @@ void ExpressionStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ExpressionStatement::~ExpressionStatement()
 {
-    delete this->expr;
+    this->safe_delete(this->expr);
 
 }
 

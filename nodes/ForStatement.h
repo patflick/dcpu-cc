@@ -99,7 +99,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ForStatement AST node.
             ///
-            ~ForStatement();
+            virtual ~ForStatement();
         };
 
     } // namespace dtcc

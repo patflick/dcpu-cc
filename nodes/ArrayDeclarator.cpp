@@ -65,8 +65,8 @@ void ArrayDeclarator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ArrayDeclarator::~ArrayDeclarator()
 {
-    delete this->baseDeclarator;
-    delete this->constExpr;
+    this->safe_delete(this->baseDeclarator);
+    this->safe_delete(this->constExpr);
 
 }
 

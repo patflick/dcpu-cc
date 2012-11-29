@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the FunctionDeclarator AST node.
             ///
-            ~FunctionDeclarator();
+            virtual ~FunctionDeclarator();
         };
 
     } // namespace dtcc

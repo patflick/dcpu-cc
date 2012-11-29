@@ -54,6 +54,7 @@ void Identifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 Identifier::~Identifier()
 {
+
 }
 
 ///

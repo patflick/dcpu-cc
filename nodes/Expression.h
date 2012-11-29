@@ -90,7 +90,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Expression AST node.
             ///
-            ~Expression();
+            virtual ~Expression();
         };
 
     } // namespace dtcc

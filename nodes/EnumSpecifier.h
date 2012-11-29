@@ -101,7 +101,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the EnumSpecifier AST node.
             ///
-            ~EnumSpecifier();
+            virtual ~EnumSpecifier();
         };
 
     } // namespace dtcc

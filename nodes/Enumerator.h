@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Enumerator AST node.
             ///
-            ~Enumerator();
+            virtual ~Enumerator();
         };
 
     } // namespace dtcc

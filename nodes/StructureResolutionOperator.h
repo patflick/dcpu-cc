@@ -96,7 +96,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the StructureResolutionOperator AST node.
             ///
-            ~StructureResolutionOperator();
+            virtual ~StructureResolutionOperator();
         };
 
     } // namespace dtcc

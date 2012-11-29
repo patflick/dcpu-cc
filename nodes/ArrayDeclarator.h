@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ArrayDeclarator AST node.
             ///
-            ~ArrayDeclarator();
+            virtual ~ArrayDeclarator();
         };
 
     } // namespace dtcc

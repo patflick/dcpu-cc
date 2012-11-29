@@ -93,7 +93,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ReturnStatement AST node.
             ///
-            ~ReturnStatement();
+            virtual ~ReturnStatement();
         };
 
     } // namespace dtcc

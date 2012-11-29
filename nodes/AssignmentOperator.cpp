@@ -63,9 +63,8 @@ void AssignmentOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 AssignmentOperator::~AssignmentOperator()
 {
-    delete this->lhsExrp;
-    delete this->rhsExpr;
-
+    this->safe_delete(this->lhsExrp);
+    this->safe_delete(this->rhsExpr);
 }
 
 ///

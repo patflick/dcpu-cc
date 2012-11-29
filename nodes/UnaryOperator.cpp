@@ -57,8 +57,7 @@ void UnaryOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 UnaryOperator::~UnaryOperator()
 {
-    delete this->expr;
-
+    this->safe_delete(this->expr);
 }
 
 ///

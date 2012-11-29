@@ -70,9 +70,9 @@ void ConditionalOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ConditionalOperator::~ConditionalOperator()
 {
-    delete this->condExpr;
-    delete this->ifExpr;
-    delete this->elseExpr;
+    this->safe_delete(this->condExpr);
+    this->safe_delete(this->ifExpr);
+    this->safe_delete(this->elseExpr);
 
 }
 

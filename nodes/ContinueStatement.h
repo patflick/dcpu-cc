@@ -90,7 +90,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ContinueStatement AST node.
             ///
-            ~ContinueStatement();
+            virtual ~ContinueStatement();
         };
 
     } // namespace dtcc

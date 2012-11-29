@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the StorageSpecifier AST node.
             ///
-            ~StorageSpecifier();
+            virtual ~StorageSpecifier();
         };
 
     } // namespace dtcc

@@ -62,7 +62,7 @@ void Pointer::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 Pointer::~Pointer()
 {
-    delete this->typeQualifiers;
+    this->safe_delete(this->typeQualifiers);
 
 }
 

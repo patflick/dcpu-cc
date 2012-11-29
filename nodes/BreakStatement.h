@@ -90,7 +90,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the BreakStatement AST node.
             ///
-            ~BreakStatement();
+            virtual ~BreakStatement();
         };
 
     } // namespace dtcc

@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the CaseStatement AST node.
             ///
-            ~CaseStatement();
+            virtual ~CaseStatement();
         };
 
     } // namespace dtcc

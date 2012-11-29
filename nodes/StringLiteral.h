@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the StringLiteral AST node.
             ///
-            ~StringLiteral();
+            virtual ~StringLiteral();
         };
 
     } // namespace dtcc

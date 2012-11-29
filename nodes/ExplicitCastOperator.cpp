@@ -65,8 +65,8 @@ void ExplicitCastOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ExplicitCastOperator::~ExplicitCastOperator()
 {
-    delete this->typeName;
-    delete this->expr;
+    this->safe_delete(this->typeName);
+    this->safe_delete(this->expr);
 
 }
 

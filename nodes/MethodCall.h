@@ -94,7 +94,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the MethodCall AST node.
             ///
-            ~MethodCall();
+            virtual ~MethodCall();
         };
 
     } // namespace dtcc

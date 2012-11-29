@@ -101,7 +101,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the SizeOfOperator AST node.
             ///
-            ~SizeOfOperator();
+            virtual ~SizeOfOperator();
         };
 
     } // namespace dtcc

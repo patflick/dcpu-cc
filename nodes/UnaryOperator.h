@@ -94,7 +94,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the UnaryOperator AST node.
             ///
-            ~UnaryOperator();
+            virtual ~UnaryOperator();
         };
 
     } // namespace dtcc

@@ -65,8 +65,8 @@ void WhileStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 WhileStatement::~WhileStatement()
 {
-    delete this->condExpr;
-    delete this->statement;
+    this->safe_delete(this->condExpr);
+    this->safe_delete(this->statement);
 
 }
 

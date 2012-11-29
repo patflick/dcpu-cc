@@ -96,7 +96,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the BinaryOperator AST node.
             ///
-            ~BinaryOperator();
+            virtual ~BinaryOperator();
         };
 
     } // namespace dtcc

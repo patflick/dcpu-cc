@@ -94,7 +94,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the PostIncDec AST node.
             ///
-            ~PostIncDec();
+            virtual ~PostIncDec();
         };
 
     } // namespace dtcc

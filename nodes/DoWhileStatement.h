@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the DoWhileStatement AST node.
             ///
-            ~DoWhileStatement();
+            virtual ~DoWhileStatement();
         };
 
     } // namespace dtcc

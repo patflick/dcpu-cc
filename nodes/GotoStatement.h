@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the GotoStatement AST node.
             ///
-            ~GotoStatement();
+            virtual ~GotoStatement();
         };
 
     } // namespace dtcc

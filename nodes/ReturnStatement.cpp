@@ -60,7 +60,7 @@ void ReturnStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ReturnStatement::~ReturnStatement()
 {
-    delete this->expr;
+    this->safe_delete(this->expr);
 
 }
 

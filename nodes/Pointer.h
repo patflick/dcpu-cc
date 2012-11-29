@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Pointer AST node.
             ///
-            ~Pointer();
+            virtual ~Pointer();
         };
 
     } // namespace dtcc

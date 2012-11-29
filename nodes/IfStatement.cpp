@@ -70,9 +70,9 @@ void IfStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 IfStatement::~IfStatement()
 {
-    delete this->condExpr;
-    delete this->ifStmt;
-    delete this->elseStmt;
+    this->safe_delete(this->condExpr);
+    this->safe_delete(this->ifStmt);
+    this->safe_delete(this->elseStmt);
 
 }
 

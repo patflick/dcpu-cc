@@ -91,7 +91,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ChainExpressions AST node.
             ///
-            ~ChainExpressions();
+            virtual ~ChainExpressions();
         };
 
     } // namespace dtcc

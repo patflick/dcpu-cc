@@ -60,8 +60,10 @@ void Program::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 Program::~Program()
 {
-    delete this->decls;
-
+    if (this->decls != NULL)
+        for (ExternalDeclarations::iterator i = this->decls->begin(); i != this->decls->end(); ++i)
+            this->safe_delete((*i));
+    this->safe_delete(this->decls);
 }
 
 ///

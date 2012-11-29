@@ -94,7 +94,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the LabelStatement AST node.
             ///
-            ~LabelStatement();
+            virtual ~LabelStatement();
         };
 
     } // namespace dtcc

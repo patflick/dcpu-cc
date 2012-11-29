@@ -93,7 +93,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the DefaultStatement AST node.
             ///
-            ~DefaultStatement();
+            virtual ~DefaultStatement();
         };
 
     } // namespace dtcc

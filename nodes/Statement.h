@@ -90,7 +90,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Statement AST node.
             ///
-            ~Statement();
+            virtual ~Statement();
         };
 
     } // namespace dtcc

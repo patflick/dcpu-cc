@@ -12,6 +12,8 @@
 #ifndef __DCPU_CC_AST_NODES_NODE_H
 #define __DCPU_CC_AST_NODES_NODE_H
 
+#include <cstdlib>
+
 namespace dtcc
 {
     // forward-declare visitor
@@ -61,6 +63,25 @@ namespace dtcc
             /// all its children nodes and only then visit(this).
             virtual void acceptPreRecursive(dtcc::visitor::Visitor & visitor) = 0;
             
+            ///
+            /// @brief          Calls accept(visitor) on all children nodes.
+            /// @param visitor  The visitor to be accepted.
+            ///
+            virtual void allChildrenAccept(dtcc::visitor::Visitor & visitor) = 0;
+            
+            ///
+            /// @brief          Performes a safe deletion of the given pointer.
+            /// @param a        The visitor to be accepted.
+            ///
+            /// This is a member of node, so that all AST nodes can
+            /// access this, as they all inherit from Node.
+            template<typename T> void safe_delete(T*& p) {
+                delete p;
+                p = NULL;
+            }
+            
+            
+            virtual ~Node() {};
         };
         
     } // namespace dtcc

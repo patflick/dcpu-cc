@@ -57,8 +57,7 @@ void PreIncDec::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 PreIncDec::~PreIncDec()
 {
-    delete this->expr;
-
+    this->safe_delete(this->expr);
 }
 
 ///

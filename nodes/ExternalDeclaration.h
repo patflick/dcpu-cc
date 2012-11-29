@@ -29,18 +29,6 @@ namespace dtcc
         ///
         class ExternalDeclaration : public Node
         {
-        private:
-            ///
-            /// @brief          Calls acceptPreRecursive(visitor) on all children nodes.
-            /// @param visitor  The visitor to be accepted.
-            ///
-            void allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor);
-            
-            ///
-            /// @brief          Calls acceptPostRecursive(visitor) on all children nodes.
-            /// @param visitor  The visitor to be accepted.
-            ///
-            void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
             
@@ -79,6 +67,10 @@ namespace dtcc
             ///
             virtual void allChildrenAccept(dtcc::visitor::Visitor & visitor) = 0;
             
+            ///
+            /// @brief      The destructor of the CaseStatement AST node.
+            ///
+            virtual ~ExternalDeclaration() {};
         };
 
     } // namespace dtcc

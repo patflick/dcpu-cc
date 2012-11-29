@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Identifier AST node.
             ///
-            ~Identifier();
+            virtual ~Identifier();
         };
 
     } // namespace dtcc

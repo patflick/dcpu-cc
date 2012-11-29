@@ -60,7 +60,7 @@ void SizeOfOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 SizeOfOperator::~SizeOfOperator()
 {
-    delete this->typeName;
+    this->safe_delete(this->typeName);
 
 }
 

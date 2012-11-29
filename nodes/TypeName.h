@@ -96,7 +96,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the TypeName AST node.
             ///
-            ~TypeName();
+            virtual ~TypeName();
         };
 
     } // namespace dtcc

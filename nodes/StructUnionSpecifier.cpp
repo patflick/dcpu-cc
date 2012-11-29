@@ -60,7 +60,10 @@ void StructUnionSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 StructUnionSpecifier::~StructUnionSpecifier()
 {
-    delete this->declarations;
+    if (this->declarations != NULL)
+        for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
+            this->safe_delete(*i);
+    this->safe_delete(this->declarations);
 }
 
 ///

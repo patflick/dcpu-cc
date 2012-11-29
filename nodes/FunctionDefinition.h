@@ -99,7 +99,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the FunctionDefinition AST node.
             ///
-            ~FunctionDefinition();
+            virtual ~FunctionDefinition();
         };
 
     } // namespace dtcc

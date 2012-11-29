@@ -65,8 +65,8 @@ void DoWhileStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 DoWhileStatement::~DoWhileStatement()
 {
-    delete this->statement;
-    delete this->condExpr;
+    this->safe_delete(this->statement);
+    this->safe_delete(this->condExpr);
 
 }
 

@@ -75,10 +75,10 @@ void ForStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ForStatement::~ForStatement()
 {
-    delete this->initExpr;
-    delete this->condExpr;
-    delete this->loopExpr;
-    delete this->statement;
+    this->safe_delete(this->initExpr);
+    this->safe_delete(this->condExpr);
+    this->safe_delete(this->loopExpr);
+    this->safe_delete(this->statement);
 
 }
 

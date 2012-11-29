@@ -68,7 +68,7 @@ def parserow(row):
     
     deleteclassmembers = ""
     for s in param_names:
-        deleteclassmembers += "    delete this->" + s + ";\n"
+        deleteclassmembers += "    this->safe_delete(this->" + s + ");\n"
     
     doxygenparams = ""
     for s in param_names:

@@ -93,7 +93,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Program AST node.
             ///
-            ~Program();
+            virtual ~Program();
         };
 
     } // namespace dtcc

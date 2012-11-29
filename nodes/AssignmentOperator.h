@@ -96,7 +96,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the AssignmentOperator AST node.
             ///
-            ~AssignmentOperator();
+            virtual ~AssignmentOperator();
         };
 
     } // namespace dtcc

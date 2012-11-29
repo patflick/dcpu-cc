@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Constant AST node.
             ///
-            ~Constant();
+            virtual ~Constant();
         };
 
     } // namespace dtcc

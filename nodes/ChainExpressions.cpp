@@ -16,19 +16,22 @@ using namespace dtcc::astnodes;
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
 void ChainExpressions::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
 {
-
+    if (this->exprs != NULL)
+        for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
+            (*i)->acceptPreRecursive(visitor);
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
 void ChainExpressions::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
 {
-
+    if (this->exprs != NULL)
+        for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
+            (*i)->acceptPostRecursive(visitor);
 }
 
 // calls accept(visitor) for all children nodes of this AST node
 void ChainExpressions::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
     if (this->exprs != NULL)
         for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
             (*i)->accept(visitor);
@@ -57,7 +60,10 @@ void ChainExpressions::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 ChainExpressions::~ChainExpressions()
 {
-    delete this->exprs;
+    if (this->exprs != NULL)
+        for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
+            this->safe_delete((*i));
+    this->safe_delete(this->exprs);
 }
 
 ///

@@ -73,10 +73,9 @@ void FunctionDefinition::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 FunctionDefinition::~FunctionDefinition()
 {
-    delete this->declSpecifiers;
-    delete this->declarator;
-    delete this->block;
-
+    this->safe_delete(this->declSpecifiers);
+    this->safe_delete(this->declarator);
+    this->safe_delete(this->block);
 }
 
 ///

@@ -60,8 +60,10 @@ void EnumSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 EnumSpecifier::~EnumSpecifier()
 {
-    delete this->enums;
-
+    if (this->enums != NULL)
+        for(Enumerators::iterator i = this->enums->begin(); i != this->enums->end(); ++i)
+            this->safe_delete(*i);
+    this->safe_delete(this->enums);
 }
 
 ///

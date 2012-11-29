@@ -89,7 +89,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the %ClassName% AST node.
             ///
-            ~%ClassName%();
+            virtual ~%ClassName%();
         };
 
     } // namespace dtcc

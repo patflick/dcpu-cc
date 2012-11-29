@@ -96,7 +96,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the BlockStatement AST node.
             ///
-            ~BlockStatement();
+            virtual ~BlockStatement();
         };
 
     } // namespace dtcc

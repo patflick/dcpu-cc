@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the SwitchStatement AST node.
             ///
-            ~SwitchStatement();
+            virtual ~SwitchStatement();
         };
 
     } // namespace dtcc

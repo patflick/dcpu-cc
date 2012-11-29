@@ -94,7 +94,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ArrayAccessOperator AST node.
             ///
-            ~ArrayAccessOperator();
+            virtual ~ArrayAccessOperator();
         };
 
     } // namespace dtcc

@@ -103,7 +103,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Declarator AST node.
             ///
-            ~Declarator();
+            virtual ~Declarator();
         };
 
     } // namespace dtcc

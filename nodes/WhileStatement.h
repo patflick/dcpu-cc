@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the WhileStatement AST node.
             ///
-            ~WhileStatement();
+            virtual ~WhileStatement();
         };
 
     } // namespace dtcc

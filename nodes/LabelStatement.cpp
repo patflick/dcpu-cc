@@ -57,8 +57,7 @@ void LabelStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 LabelStatement::~LabelStatement()
 {
-    delete this->statement;
-
+    this->safe_delete(this->statement);
 }
 
 ///

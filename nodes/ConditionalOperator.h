@@ -96,7 +96,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ConditionalOperator AST node.
             ///
-            ~ConditionalOperator();
+            virtual ~ConditionalOperator();
         };
 
     } // namespace dtcc

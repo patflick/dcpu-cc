@@ -57,8 +57,7 @@ void Enumerator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 Enumerator::~Enumerator()
 {
-    delete this->expr;
-
+    this->safe_delete(this->expr);
 }
 
 ///

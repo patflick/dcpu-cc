@@ -65,8 +65,8 @@ void CaseStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 CaseStatement::~CaseStatement()
 {
-    delete this->constExpr;
-    delete this->statement;
+    this->safe_delete(this->constExpr);
+    this->safe_delete(this->statement);
 
 }
 

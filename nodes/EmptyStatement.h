@@ -90,7 +90,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the EmptyStatement AST node.
             ///
-            ~EmptyStatement();
+            virtual ~EmptyStatement();
         };
 
     } // namespace dtcc

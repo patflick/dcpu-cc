@@ -65,8 +65,8 @@ void TypeName::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 TypeName::~TypeName()
 {
-    delete this->declSpecifiers;
-    delete this->abstrDeclarator;
+    this->safe_delete(this->declSpecifiers);
+    this->safe_delete(this->abstrDeclarator);
 
 }
 

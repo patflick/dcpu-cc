@@ -95,7 +95,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ExplicitCastOperator AST node.
             ///
-            ~ExplicitCastOperator();
+            virtual ~ExplicitCastOperator();
         };
 
     } // namespace dtcc

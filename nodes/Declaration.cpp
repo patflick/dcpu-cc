@@ -73,9 +73,12 @@ void Declaration::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 Declaration::~Declaration()
 {
-    delete this->declSpecifiers;
-    delete this->declarators;
-
+    if (this->declarators != NULL)
+        for (Declarators::iterator i = this->declarators->begin(); i != this->declarators->end(); ++i)
+            this->safe_delete((*i));
+    this->safe_delete(this->declSpecifiers);
+    this->safe_delete(this->declarators);
+    this->safe_delete(this->singleDeclarator);
 }
 
 ///

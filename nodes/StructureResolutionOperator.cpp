@@ -57,7 +57,7 @@ void StructureResolutionOperator::acceptPreRecursive(dtcc::visitor::Visitor & vi
 // implements the destructor, which deletes all children
 StructureResolutionOperator::~StructureResolutionOperator()
 {
-    delete this->lhsExpr;
+    this->safe_delete(this->lhsExpr);
 }
 
 ///

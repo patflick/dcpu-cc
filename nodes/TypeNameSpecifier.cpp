@@ -54,7 +54,6 @@ void TypeNameSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 TypeNameSpecifier::~TypeNameSpecifier()
 {
-
 }
 
 ///

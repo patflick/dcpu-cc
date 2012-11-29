@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the TypeQualifier AST node.
             ///
-            ~TypeQualifier();
+            virtual ~TypeQualifier();
         };
 
     } // namespace dtcc

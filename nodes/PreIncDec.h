@@ -94,7 +94,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the PreIncDec AST node.
             ///
-            ~PreIncDec();
+            virtual ~PreIncDec();
         };
 
     } // namespace dtcc

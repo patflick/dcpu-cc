@@ -106,7 +106,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the StructUnionSpecifier AST node.
             ///
-            ~StructUnionSpecifier();
+            virtual ~StructUnionSpecifier();
         };
 
     } // namespace dtcc

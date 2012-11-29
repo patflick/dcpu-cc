@@ -97,7 +97,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the IfStatement AST node.
             ///
-            ~IfStatement();
+            virtual ~IfStatement();
         };
 
     } // namespace dtcc

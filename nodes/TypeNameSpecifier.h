@@ -92,7 +92,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the TypeNameSpecifier AST node.
             ///
-            ~TypeNameSpecifier();
+            virtual ~TypeNameSpecifier();
         };
 
     } // namespace dtcc

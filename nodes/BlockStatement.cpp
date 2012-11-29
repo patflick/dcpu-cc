@@ -72,9 +72,14 @@ void BlockStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 BlockStatement::~BlockStatement()
 {
-    delete this->declarations;
-    delete this->statements;
-
+    if (this->declarations != NULL)
+        for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
+            this->safe_delete((*i));
+    if (this->statements != NULL)
+        for (Statements::iterator i = this->statements->begin(); i != this->statements->end(); ++i)
+            this->safe_delete((*i));
+    this->safe_delete(this->declarations);
+    this->safe_delete(this->statements);
 }
 
 ///

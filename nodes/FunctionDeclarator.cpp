@@ -66,8 +66,11 @@ void FunctionDeclarator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 FunctionDeclarator::~FunctionDeclarator()
 {
-    delete this->baseDeclarator;
-    delete this->parameterList;
+    if (parameterList != NULL)
+        for (Declarations::iterator i = parameterList->declarations.begin(); i != parameterList->declarations.end(); ++i)
+            this->safe_delete((*i));
+    this->safe_delete(this->baseDeclarator);
+    this->safe_delete(this->parameterList);
 
 }
 

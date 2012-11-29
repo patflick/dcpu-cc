@@ -65,8 +65,8 @@ void SwitchStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 SwitchStatement::~SwitchStatement()
 {
-    delete this->expr;
-    delete this->statement;
+    this->safe_delete(this->expr);
+    this->safe_delete(this->statement);
 
 }
 

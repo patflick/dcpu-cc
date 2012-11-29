@@ -41,7 +41,6 @@ void MethodCall::allChildrenAccept(dtcc::visitor::Visitor & visitor)
     if (this->rhsExprs != NULL)
     for (Expressions::iterator i = this->rhsExprs->begin(); i != this->rhsExprs->end(); ++i)
         (*i)->accept(visitor);
-
 }
 
 // implements the visitor pattern
@@ -67,9 +66,11 @@ void MethodCall::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 MethodCall::~MethodCall()
 {
-    delete this->lhsExpr;
-    delete this->rhsExprs;
-
+    if (this->rhsExprs != NULL)
+        for (Expressions::iterator i = this->rhsExprs->begin(); i != this->rhsExprs->end(); ++i)
+            this->safe_delete((*i));
+    this->safe_delete(this->lhsExpr);
+    this->safe_delete(this->rhsExprs);
 }
 
 ///
