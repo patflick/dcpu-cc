@@ -53,7 +53,7 @@ namespace dtcc
             ///
             /// @brief      The constructor of the Declarator AST node.
             ///
-            Declarator() : initializers(NULL) {}
+            Declarator() : initializers(NULL), pointers(NULL) {}
             
             ///
             /// @brief          Sets initializer expressions to this declarator.

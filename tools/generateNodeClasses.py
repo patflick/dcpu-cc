@@ -149,15 +149,15 @@ def parserow(row):
     #print " "*12
     #print " "*12
     
-    #print "void PrintAstVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
-    #print "{"
+    print "void EmptyVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
+    print "{"
     #print " "*4 + "printAstName(\"" + ClassName + "\");"
     #print " "*4 + "increaseIdentation();"
     #print " "*4 + className + "->allChildrenAccept(*this);"
     #print " "*4 + "decreaseIdentation();"
-    #print "}"
-    #print ""
-    #print ""
+    print "}"
+    print ""
+    print ""
     
     
     

@@ -5,6 +5,7 @@
 
 #include <string>
 #include <nodes/allnodes.h>
+#include <set>
 using namespace dtcc::astnodes;
 
 #include "parser.hpp"
@@ -21,6 +22,7 @@ void count();
 bool comment();
 int check_type();
 extern int string_return;
+extern std::set<std::string> activeTypedef;
 %}
 
 
@@ -39,37 +41,37 @@ IS                      (u|U|l|L)*
 %%
 "/*"                    { comment(); }
 
-"auto"                  { count(); return(AUTO); }
+"auto"                  { count(); return yylval.token = AUTO; }
 "break"                 { count(); return(BREAK); }
 "case"                  { count(); return(CASE); }
-"char"                  { count(); return(CHAR); }
-"const"                 { count(); return(CONST); }
+"char"                  { count(); return yylval.token = CHAR; }
+"const"                 { count(); return yylval.token = CONST; }
 "continue"              { count(); return(CONTINUE); }
 "default"               { count(); return(DEFAULT); }
 "do"                    { count(); return(DO); }
-"double"                { count(); return(DOUBLE); }
+"double"                { count(); return yylval.token = DOUBLE; }
 "else"                  { count(); return(ELSE); }
 "enum"                  { count(); return(ENUM); }
-"extern"                { count(); return(EXTERN); }
-"float"                 { count(); return(FLOAT); }
+"extern"                { count(); return yylval.token = EXTERN; }
+"float"                 { count(); return yylval.token = FLOAT; }
 "for"                   { count(); return(FOR); }
 "goto"                  { count(); return(GOTO); }
 "if"                    { count(); return(IF); }
-"int"                   { count(); return(INT); }
-"long"                  { count(); return(LONG); }
-"register"              { count(); return(REGISTER); }
+"int"                   { count(); return yylval.token = INT; }
+"long"                  { count(); return yylval.token = LONG; }
+"register"              { count(); return yylval.token = REGISTER; }
 "return"                { count(); return(RETURN); }
-"short"                 { count(); return(SHORT); }
-"signed"                { count(); return(SIGNED); }
+"short"                 { count(); return yylval.token = SHORT; }
+"signed"                { count(); return yylval.token = SIGNED; }
 "sizeof"                { count(); return(SIZEOF); }
-"static"                { count(); return(STATIC); }
-"struct"                { count(); return(STRUCT); }
+"static"                { count(); return yylval.token = STATIC; }
+"struct"                { count(); return yylval.token = STRUCT; }
 "switch"                { count(); return(SWITCH); }
-"typedef"               { count(); return(TYPEDEF); }
-"union"                 { count(); return(UNION); }
-"unsigned"              { count(); return(UNSIGNED); }
-"void"                  { count(); return(VOID); }
-"volatile"              { count(); return(VOLATILE); }
+"typedef"               { count(); return yylval.token = TYPEDEF; }
+"union"                 { count(); return yylval.token = UNION; }
+"unsigned"              { count(); return yylval.token = UNSIGNED; }
+"void"                  { count(); return yylval.token = VOID; }
+"volatile"              { count(); return yylval.token = VOLATILE; }
 "while"                 { count(); return(WHILE); }
 
     /* Identifier or possibly typedef (TODO) */
@@ -169,6 +171,8 @@ L?\"(\\.|[^\\"])*\"     { count(); return(STRING_LITERAL); }
 // state variable
 int string_return = INITIAL;
 
+// the set that holds the type names that have already been declared by typedefs
+std::set<std::string> activeTypedef;
 
 int yywrap()
 {
@@ -227,7 +231,6 @@ void count()
 
 int check_type()
 {
-    yylval.string = new std::string(yytext);
 /*
 * pseudo code --- this is what it should check
 *
@@ -237,9 +240,13 @@ int check_type()
 *       return(IDENTIFIER);
 */
 
-/*
-*       it actually will only return IDENTIFIER
-*/
+    yylval.string = new std::string(yytext);
 
-    return(IDENTIFIER);
+    if (activeTypedef.find(std::string(yytext)) != activeTypedef.end())
+    {
+        // we've got ourselves a typedef here
+        return(TYPE_NAME);
+    }
+    else
+        return(IDENTIFIER);
 }

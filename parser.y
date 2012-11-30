@@ -33,6 +33,7 @@ extern char * yytext;
 // only within toolchain:
 //extern bstring yyfilename;
 void yyerror(const char *str);
+void checkForTypedefs(Declaration * declaration);
 
 %}
 
@@ -1016,11 +1017,17 @@ compound_statement
 declaration_list
         : declaration
         {
+            // check for typedefs here to be added to the lexers list
+            checkForTypedefs($1);
+            // proceed normally
             $$ = new Declarations();
             $$->push_back($1);
         }
         | declaration_list declaration
         {
+            // check for typedefs here to be added to the lexers list
+            checkForTypedefs($2);
+            // proceed normally
             $1->push_back($2);
             $$ = $1;
         }
@@ -1127,6 +1134,8 @@ external_declaration
         }
         | declaration
         {
+            // check for typedefs here to be added to the lexers list
+            checkForTypedefs($1);
             $$ = $1;
         }
         ;
@@ -1157,6 +1166,28 @@ program
 #include <cstdio>
 #include "lexer.hpp"
 #include <cassert>
+#include <visitor/CheckTypedefVisitor.h>
+#include <set>
+
+extern int yycolumn;
+extern char * yytext;
+extern std::set<std::string> activeTypedef;
+
+void checkForTypedefs(Declaration * declaration)
+{
+    // create the CheckTypeDefVisitor and let it do its job
+    dtcc::visitor::CheckTypedefVisitor typedefChecker;// = new dtcc::visitor::CheckTypedefVisitor();
+    declaration->acceptPreRecursive(typedefChecker);
+
+    if (typedefChecker.isTypedef)
+    {
+
+        for (std::vector<std::string>::iterator i = typedefChecker.typeNameList.begin(); i != typedefChecker.typeNameList.end(); ++i)
+        {
+            activeTypedef.insert(*i);
+        }
+    }
+}
 
 void yyerror(const char *str)
 {
@@ -1169,5 +1200,4 @@ void yyerror(const char *str)
         fprintf(stderr, "error at line %i of '%s': %s\n", yylineno, yyfilename->data, str);
 */
 }
-extern int yycolumn;
-extern char * yytext;
+
