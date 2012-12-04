@@ -23,6 +23,8 @@ FILE(GLOB nodesSrc nodes/*.cpp)
 FILE(GLOB nodesHdr nodes/*.h)
 FILE(GLOB visitorSrc visitor/*.cpp)
 FILE(GLOB visitorHrd visitor/*.h)
+FILE(GLOB typesSrc types/*.cpp)
+FILE(GLOB typesHrd types/*.h)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -32,6 +34,7 @@ include_directories(
 
 add_subdirectory(nodes)
 add_subdirectory(visitor)
+add_subdirectory(types)
 
 add_executable(dtcc2tests
     main.cpp
@@ -43,5 +46,7 @@ add_executable(dtcc2tests
     ${nodesSrc}
     ${visitorHdr}
     ${visitorSrc}
+    ${typesHdr}
+    ${typesSrc}
 )
 

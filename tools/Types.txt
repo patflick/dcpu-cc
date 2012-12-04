@@ -1,0 +1,22 @@
+Type()
+ScalarType() : Type
+ArithmeticType() : ScalarType
+FloatType(): ArithmeticType
+Float(): FloatType
+Double(): FloatType
+LongDouble(): FloatType
+IntegralType(): ArithmeticType
+SignedChar(): IntegralType
+UnsignedChar(): IntegralType
+SignedShort(): IntegralType
+UnsignedShort(): IntegralType
+SignedInt(): IntegralType
+UnsignedInt(): IntegralType
+SignedLong(): IntegralType
+UnsignedLong(): IntegralType
+EnumType(): IntegralType
+PointerType(Type* baseType): ScalarType
+FunctionType(Type* returnType, ParameterTypeList* paramTypes) : Type
+AggregateType() : Type
+ArrayType(): AggregateType
+StructUnionType(): AggregateType

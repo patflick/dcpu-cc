@@ -1176,17 +1176,13 @@ extern std::set<std::string> activeTypedef;
 void checkForTypedefs(Declaration * declaration)
 {
     // create the CheckTypeDefVisitor and let it do its job
-    dtcc::visitor::CheckTypedefVisitor typedefChecker;// = new dtcc::visitor::CheckTypedefVisitor();
+    dtcc::visitor::CheckTypedefVisitor typedefChecker;
     declaration->acceptPreRecursive(typedefChecker);
 
     if (typedefChecker.isTypedef)
-    {
-
         for (std::vector<std::string>::iterator i = typedefChecker.typeNameList.begin(); i != typedefChecker.typeNameList.end(); ++i)
-        {
+            // add typedef names into set shared with the lexer
             activeTypedef.insert(*i);
-        }
-    }
 }
 
 void yyerror(const char *str)
