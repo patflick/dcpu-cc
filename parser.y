@@ -62,15 +62,19 @@ void checkForTypedefs(Declaration * declaration);
     Enumerator* enumerator;
     Enumerators* enumerators;
     std::string* string;
+    long intLiteral;
+    double floatLiteral;
     int token;
 }
 
 
-
+/* special tokens */
 %token <token> LINE_FILE
-
 %token <token> ERROR
 
+/* constants */
+%token <intLiteral> INT_LITERAL UINT_LITERAL LONG_LITERAL ULONG_LITERAL
+%token <floatLiteral> FLOAT_LITERAL DOUBLE_LITERAL LDOUBLE_LITERAL
 %token <string> STRING_LITERAL CHARACTER_LITERAL IDENTIFIER TYPE_NAME
 
 %token <token> CONSTANT SIZEOF
@@ -138,6 +142,38 @@ primary_expression
         | STRING_LITERAL
         {
             $$ = new StringLiteral(*$1);
+        }
+        | CHARACTER_LITERAL
+        {
+            $$ = new CharacterLiteral(*$1);
+        }
+        | INT_LITERAL
+        {
+            $$ = new SignedIntLiteral($1);
+        }
+        | UINT_LITERAL
+        {
+            $$ = new UnsignedIntLiteral($1);
+        }
+        | LONG_LITERAL
+        {
+            $$ = new SignedLongLiteral($1);
+        }
+        | ULONG_LITERAL
+        {
+            $$ = new UnsignedLongLiteral($1);
+        }
+        | FLOAT_LITERAL
+        {
+            $$ = new FloatLiteral($1);
+        }
+        | DOUBLE_LITERAL
+        {
+            $$ = new DoubleLiteral($1);
+        }
+        | LDOUBLE_LITERAL
+        {
+            $$ = new LongDoubleLiteral($1);
         }
         | CURVED_OPEN expression CURVED_CLOSE
         {

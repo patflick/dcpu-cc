@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <cstdlib>
 // only within toolchain
 //#include <lexfix.h>
 
@@ -28,11 +29,13 @@ extern std::set<std::string> activeTypedef;
 
 
 D                       [0-9]
-L                       [a-zA-Z_]
+O                       [0-7]
+A                       [a-zA-Z_]
 H                       [a-fA-F0-9]
 E                       [Ee][+-]?{D}+
-FS                      (f|F|l|L)
-IS                      (u|U|l|L)*
+F                       (f|F)
+L                       (l|L)
+U                       (u|U)
 
 
 %x IN_CHAR
@@ -74,19 +77,44 @@ IS                      (u|U|l|L)*
 "volatile"              { count(); return yylval.token = VOLATILE; }
 "while"                 { count(); return(WHILE); }
 
-    /* Identifier or possibly typedef (TODO) */
-{L}({L}|{D})*           { count(); return(check_type()); }
+    /* Identifier or possibly typedef */
+{A}({A}|{D})*           { count(); return(check_type()); }
 
 
-    /* numerical constants/literals TODO do this correctly */
-0[xX]{H}+{IS}?          { count(); return(CONSTANT); }
-0{D}+{IS}?              { count(); return(CONSTANT); }
-{D}+{IS}?               { count(); return(CONSTANT); }
-L?'(\\.|[^\\'])+'       { count(); return(CONSTANT); }
-
-{D}+{E}{FS}?            { count(); return(CONSTANT); }
-{D}*"."{D}+({E})?{FS}?  { count(); return(CONSTANT); }
-{D}+"."{D}*({E})?{FS}?  { count(); return(CONSTANT); }
+    /* numerical constants/literals */
+    
+    /* hex int */
+0[xX]{H}+               { count(); yylval.intLiteral = strtoul(yytext, NULL, 16); return(INT_LITERAL); }
+0[xX]{H}+{U}            { count(); yylval.intLiteral = strtoul(yytext, NULL, 16); return(UINT_LITERAL); }
+0[xX]{H}+{L}            { count(); yylval.intLiteral = strtoul(yytext, NULL, 16); return(LONG_LITERAL); }
+0[xX]{H}+({U}{L}|{L}{U})    { count(); yylval.intLiteral = strtoul(yytext, NULL, 16); return(ULONG_LITERAL); }
+    /* octal int */
+0{O}+                   { count(); yylval.intLiteral = strtoul(yytext, NULL, 8); return(INT_LITERAL); }
+0{O}+{U}                { count(); yylval.intLiteral = strtoul(yytext, NULL, 8); return(UINT_LITERAL); }
+0{O}+{L}                { count(); yylval.intLiteral = strtoul(yytext, NULL, 8); return(LONG_LITERAL); }
+0{O}+({U}{L}|{L}{U})    { count(); yylval.intLiteral = strtoul(yytext, NULL, 8); return(ULONG_LITERAL); }
+    /* decimal int */
+{D}+                    { count(); yylval.intLiteral = strtoul(yytext, NULL, 10); return(INT_LITERAL); }
+{D}+{U}                 { count(); yylval.intLiteral = strtoul(yytext, NULL, 10); return(UINT_LITERAL); }
+{D}+{L}                 { count(); yylval.intLiteral = strtoul(yytext, NULL, 10); return(LONG_LITERAL); }
+{D}+({U}{L}|{L}{U})     { count(); yylval.intLiteral = strtoul(yytext, NULL, 10); return(ULONG_LITERAL); }
+    /* binary int */
+0b[0-1]+                { count(); yylval.intLiteral = strtoul(yytext, NULL, 2); return(INT_LITERAL); }
+0b[0-1]+{U}             { count(); yylval.intLiteral = strtoul(yytext, NULL, 2); return(UINT_LITERAL); }
+0b[0-1]+{L}             { count(); yylval.intLiteral = strtoul(yytext, NULL, 2); return(LONG_LITERAL); }
+0b[0-1]+({U}{L}|{L}{U}) { count(); yylval.intLiteral = strtoul(yytext, NULL, 2); return(ULONG_LITERAL); }
+    /* float */
+{D}+{E}{F}              { count(); yylval.floatLiteral = strtod(yytext, NULL); return(FLOAT_LITERAL); }
+{D}*"."{D}+({E})?{F}    { count(); yylval.floatLiteral = strtod(yytext, NULL); return(FLOAT_LITERAL); }
+{D}+"."{D}*({E})?{F}    { count(); yylval.floatLiteral = strtod(yytext, NULL); return(FLOAT_LITERAL); }
+    /* double */
+{D}+{E}                 { count(); yylval.floatLiteral = strtod(yytext, NULL); return(DOUBLE_LITERAL); }
+{D}*"."{D}+({E})?       { count(); yylval.floatLiteral = strtod(yytext, NULL); return(DOUBLE_LITERAL); }
+{D}+"."{D}*({E})?       { count(); yylval.floatLiteral = strtod(yytext, NULL); return(DOUBLE_LITERAL); }
+    /* long double */
+{D}+{E}{L}              { count(); yylval.floatLiteral = strtod(yytext, NULL); return(LDOUBLE_LITERAL); }
+{D}*"."{D}+({E})?{L}    { count(); yylval.floatLiteral = strtod(yytext, NULL); return(LDOUBLE_LITERAL); }
+{D}+"."{D}*({E})?{L}    { count(); yylval.floatLiteral = strtod(yytext, NULL); return(LDOUBLE_LITERAL); }
 
 
     /* String and character analysis */
@@ -113,8 +141,6 @@ L?'(\\.|[^\\'])+'       { count(); return(CONSTANT); }
 <IN_STRING>[^\\\n\"]+                   { count(); *yylval.string += yytext; }
 <IN_CHAR>[^\\\n\']+                     { count(); *yylval.string += yytext; }
 
-
-L?\"(\\.|[^\\"])*\"     { count(); return(STRING_LITERAL); }
 
 "..."                   { count(); return(ELLIPSIS); }
 ">>="                   { count(); return(RIGHT_ASSIGN); }
