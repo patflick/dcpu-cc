@@ -21,6 +21,7 @@ extern "C"
 
 void count();
 bool comment();
+bool comment_line();
 int check_type();
 extern int string_return;
 extern std::set<std::string> activeTypedef;
@@ -40,10 +41,14 @@ U                       (u|U)
 
 %x IN_CHAR
 %x IN_STRING
+%x AT_ASM
+%x IN_ASM_BLOCK
 
 %%
-"/*"                    { comment(); }
+"/*"                    { if (!comment()) return ERROR; }
+"//"                    { if (!comment_line()) return ERROR; }
 
+    /* C keywords */
 "auto"                  { count(); return yylval.token = AUTO; }
 "break"                 { count(); return(BREAK); }
 "case"                  { count(); return(CASE); }
@@ -76,6 +81,23 @@ U                       (u|U)
 "void"                  { count(); return yylval.token = VOID; }
 "volatile"              { count(); return yylval.token = VOLATILE; }
 "while"                 { count(); return(WHILE); }
+
+
+    /* Build-In functions */
+"__builtin_va_start"    { count(); return BUILDIN_VA_START; }
+
+
+    /* Inline assembly */
+"__asm"                 { count(); BEGIN(AT_ASM); }
+<AT_ASM>\{              { count(); BEGIN(IN_ASM_BLOCK); string_return = AT_ASM; }
+<AT_ASM>\n              { }
+<AT_ASM>[ \t]+          /* ignore whitespace */;
+<AT_ASM>[^\{]           { count(); return ERROR; }
+<IN_ASM_BLOCK>\}        { count(); BEGIN(INITIAL); string_return = INITIAL; }
+<IN_ASM_BLOCK>[^\}]*    { count(); yylval.string = new std::string(yytext); return ASSEMBLY; }
+<IN_ASM_BLOCK>\n        { }
+<IN_ASM_BLOCK>[ \t]+    /* ignore whitespace */;
+
 
     /* Identifier or possibly typedef */
 {A}({A}|{D})*           { count(); return(check_type()); }
@@ -118,7 +140,6 @@ U                       (u|U)
 
 
     /* String and character analysis */
-
 \'                                      { count(); yylval.string = new std::string(); BEGIN(IN_CHAR); }
 \"                                      { count(); yylval.string = new std::string(); BEGIN(IN_STRING); }
 <IN_CHAR>\'                             { count(); BEGIN(string_return); return CHARACTER_LITERAL; }

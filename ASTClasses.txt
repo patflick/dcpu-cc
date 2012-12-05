@@ -57,3 +57,5 @@ UnsignedLongLiteral(long literalValue) : Expression
 FloatLiteral(double literalValue): Expression
 DoubleLiteral(double literalValue): Expression
 LongDoubleLiteral(double literalValue): Expression
+AssemblyStatement(std::string& asmString): Statement
+BuiltInVaStart(Identifier* vaListID, Identifier* paramNID): Expression

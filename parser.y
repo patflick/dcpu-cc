@@ -47,6 +47,7 @@ void checkForTypedefs(Declaration * declaration);
     BlockStatement* blkStmt;
     Statements* stmts;
     Expression* expr;
+    Identifier* id;
     Expressions* exprs;
     ChainExpressions* chainexprs;
     Declarator* declarator;
@@ -75,7 +76,7 @@ void checkForTypedefs(Declaration * declaration);
 /* constants */
 %token <intLiteral> INT_LITERAL UINT_LITERAL LONG_LITERAL ULONG_LITERAL
 %token <floatLiteral> FLOAT_LITERAL DOUBLE_LITERAL LDOUBLE_LITERAL
-%token <string> STRING_LITERAL CHARACTER_LITERAL IDENTIFIER TYPE_NAME
+%token <string> STRING_LITERAL CHARACTER_LITERAL IDENTIFIER TYPE_NAME ASSEMBLY
 
 %token <token> CONSTANT SIZEOF
 %token <token> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
@@ -83,7 +84,8 @@ void checkForTypedefs(Declaration * declaration);
 %token <token> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token <token> XOR_ASSIGN OR_ASSIGN
 
-
+/* built in functions */
+%token <token> BUILDIN_VA_START
 
 %token <token> TYPEDEF EXTERN STATIC AUTO REGISTER
 %token <token> CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOLATILE VOID
@@ -105,9 +107,10 @@ void checkForTypedefs(Declaration * declaration);
 %type <declaration> parameter_declaration declaration struct_declaration
 %type <declarations> declaration_list struct_declaration_list
 %type <paramdeclarations> parameter_list parameter_type_list
-%type <stmt> statement labeled_statement jump_statement iteration_statement selection_statement expression_statement
+%type <stmt> statement labeled_statement jump_statement iteration_statement selection_statement expression_statement asm_statement
 %type <blkStmt> compound_statement
 %type <stmts> statement_list
+%type <id> ident
 %type <expr> primary_expression postfix_expression unary_expression cast_expression multiplicative_expression additive_expression shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression constant_expression
 %type <exprs> argument_expression_list initializer_list initializer
 %type <chainexprs> expression
@@ -130,10 +133,17 @@ void checkForTypedefs(Declaration * declaration);
 
 %%
 
-primary_expression
+ident
         : IDENTIFIER
         {
             $$ = new Identifier(*$1);
+        }
+        ;
+
+primary_expression
+        : ident
+        {
+            $$ = $1;
         }
         | CONSTANT
         {
@@ -213,6 +223,10 @@ postfix_expression
         | postfix_expression DEC_OP
         {
             $$ = new PostIncDec($2, $1);
+        }
+        | BUILDIN_VA_START CURVED_OPEN ident COMMA ident CURVED_CLOSE
+        {
+            $$ = new BuiltInVaStart($3, $5);
         }
         ;
 
@@ -1013,6 +1027,13 @@ statement
         | jump_statement
         {
             $$ = $1;
+        }
+        ;
+
+asm_statement:
+        ASSEMBLY
+        {
+            $$ = new AssemblyStatement(*$1);
         }
         ;
 

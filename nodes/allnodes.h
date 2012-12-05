@@ -29,10 +29,12 @@
 // then all other nodes:
 #include "ArrayAccessOperator.h"
 #include "ArrayDeclarator.h"
+#include "AssemblyStatement.h"
 #include "AssignmentOperator.h"
 #include "BinaryOperator.h"
 #include "BlockStatement.h"
 #include "BreakStatement.h"
+#include "BuiltInVaStart.h"
 #include "CaseStatement.h"
 #include "ChainExpressions.h"
 #include "CharacterLiteral.h"
