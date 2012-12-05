@@ -12,12 +12,14 @@ struct test {
 };
 
 /* upon request of FireFly */
-struct tag (*what_am_i[5])(float) 
+struct tag (*what_am_i[5])(float);
+
+typedef foobar ******* x1;
 
 foobar x;
 foobar * y;
 
-typedef foobar ******* x1;
+
 
 struct test3
 {

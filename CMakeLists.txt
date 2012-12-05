@@ -25,6 +25,8 @@ FILE(GLOB visitorSrc visitor/*.cpp)
 FILE(GLOB visitorHrd visitor/*.h)
 FILE(GLOB typesSrc types/*.cpp)
 FILE(GLOB typesHrd types/*.h)
+FILE(GLOB symboltableSrc symboltable/*.cpp)
+FILE(GLOB symboltableHrd symboltable/*.h)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -48,4 +50,6 @@ add_executable(dtcc2tests
     ${visitorSrc}
     ${typesHdr}
     ${typesSrc}
+    ${symboltableHrd}
+    ${symboltableSrc}
 )
