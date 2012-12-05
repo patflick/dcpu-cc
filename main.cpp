@@ -19,11 +19,21 @@ extern FILE* yyin, *yyout;
 extern dtcc::astnodes::Program* program;
 
 int main(int argc, char **argv) {
+    if ( argc < 2)
+    {
+        std::cout << "Usage dtcc2 <filename>" << std::endl;
+        return 1;
+    }
+    
+    char * filename = argv[1];
+    
     std::cout << "Compiling program:" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
+    
+
     // Parse C.
     yyout = stderr;
-    yyin = fopen("test.c", "r");
+    yyin = fopen(filename, "r");
     if (yyin == NULL)
     {
         printf("fuck\n");

@@ -49,4 +49,3 @@ add_executable(dtcc2tests
     ${typesHdr}
     ${typesSrc}
 )
-

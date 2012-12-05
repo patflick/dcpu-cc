@@ -16,13 +16,23 @@ using namespace dtcc::astnodes;
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
 void Declarator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
 {
-
+    if (this->pointers != NULL)
+        for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
+            (*i)->acceptPreRecursive(visitor);
+    if (this->initializers != NULL)
+        for (Expressions::iterator i = this->initializers->begin(); i != this->initializers->end(); ++i)
+            (*i)->acceptPreRecursive(visitor);
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
 void Declarator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
 {
-
+    if (this->pointers != NULL)
+        for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
+            (*i)->acceptPostRecursive(visitor);
+    if (this->initializers != NULL)
+        for (Expressions::iterator i = this->initializers->begin(); i != this->initializers->end(); ++i)
+            (*i)->acceptPostRecursive(visitor);
 }
 
 void Declarator::setInitializer(Expressions* inits)
@@ -38,8 +48,12 @@ void Declarator::setPointers(Pointers* pointers)
 // calls accept(visitor) for all children nodes of this AST node
 void Declarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
-
+    if (this->pointers != NULL)
+        for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
+            (*i)->accept(visitor);
+    if (this->initializers != NULL)
+        for (Expressions::iterator i = this->initializers->begin(); i != this->initializers->end(); ++i)
+            (*i)->accept(visitor);
 }
 
 // implements the visitor pattern
