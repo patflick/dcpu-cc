@@ -11,6 +11,9 @@ struct test {
     
 };
 
+/* upon request of FireFly */
+struct tag (*what_am_i[5])(float) 
+
 foobar x;
 foobar * y;
 
