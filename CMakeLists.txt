@@ -37,6 +37,14 @@ include_directories(
 add_subdirectory(nodes)
 add_subdirectory(visitor)
 add_subdirectory(types)
+add_subdirectory(errors)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/tool-errgen ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
+    COMMENT "Generating error definition files..."
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d
+    )
 
 add_executable(dtcc2tests
     main.cpp
@@ -44,6 +52,10 @@ add_executable(dtcc2tests
     ${BISON_libdcpu-ci-lang-c-parser_OUTPUTS}
     parser.y
     lexer.l
+    errors/derr.defs.h
+    errors/derr.defs.cpp
+    errors/ErrorList.cpp
+    errors/ErrorList.h
     ${nodesHdr}
     ${nodesSrc}
     ${visitorHdr}

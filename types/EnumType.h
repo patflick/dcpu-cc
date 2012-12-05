@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 // include needed type classes
-#include "IntegralType.h"
+#include "SignedInt.h"
 
 
 namespace dtcc
@@ -28,7 +28,7 @@ namespace dtcc
         /// @class      EnumType
         /// @brief      The EnumType type class.
         ///
-        class EnumType : public IntegralType
+        class EnumType : public SignedInt
         {
             
         public:
