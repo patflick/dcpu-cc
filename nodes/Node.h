@@ -13,6 +13,9 @@
 #define __DCPU_CC_AST_NODES_NODE_H
 
 #include <cstdlib>
+#include <string>
+extern int yylineno;
+extern std::string* yyfilename;
 
 namespace dtcc
 {
@@ -32,6 +35,20 @@ namespace dtcc
         ///
         class Node
         {
+        public:
+            int line;
+            std::string file;
+            
+        protected:
+            Node()
+            {
+                this->line = yylineno;
+                if (yyfilename == NULL)
+                    this->file = "<unknown>";
+                else
+                    this->file = std::string(*yyfilename);
+            }
+            
         public:
             
             ///

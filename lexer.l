@@ -23,6 +23,7 @@ void count();
 bool comment();
 bool comment_line();
 int check_type();
+std::string* yyfilename = new std::string("FIXME: implement filename and line information in lexer");
 extern int string_return;
 extern std::set<std::string> activeTypedef;
 %}

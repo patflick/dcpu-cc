@@ -18,6 +18,8 @@
 #include <cstdio>
 #include <iostream>
 
+using namespace dtcc::errors;
+
 void ErrorList::addWarning(int line, std::string file, int errid)
 {
     this->addWarning(line, file, errid, std::string(""));
