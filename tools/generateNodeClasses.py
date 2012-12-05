@@ -140,7 +140,7 @@ def parserow(row):
     #print " "*12
     #print " "*12
     
-    # for printing out a print-out-visitor
+    ##for printing out a print-out-visitor
     #print " "*12 + "///"
     #print " "*12 + "/// @brief      Visit function of the visitor pattern."
     #print " "*12 + "/// @sa         http://en.wikipedia.org/wiki/Visitor_pattern"
@@ -149,12 +149,12 @@ def parserow(row):
     #print " "*12
     #print " "*12
     
-    print "void EmptyVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
+    print "void PrintAstVisitor::visit(astnodes::" + ClassName + " * " + className + ")"
     print "{"
-    #print " "*4 + "printAstName(\"" + ClassName + "\");"
-    #print " "*4 + "increaseIdentation();"
-    #print " "*4 + className + "->allChildrenAccept(*this);"
-    #print " "*4 + "decreaseIdentation();"
+    print " "*4 + "printAstName(\"" + ClassName + "\");"
+    print " "*4 + "increaseIdentation();"
+    print " "*4 + className + "->allChildrenAccept(*this);"
+    print " "*4 + "decreaseIdentation();"
     print "}"
     print ""
     print ""

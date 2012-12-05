@@ -268,6 +268,57 @@ void EmptyVisitor::visit(astnodes::StructureResolutionOperator * structureResolu
 {
 }
 
+
+void EmptyVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::SignedLongLiteral * signedLongLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::FloatLiteral * floatLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::DoubleLiteral * doubleLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::AssemblyStatement * assemblyStatement)
+{
+}
+
+
+void EmptyVisitor::visit(astnodes::BuiltInVaStart * builtInVaStart)
+{
+}
+
+
 ///
 /// @}
 ///

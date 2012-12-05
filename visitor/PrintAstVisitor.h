@@ -394,6 +394,76 @@ namespace dtcc
             /// @param structureResolutionOperator    The node to visit this visitor
             virtual void visit(astnodes::StructureResolutionOperator * structureResolutionOperator);
             
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param characterLiteral    The node to visit this visitor
+            virtual void visit(astnodes::CharacterLiteral * characterLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param signedIntLiteral    The node to visit this visitor
+            virtual void visit(astnodes::SignedIntLiteral * signedIntLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param unsignedIntLiteral    The node to visit this visitor
+            virtual void visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param signedLongLiteral    The node to visit this visitor
+            virtual void visit(astnodes::SignedLongLiteral * signedLongLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param unsignedLongLiteral    The node to visit this visitor
+            virtual void visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param floatLiteral    The node to visit this visitor
+            virtual void visit(astnodes::FloatLiteral * floatLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param doubleLiteral    The node to visit this visitor
+            virtual void visit(astnodes::DoubleLiteral * doubleLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param longDoubleLiteral    The node to visit this visitor
+            virtual void visit(astnodes::LongDoubleLiteral * longDoubleLiteral);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param assemblyStatement    The node to visit this visitor
+            virtual void visit(astnodes::AssemblyStatement * assemblyStatement);
+            
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param builtInVaStart    The node to visit this visitor
+            virtual void visit(astnodes::BuiltInVaStart * builtInVaStart);
+            
         };
         
     } // namespace dtcc

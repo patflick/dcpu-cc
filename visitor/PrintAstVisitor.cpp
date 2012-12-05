@@ -480,3 +480,94 @@ void PrintAstVisitor::visit(astnodes::StructureResolutionOperator * structureRes
     structureResolutionOperator->allChildrenAccept(*this);
     decreaseIdentation();
 }
+
+
+void PrintAstVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
+{
+    printAstName("CharacterLiteral");
+    increaseIdentation();
+    characterLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
+{
+    printAstName("SignedIntLiteral");
+    increaseIdentation();
+    signedIntLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral)
+{
+    printAstName("UnsignedIntLiteral");
+    increaseIdentation();
+    unsignedIntLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::SignedLongLiteral * signedLongLiteral)
+{
+    printAstName("SignedLongLiteral");
+    increaseIdentation();
+    signedLongLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral)
+{
+    printAstName("UnsignedLongLiteral");
+    increaseIdentation();
+    unsignedLongLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::FloatLiteral * floatLiteral)
+{
+    printAstName("FloatLiteral");
+    increaseIdentation();
+    floatLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::DoubleLiteral * doubleLiteral)
+{
+    printAstName("DoubleLiteral");
+    increaseIdentation();
+    doubleLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral)
+{
+    printAstName("LongDoubleLiteral");
+    increaseIdentation();
+    longDoubleLiteral->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::AssemblyStatement * assemblyStatement)
+{
+    printAstName("AssemblyStatement");
+    increaseIdentation();
+    assemblyStatement->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+
+void PrintAstVisitor::visit(astnodes::BuiltInVaStart * builtInVaStart)
+{
+    printAstName("BuiltInVaStart");
+    increaseIdentation();
+    builtInVaStart->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
