@@ -17,6 +17,7 @@
 // include needed nodes
 #include "Statement.h"
 #include "Expression.h"
+#include "LabelStatement.h"
 
 
 namespace dtcc
@@ -48,6 +49,10 @@ namespace dtcc
             Statement * condExpr;
             Expression * loopExpr;
             Statement * statement;
+            
+            LabelStatement* startLbl;
+            LabelStatement* endLbl;
+            LabelStatement* continueLbl;
 
             
         public:
@@ -59,7 +64,9 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            ForStatement(Statement * initExpr, Statement * condExpr, Expression * loopExpr, Statement * statement) : initExpr(initExpr), condExpr(condExpr), loopExpr(loopExpr), statement(statement) {}
+            ForStatement(Statement * initExpr, Statement * condExpr, Expression * loopExpr, Statement * statement)
+            : initExpr(initExpr), condExpr(condExpr), loopExpr(loopExpr),
+            statement(statement), startLbl(NULL), endLbl(NULL), continueLbl(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

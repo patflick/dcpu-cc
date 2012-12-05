@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Statement.h"
+#include "LabelStatement.h"
 
 
 namespace dtcc
@@ -43,6 +44,7 @@ namespace dtcc
             void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
+            LabelStatement* label;
 
             
         public:

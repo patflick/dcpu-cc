@@ -17,7 +17,7 @@
 // include needed nodes
 #include "Statement.h"
 #include "Expression.h"
-
+#include "LabelStatement.h"
 
 namespace dtcc
 {
@@ -47,6 +47,9 @@ namespace dtcc
             Statement* statement;
             Expression * condExpr;
 
+            LabelStatement* startLbl;
+            LabelStatement* endLbl;
+            LabelStatement* continueLbl;
             
         public:
             ///

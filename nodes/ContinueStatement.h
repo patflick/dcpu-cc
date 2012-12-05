@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Statement.h"
+#include "LabelStatement.h"
 
 
 namespace dtcc
@@ -43,14 +44,14 @@ namespace dtcc
             void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
-
+            LabelStatement* label;
             
         public:
             ///
             /// @brief      The constructor of the ContinueStatement AST node.
 
             ///
-            ContinueStatement()  {}
+            ContinueStatement() : label(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

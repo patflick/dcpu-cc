@@ -3,6 +3,9 @@
 #include <string>
 #include <deque>
 #include <utility>
+#include <algorithm>
+
+#include <errors/InternalCompilerException.h>
 
 
 using namespace dtcc;
@@ -15,6 +18,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_loopStack = std::deque<std::pair<astnodes::LabelStatement*, astnodes::LabelStatement*> >();
     this->m_symbolTable = new symboltable::SymbolTable();
     this->m_errorList = errors::ErrorList();
+    this->m_AutomaticLabels = std::set<std::string>();
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -64,6 +68,36 @@ astnodes::LabelStatement* SemanticCheckVisitor::getContinueLabel()
         if (it->second != NULL)
             return it->second;
     return NULL;
+}
+
+// Generates a random, unique label for use in code.
+astnodes::LabelStatement* SemanticCheckVisitor::getRandomLabel(std::string prefix)
+{
+    std::string result = "";
+    
+    while ((result == "") || (this->m_AutomaticLabels.find(result) != this->m_AutomaticLabels.end()))
+        result = "__" + prefix + "_" + SemanticCheckVisitor::getRandomString(10);
+    
+    return new astnodes::LabelStatement(result, new astnodes::EmptyStatement());
+}
+
+// Generates a random character.
+char SemanticCheckVisitor::getRandomCharacter()
+{
+    unsigned char c;
+    
+    while (!std::isalnum(c = static_cast<unsigned char>(std::rand() % 256))) ;
+    
+    return c;
+}
+
+// Generates a random string.
+std::string SemanticCheckVisitor::getRandomString(std::string::size_type sz)
+{
+    std::string s;
+    s.reserve(sz);
+    std::generate_n(std::back_inserter(s), sz, SemanticCheckVisitor::getRandomCharacter);
+    return s;
 }
 
 
@@ -120,63 +154,104 @@ void SemanticCheckVisitor::visit(astnodes::ContinueStatement * continueStatement
         addError(continueStatement, ERR_CC_CONTINUE_OUTSIDE_OF_LOOP);
         return;
     }
-    
+    continueStatement->label = label;
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::BreakStatement * breakStatement)
 {
-    printAstName("BreakStatement");
-    breakStatement->allChildrenAccept(*this);
+    astnodes::LabelStatement* label = getBreakLabel();
+    if (label == NULL)
+    {
+        addError(breakStatement, ERR_CC_BREAK_OUTSIDE_OF_LOOP);
+        return;
+    }
+    breakStatement->label = label;
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::Expression * expression)
 {
-    printAstName("Expression");
-    expression->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("Expression Node is only abstract and cannot be visited");
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::Statement * statement)
 {
-    printAstName("Statement");
-    statement->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("Statement Node is only abstract and cannot be visited");
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::ExternalDeclaration * externalDeclaration)
 {
-    printAstName("ExternalDeclaration");
-    externalDeclaration->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("ExternalDeclaration Node is only abstract and cannot be visited");
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::ReturnStatement * returnStatement)
 {
-    printAstName("ReturnStatement");
+    // first check the expression
     returnStatement->allChildrenAccept(*this);
+    // then check if it is compatible with the function return value
+    // TODO TODO FIXME
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::ForStatement * forStatement)
 {
-    printAstName("ForStatement");
+    // Create labels for the for statement:
+    forStatement->startLbl = getRandomLabel("for_start");
+    forStatement->endLbl = getRandomLabel("for_end");
+    forStatement->continueLbl = getRandomLabel("for_continue");
+    // put the labels on the loop stack
+    pushLoopStack(forStatement->endLbl, forStatement->continueLbl);
+    // evaluate all children
     forStatement->allChildrenAccept(*this);
+    
+    // TODO check that forStatement->condExpr has int type
+    printAstName("ForStatement");
+    
+    // pop loop stack
+    popLoopStack();
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::DoWhileStatement * doWhileStatement)
 {
-    printAstName("DoWhileStatement");
+    // Create labels for the for statement:
+    doWhileStatement->startLbl = getRandomLabel("dowhile_start");
+    doWhileStatement->endLbl = getRandomLabel("dowhile_end");
+    doWhileStatement->continueLbl = getRandomLabel("dowhile_continue");
+    
+    // put the labels on the loop stack
+    pushLoopStack(doWhileStatement->endLbl, doWhileStatement->continueLbl);
+    // evaluate all children
     doWhileStatement->allChildrenAccept(*this);
+    
+    // TODO check that doWhileStatement->condExpr has int type
+    printAstName("DoWhileStatement");
+    
+    // pop loop stack
+    popLoopStack();
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::WhileStatement * whileStatement)
 {
-    printAstName("WhileStatement");
+    // Create labels for the for statement:
+    whileStatement->startLbl = getRandomLabel("while_start");
+    whileStatement->endLbl = getRandomLabel("while_end");
+    
+    // put the labels on the loop stack
+    pushLoopStack(whileStatement->endLbl, whileStatement->continueLbl);
+    // evaluate all children
     whileStatement->allChildrenAccept(*this);
+    
+    // TODO check that whileStatement->condExpr has int type
+    printAstName("WhileStatement");
+    
+    // pop loop stack
+    popLoopStack();
 }
 
 

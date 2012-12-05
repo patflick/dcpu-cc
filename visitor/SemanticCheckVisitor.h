@@ -19,6 +19,8 @@
 #include <errors/ErrorList.h>
 #include <errors/derr.defs.h>
 #include <deque>
+#include <set>
+#include <string>
 
 namespace dtcc
 {
@@ -51,6 +53,10 @@ namespace dtcc
             astnodes::LabelStatement* getContinueLabel();
             
             /* general label management */
+            std::set<std::string> m_AutomaticLabels;
+            astnodes::LabelStatement* getRandomLabel(std::string prefix);
+            static char getRandomCharacter();
+            static std::string getRandomString(std::string::size_type sz);
             
             
             /* TODO this needs to be removed once work is done on this */
