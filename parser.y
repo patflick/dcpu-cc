@@ -44,6 +44,7 @@ void checkForTypedefs(Declaration * declaration);
     Declarations* declarations;
     ParameterDeclarations* paramdeclarations;
     Statement* stmt;
+    ExpressionStatement* exprStmt;
     BlockStatement* blkStmt;
     Statements* stmts;
     Expression* expr;
@@ -108,6 +109,7 @@ void checkForTypedefs(Declaration * declaration);
 %type <declarations> declaration_list struct_declaration_list
 %type <paramdeclarations> parameter_list parameter_type_list
 %type <stmt> statement labeled_statement jump_statement iteration_statement selection_statement expression_statement asm_statement
+%type <exprStmt> cond_expression_statement
 %type <blkStmt> compound_statement
 %type <stmts> statement_list
 %type <id> ident
@@ -1114,6 +1116,17 @@ expression_statement
         }
         ;
 
+cond_expression_statement
+        : SEMICOLON
+        {
+            $$ = new ExpressionStatement(new SignedIntLiteral(1l));
+        }
+        | expression SEMICOLON
+        {
+            $$ = new ExpressionStatement($1);
+        }
+        ;
+
 selection_statement
         : IF CURVED_OPEN expression CURVED_CLOSE statement
         {
@@ -1138,11 +1151,11 @@ iteration_statement
         {
             $$ = new DoWhileStatement($2, $5);
         }
-        | FOR CURVED_OPEN expression_statement expression_statement CURVED_CLOSE statement
+        | FOR CURVED_OPEN expression_statement cond_expression_statement CURVED_CLOSE statement
         {
             $$ = new ForStatement($3, $4, NULL, $6);
         }
-        | FOR CURVED_OPEN expression_statement expression_statement expression CURVED_CLOSE statement
+        | FOR CURVED_OPEN expression_statement cond_expression_statement expression CURVED_CLOSE statement
         {
             $$ = new ForStatement($3, $4, $5, $7);
         }

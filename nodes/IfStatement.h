@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Statement.h"
+#include "LabelStatement.h"
 #include "Expression.h"
 
 
@@ -48,6 +49,8 @@ namespace dtcc
             Statement * ifStmt;
             Statement * elseStmt;
 
+            LabelStatement* elselbl;
+            LabelStatement* endlbl;
             
         public:
             ///
@@ -57,7 +60,9 @@ namespace dtcc
             /// @param elseStmt TODO: FILLOUT
 
             ///
-            IfStatement(Expression * condExpr, Statement * ifStmt, Statement * elseStmt) : condExpr(condExpr), ifStmt(ifStmt), elseStmt(elseStmt) {}
+            IfStatement(Expression * condExpr, Statement * ifStmt, Statement * elseStmt)
+                : condExpr(condExpr), ifStmt(ifStmt), elseStmt(elseStmt),
+                elselbl(NULL), endlbl(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

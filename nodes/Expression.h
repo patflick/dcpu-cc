@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Node.h"
+#include <types/Type.h>
 
 
 namespace dtcc
@@ -29,28 +30,16 @@ namespace dtcc
         ///
         class Expression : public Node
         {
-        private:
-            ///
-            /// @brief          Calls acceptPreRecursive(visitor) on all children nodes.
-            /// @param visitor  The visitor to be accepted.
-            ///
-            void allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor);
-            
-            ///
-            /// @brief          Calls acceptPostRecursive(visitor) on all children nodes.
-            /// @param visitor  The visitor to be accepted.
-            ///
-            void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
-
+            /// Each expression has a type associated with it
+            types::Type* exprType;
             
         public:
             ///
             /// @brief      The constructor of the Expression AST node.
-
             ///
-            Expression()  {}
+            Expression() : exprType(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.
@@ -59,7 +48,7 @@ namespace dtcc
             ///
             /// This is a non recursive version of accept, which calls
             /// only visit(this) and then returns.
-            void accept(dtcc::visitor::Visitor & visitor);
+            virtual void accept(dtcc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief          The accept method of the Visitor pattern.
@@ -69,7 +58,7 @@ namespace dtcc
             /// This is a post recursive version of accept, meaning that
             /// it first calls visit(this) and then accept(visitor) for
             /// all its children nodes.
-            void acceptPostRecursive(dtcc::visitor::Visitor & visitor);
+            virtual void acceptPostRecursive(dtcc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief          The accept method of the Visitor pattern.
@@ -79,13 +68,13 @@ namespace dtcc
             /// This is a pre recursive version of accept, meaning that
             /// it first calls accept(visitor) for
             /// all its children nodes and only then visit(this).
-            void acceptPreRecursive(dtcc::visitor::Visitor & visitor);
+            virtual void acceptPreRecursive(dtcc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief          Calls accept(visitor) on all children nodes.
             /// @param visitor  The visitor to be accepted.
             ///
-            void allChildrenAccept(dtcc::visitor::Visitor & visitor);
+            virtual void allChildrenAccept(dtcc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief      The destructor of the Expression AST node.

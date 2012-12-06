@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Statement.h"
+#include "ExpressionStatement.h"
 #include "Expression.h"
 #include "LabelStatement.h"
 
@@ -46,7 +47,7 @@ namespace dtcc
             
         public:
             Statement * initExpr;
-            Statement * condExpr;
+            ExpressionStatement * condExpr;
             Expression * loopExpr;
             Statement * statement;
             
@@ -64,7 +65,7 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            ForStatement(Statement * initExpr, Statement * condExpr, Expression * loopExpr, Statement * statement)
+            ForStatement(Statement * initExpr, ExpressionStatement * condExpr, Expression * loopExpr, Statement * statement)
             : initExpr(initExpr), condExpr(condExpr), loopExpr(loopExpr),
             statement(statement), startLbl(NULL), endLbl(NULL), continueLbl(NULL) {}
             

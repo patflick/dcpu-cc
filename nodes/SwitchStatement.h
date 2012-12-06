@@ -44,6 +44,7 @@ namespace dtcc
             void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
+            types::Type* promotedType;
             Expression * expr;
             Statement * statement;
 
@@ -55,7 +56,7 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            SwitchStatement(Expression * expr, Statement * statement) : expr(expr), statement(statement) {}
+            SwitchStatement(Expression * expr, Statement * statement) : expr(expr), statement(statement), promotedType(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

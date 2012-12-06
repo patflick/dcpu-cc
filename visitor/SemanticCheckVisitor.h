@@ -58,6 +58,10 @@ namespace dtcc
             static char getRandomCharacter();
             static std::string getRandomString(std::string::size_type sz);
             
+            /* stack for switch-statements */
+            // this is needed by case and default statements
+            std::deque<astnodes::SwitchStatement*> m_switchStack;
+            
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);

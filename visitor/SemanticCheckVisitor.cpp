@@ -5,7 +5,9 @@
 #include <utility>
 #include <algorithm>
 
+#include <errors/derr.defs.h>
 #include <errors/InternalCompilerException.h>
+#include <types/IsTypeHelper.h>
 
 
 using namespace dtcc;
@@ -19,6 +21,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_symbolTable = new symboltable::SymbolTable();
     this->m_errorList = errors::ErrorList();
     this->m_AutomaticLabels = std::set<std::string>();
+    this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -208,8 +211,11 @@ void SemanticCheckVisitor::visit(astnodes::ForStatement * forStatement)
     // evaluate all children
     forStatement->allChildrenAccept(*this);
     
-    // TODO check that forStatement->condExpr has int type
-    printAstName("ForStatement");
+    // check that the expression type is a scalar type
+    if(!types::IsTypeHelper::isScalarType(forStatement->condExpr->expr->exprType))
+    {
+        addError(forStatement, ERR_CC_EXPECTED_SCALAR_FOR);
+    }
     
     // pop loop stack
     popLoopStack();
@@ -228,8 +234,11 @@ void SemanticCheckVisitor::visit(astnodes::DoWhileStatement * doWhileStatement)
     // evaluate all children
     doWhileStatement->allChildrenAccept(*this);
     
-    // TODO check that doWhileStatement->condExpr has int type
-    printAstName("DoWhileStatement");
+    // check that the expression type is a scalar type
+    if(!types::IsTypeHelper::isScalarType(doWhileStatement->condExpr->exprType))
+    {
+        addError(doWhileStatement, ERR_CC_EXPECTED_SCALAR_DOWHILE);
+    }
     
     // pop loop stack
     popLoopStack();
@@ -243,12 +252,15 @@ void SemanticCheckVisitor::visit(astnodes::WhileStatement * whileStatement)
     whileStatement->endLbl = getRandomLabel("while_end");
     
     // put the labels on the loop stack
-    pushLoopStack(whileStatement->endLbl, whileStatement->continueLbl);
+    pushLoopStack(whileStatement->endLbl, whileStatement->startLbl);
     // evaluate all children
     whileStatement->allChildrenAccept(*this);
     
-    // TODO check that whileStatement->condExpr has int type
-    printAstName("WhileStatement");
+    // check that the expression type is a scalar type
+    if(!types::IsTypeHelper::isScalarType(whileStatement->condExpr->exprType))
+    {
+        addError(whileStatement, ERR_CC_EXPECTED_SCALAR_WHILE);
+    }
     
     // pop loop stack
     popLoopStack();
@@ -257,29 +269,72 @@ void SemanticCheckVisitor::visit(astnodes::WhileStatement * whileStatement)
 
 void SemanticCheckVisitor::visit(astnodes::SwitchStatement * switchStatement)
 {
-    printAstName("SwitchStatement");
-    switchStatement->allChildrenAccept(*this);
+    // first evaluate the controlling expression
+    switchStatement->expr->accept(*this);
+    
+    // check for integral type
+    if(!types::IsTypeHelper::isIntegralType(switchStatement->expr->exprType))
+    {
+        addError(switchStatement, ERR_CC_EXPECTED_INTEGRAL_SWITCH);
+        // don't handle anything inside the switch statement
+        return;
+    }
+    
+    // set promoted type
+    switchStatement->promotedType = switchStatement->expr->exprType;
+    
+    // push switch statement on switch-statement stack
+    this->m_switchStack.push_back(switchStatement);
+    
+    // now check the block statement
+    switchStatement->statement->accept(*this);
+    
+    // pop switch statement stack
+    this->m_switchStack.pop_back();
+    
+    // check if this is still an integral type
+    if(!types::IsTypeHelper::isIntegralType(switchStatement->promotedType))
+    {
+        addError(switchStatement, ERR_CC_EXPECTED_INTEGRAL_SWITCH);
+    }
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::IfStatement * ifStatement)
 {
-    printAstName("IfStatement");
-    ifStatement->allChildrenAccept(*this);
+    // first evaluate the controlling expression
+    ifStatement->condExpr->accept(*this);
+    
+    // check for integral type
+    if(!types::IsTypeHelper::isScalarType(ifStatement->condExpr->exprType))
+    {
+        addError(ifStatement, ERR_CC_EXPECTED_SCALAR_IF);
+        // don't handle anything inside the if statement
+        return;
+    }
+    
+    // Create labels for the if statement:
+    ifStatement->endlbl = getRandomLabel("if_end");
+    if (ifStatement->elseStmt != NULL)
+        ifStatement->elselbl = getRandomLabel("if_else");
+    
+    // recurse into the statements
+    ifStatement->ifStmt->accept(*this);
+    if (ifStatement->elseStmt != NULL)
+        ifStatement->elseStmt->accept(*this);
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::ExpressionStatement * expressionStatement)
 {
-    printAstName("ExpressionStatement");
+    // just path through
     expressionStatement->allChildrenAccept(*this);
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::EmptyStatement * emptyStatement)
 {
-    printAstName("EmptyStatement");
-    emptyStatement->allChildrenAccept(*this);
+    // nothing to do here
 }
 
 
