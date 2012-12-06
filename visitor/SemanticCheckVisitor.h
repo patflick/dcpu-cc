@@ -52,11 +52,14 @@ namespace dtcc
             astnodes::LabelStatement* getBreakLabel();
             astnodes::LabelStatement* getContinueLabel();
             
-            /* general label management */
+            /* automatic/random label management */
             std::set<std::string> m_AutomaticLabels;
             astnodes::LabelStatement* getRandomLabel(std::string prefix);
             static char getRandomCharacter();
             static std::string getRandomString(std::string::size_type sz);
+            
+            /* general label management */
+            // TODO
             
             /* stack for switch-statements */
             // this is needed by case and default statements

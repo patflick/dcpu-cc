@@ -340,6 +340,9 @@ void SemanticCheckVisitor::visit(astnodes::EmptyStatement * emptyStatement)
 
 void SemanticCheckVisitor::visit(astnodes::BlockStatement * blockStatement)
 {
+    // TODO new scope, read all declarations, then all statements
+    // TODO
+    // FIXME
     printAstName("BlockStatement");
     blockStatement->allChildrenAccept(*this);
 }
@@ -347,6 +350,7 @@ void SemanticCheckVisitor::visit(astnodes::BlockStatement * blockStatement)
 
 void SemanticCheckVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 {
+    // TODO continue here tmrw
     printAstName("DefaultStatement");
     defaultStatement->allChildrenAccept(*this);
 }
@@ -354,6 +358,7 @@ void SemanticCheckVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 
 void SemanticCheckVisitor::visit(astnodes::CaseStatement * caseStatement)
 {
+    // TODO const expression evaluator
     printAstName("CaseStatement");
     caseStatement->allChildrenAccept(*this);
 }
