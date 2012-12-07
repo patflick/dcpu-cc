@@ -36,5 +36,9 @@ ERR_CC_EXPECTED_SCALAR_DOWHILE                       cc-expected-scalar-dowhile 
 ERR_CC_EXPECTED_SCALAR_IF                            cc-expected-scalar-if                    "Expected scalar type for conditinal expression in if statement"
 ERR_CC_EXPECTED_INTEGRAL_SWITCH                      cc-expected-integral-switch              "Expected integral type for controlling expression in switch statement"
 ERR_CC_DUPLICATE_LABEL                               cc-duplicate-label                       "duplicate label ‘%s’"
+
 ERR_CC_NOTE_DUPLICATE_LABEL                          cc-note-duplicate-label                  "NOTE: previous definition of ‘%s’ was here"
+ERR_CC_ARRAY_ACCESS_NO_POINTER                       cc-array-access-no-pointer               "subscripted value is neither array nor pointer."
+ERR_CC_DEREF_INCOMPLETE_TYPE                         cc-deref-incomplete-type                 "dereferencing pointer to incomplete type."
+ERR_CC_ARRAY_SUB_NOT_INT                             cc-array-sub-not-int                     "array subscript is not an integer."
 

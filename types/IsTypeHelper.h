@@ -14,11 +14,7 @@
 #define __DCPU_CC_TYPES_ISTYPEHELPER_H
 
 // include needed nodes
-#include "Type.h"
-#include "ScalarType.h"
-#include "IntegralType.h"
-#include "ArrayType.h"
-
+#include "alltypes.h"
 
 namespace dtcc
 {
@@ -53,6 +49,18 @@ namespace dtcc
             static bool isScalarType(Type* type);
             
             ///
+            /// @brief          Returns whether the given type is a pointer type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type pointer, false otherwise.
+            static bool isPointerType(PointerType* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a pointer type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type pointer, false otherwise.
+            static bool isPointerType(Type* type);
+            
+            ///
             /// @brief          Returns whether the given type is a scalar type.
             /// @param type     The type to be checked.
             /// @returns        True if the type is of type ScalarType, false otherwise.
@@ -75,6 +83,27 @@ namespace dtcc
             /// @param type     The type to be checked.
             /// @returns        True if the type is of type ScalarType, false otherwise.
             static bool isArrayType(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a object type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type object, false otherwise.
+            static bool isObjectType(FunctionType* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a object type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type object, false otherwise.
+            static bool isObjectType(Type* type);
+            
+            
+            /* "casting" operations */
+            
+            ///
+            /// @brief          Returns the pointer type if this is a pointer type, and NULL otherwise.
+            /// @param type     The type to be cast to pointer and returned.
+            /// @returns        The pointer type if this is a pointer type, and NULL otherwise.
+            static PointerType* getPointerType(Type* type);
             
             ///
             /// @brief      The destructor of the IsTypeHelper helper class.

@@ -30,6 +30,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_AutomaticLabels = std::set<std::string>();
     this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
     this->m_funcLabels = std::map<std::string, astnodes::LabelStatement*>();
+    this->m_invalidValType = new valuetypes::RValue(new types::InvalidType());
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -38,6 +39,10 @@ void SemanticCheckVisitor::printAstName(const char * name)
     std::cout << "TODO implement semantic check for node '" << name << "'." << std::endl;
 }
 
+valuetypes::ValueType* SemanticCheckVisitor::getInvalidValType()
+{
+    return this->m_invalidValType;
+}
 
 
 /******************************/
@@ -626,9 +631,48 @@ void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
 }
 
 
+
+
 /******************************/
 /*  3.3.2 Postfix expressions */
 /******************************/
+
+/* 3.3.2.1 array subscripting */
+
+void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOperator)
+{
+    // analyse both sub expressions
+    arrayAccessOperator->allChildrenAccept(*this);
+    
+    // check LHS type
+    types::Type* lhsType = arrayAccessOperator->lhsExpr->valType->type;
+    
+    if(!types::IsTypeHelper::isPointerType(lhsType))
+    {
+        addError(arrayAccessOperator, ERR_CC_ARRAY_ACCESS_NO_POINTER);
+        arrayAccessOperator->valType = getInvalidValType();
+        return;
+    }
+    if (!types::IsTypeHelper::isObjectType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
+    {
+        addError(arrayAccessOperator, ERR_CC_DEREF_INCOMPLETE_TYPE);
+        arrayAccessOperator->valType = getInvalidValType();
+        return;
+    }
+    
+    // check RHS type
+    types::Type* rhsType = arrayAccessOperator->rhsExpr->valType->type;
+    if(!types::IsTypeHelper::isIntegralType(rhsType))
+    {
+        addError(arrayAccessOperator, ERR_CC_ARRAY_SUB_NOT_INT);
+        arrayAccessOperator->valType = getInvalidValType();
+        return;
+    }
+    
+    arrayAccessOperator->valType = new valuetypes::LValue(types::IsTypeHelper::getPointerType(lhsType)->baseType);
+}
+
+
 
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
@@ -696,11 +740,6 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOperator)
-{
-    printAstName("ArrayAccessOperator");
-    arrayAccessOperator->allChildrenAccept(*this);
-}
 
 
 void SemanticCheckVisitor::visit(astnodes::Constant * constant)

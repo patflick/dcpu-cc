@@ -66,8 +66,14 @@ namespace dtcc
             std::deque<astnodes::SwitchStatement*> m_switchStack;
             
             
+            /* type management */
+            valuetypes::ValueType* m_invalidValType;
+            valuetypes::ValueType* getInvalidValType();
+            
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);
+            
+            
             
         public:
             

@@ -22,6 +22,16 @@ bool IsTypeHelper::isScalarType(Type* type)
     return false;
 }
 
+bool IsTypeHelper::isPointerType(PointerType* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isPointerType(Type* type)
+{
+    return false;
+}
+
 bool IsTypeHelper::isIntegralType(IntegralType* type)
 {
     return true;
@@ -42,6 +52,25 @@ bool IsTypeHelper::isArrayType(Type* type)
     return false;
 }
 
+
+bool IsTypeHelper::isObjectType(FunctionType* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isObjectType(Type* type)
+{
+    return type->isComplete();
+}
+
+
+PointerType* IsTypeHelper::getPointerType(Type* type)
+{
+    if (IsTypeHelper::isPointerType(type))
+        return (PointerType*) type;
+    else
+        return NULL;
+}
 
 ///
 /// @}
