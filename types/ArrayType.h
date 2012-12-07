@@ -32,14 +32,16 @@ namespace dtcc
         {
             
         public:
-
+            Type* basetype;
+            unsigned int size;
             
         public:
             ///
-            /// @brief      The constructor of the ArrayType type class.
-
+            /// @brief          The constructor of the ArrayType type class.
+            /// @param basetype The type of the elements in the array.
+            /// @param size     The size (length) of the array.
             ///
-            ArrayType()  {}
+            ArrayType(Type* basetype, unsigned int size) : basetype(basetype), size(size) {}
             
             ///
             /// @brief          Returns the size of the type in words.

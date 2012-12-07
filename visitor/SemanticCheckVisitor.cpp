@@ -7,12 +7,15 @@
 
 #include <errors/derr.defs.h>
 #include <errors/InternalCompilerException.h>
+
+#include <types/alltypes.h>
 #include <types/IsTypeHelper.h>
 
 #include <valuetypes/ValueType.h>
 #include <valuetypes/FunctionDesignator.h>
 #include <valuetypes/LValue.h>
 #include <valuetypes/RValue.h>
+#include <valuetypes/CValue.h>
 
 using namespace dtcc;
 using namespace dtcc::visitor;
@@ -527,14 +530,16 @@ void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
 
 
 
+/*######################################*/
+/*      3.3 Expressions                 */
+/*######################################*/
+
+
 /******************************/
-/*      3.3 Expressions       */
+/*  3.3.1 Primary expressions */
 /******************************/
 
-
-/* 3.3.1 Primary expressions */
-
-// identifier
+/* identifier */
 
 void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
 {
@@ -561,6 +566,69 @@ void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
         identifier->valType = new valuetypes::LValue(varType);
     }
 }
+
+
+/* constants */
+
+void SemanticCheckVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
+{
+    characterLiteral->valType = new valuetypes::CValue(new types::UnsignedChar());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
+{
+    signedIntLiteral->valType = new valuetypes::CValue(new types::SignedInt());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral)
+{
+    unsignedIntLiteral->valType = new valuetypes::CValue(new types::UnsignedInt());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::SignedLongLiteral * signedLongLiteral)
+{
+    signedLongLiteral->valType = new valuetypes::CValue(new types::SignedLong());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral)
+{
+    unsignedLongLiteral->valType = new valuetypes::CValue(new types::UnsignedLong());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::FloatLiteral * floatLiteral)
+{
+    floatLiteral->valType = new valuetypes::CValue(new types::Float());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::DoubleLiteral * doubleLiteral)
+{
+    doubleLiteral->valType = new valuetypes::CValue(new types::Double());
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral)
+{
+    longDoubleLiteral->valType = new valuetypes::CValue(new types::LongDouble());
+}
+
+
+/* string literal */
+
+void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
+{
+    stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length()));
+}
+
+
+/******************************/
+/*  3.3.2 Postfix expressions */
+/******************************/
 
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
@@ -635,13 +703,6 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
-{
-    printAstName("StringLiteral");
-    stringLiteral->allChildrenAccept(*this);
-}
-
-
 void SemanticCheckVisitor::visit(astnodes::Constant * constant)
 {
     printAstName("Constant");
@@ -687,62 +748,6 @@ void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structu
 {
     printAstName("StructureResolutionOperator");
     structureResolutionOperator->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
-{
-    printAstName("CharacterLiteral");
-    characterLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
-{
-    printAstName("SignedIntLiteral");
-    signedIntLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral)
-{
-    printAstName("UnsignedIntLiteral");
-    unsignedIntLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::SignedLongLiteral * signedLongLiteral)
-{
-    printAstName("SignedLongLiteral");
-    signedLongLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral)
-{
-    printAstName("UnsignedLongLiteral");
-    unsignedLongLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::FloatLiteral * floatLiteral)
-{
-    printAstName("FloatLiteral");
-    floatLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::DoubleLiteral * doubleLiteral)
-{
-    printAstName("DoubleLiteral");
-    doubleLiteral->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral)
-{
-    printAstName("LongDoubleLiteral");
-    longDoubleLiteral->allChildrenAccept(*this);
 }
 
 
