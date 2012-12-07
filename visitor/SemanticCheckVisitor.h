@@ -59,7 +59,7 @@ namespace dtcc
             static std::string getRandomString(std::string::size_type sz);
             
             /* general label management */
-            // TODO
+            std::map<std::string, astnodes::LabelStatement*> m_funcLabels;
             
             /* stack for switch-statements */
             // this is needed by case and default statements

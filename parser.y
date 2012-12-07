@@ -1030,6 +1030,10 @@ statement
         {
             $$ = $1;
         }
+        | asm_statement
+        {
+            $$ = $1;
+        }
         ;
 
 asm_statement:

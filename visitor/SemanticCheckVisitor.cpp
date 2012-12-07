@@ -9,6 +9,10 @@
 #include <errors/InternalCompilerException.h>
 #include <types/IsTypeHelper.h>
 
+#include <valuetypes/ValueType.h>
+#include <valuetypes/FunctionDesignator.h>
+#include <valuetypes/LValue.h>
+#include <valuetypes/RValue.h>
 
 using namespace dtcc;
 using namespace dtcc::visitor;
@@ -22,6 +26,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_errorList = errors::ErrorList();
     this->m_AutomaticLabels = std::set<std::string>();
     this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
+    this->m_funcLabels = std::map<std::string, astnodes::LabelStatement*>();
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -138,8 +143,16 @@ void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid, std::stri
 
 void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefinition)
 {
+    // clear labels
+    m_funcLabels.clear();
+    
     // TODO this is a tough one
     functionDefinition->allChildrenAccept(*this);
+    
+    // TODO call goto label resolval visitor here:
+    
+    // clear labels
+    m_funcLabels.clear();
 }
 
 
@@ -212,7 +225,7 @@ void SemanticCheckVisitor::visit(astnodes::ForStatement * forStatement)
     forStatement->allChildrenAccept(*this);
     
     // check that the expression type is a scalar type
-    if(!types::IsTypeHelper::isScalarType(forStatement->condExpr->expr->exprType))
+    if(!types::IsTypeHelper::isScalarType(forStatement->condExpr->expr->valType->type))
     {
         addError(forStatement, ERR_CC_EXPECTED_SCALAR_FOR);
     }
@@ -235,7 +248,7 @@ void SemanticCheckVisitor::visit(astnodes::DoWhileStatement * doWhileStatement)
     doWhileStatement->allChildrenAccept(*this);
     
     // check that the expression type is a scalar type
-    if(!types::IsTypeHelper::isScalarType(doWhileStatement->condExpr->exprType))
+    if(!types::IsTypeHelper::isScalarType(doWhileStatement->condExpr->valType->type))
     {
         addError(doWhileStatement, ERR_CC_EXPECTED_SCALAR_DOWHILE);
     }
@@ -257,7 +270,7 @@ void SemanticCheckVisitor::visit(astnodes::WhileStatement * whileStatement)
     whileStatement->allChildrenAccept(*this);
     
     // check that the expression type is a scalar type
-    if(!types::IsTypeHelper::isScalarType(whileStatement->condExpr->exprType))
+    if(!types::IsTypeHelper::isScalarType(whileStatement->condExpr->valType->type))
     {
         addError(whileStatement, ERR_CC_EXPECTED_SCALAR_WHILE);
     }
@@ -273,7 +286,7 @@ void SemanticCheckVisitor::visit(astnodes::SwitchStatement * switchStatement)
     switchStatement->expr->accept(*this);
     
     // check for integral type
-    if(!types::IsTypeHelper::isIntegralType(switchStatement->expr->exprType))
+    if(!types::IsTypeHelper::isIntegralType(switchStatement->expr->valType->type))
     {
         addError(switchStatement, ERR_CC_EXPECTED_INTEGRAL_SWITCH);
         // don't handle anything inside the switch statement
@@ -281,7 +294,7 @@ void SemanticCheckVisitor::visit(astnodes::SwitchStatement * switchStatement)
     }
     
     // set promoted type
-    switchStatement->promotedType = switchStatement->expr->exprType;
+    switchStatement->promotedType = switchStatement->expr->valType->type;
     
     // push switch statement on switch-statement stack
     this->m_switchStack.push_back(switchStatement);
@@ -306,7 +319,7 @@ void SemanticCheckVisitor::visit(astnodes::IfStatement * ifStatement)
     ifStatement->condExpr->accept(*this);
     
     // check for integral type
-    if(!types::IsTypeHelper::isScalarType(ifStatement->condExpr->exprType))
+    if(!types::IsTypeHelper::isScalarType(ifStatement->condExpr->valType->type))
     {
         addError(ifStatement, ERR_CC_EXPECTED_SCALAR_IF);
         // don't handle anything inside the if statement
@@ -340,18 +353,42 @@ void SemanticCheckVisitor::visit(astnodes::EmptyStatement * emptyStatement)
 
 void SemanticCheckVisitor::visit(astnodes::BlockStatement * blockStatement)
 {
-    // TODO new scope, read all declarations, then all statements
-    // TODO
-    // FIXME
-    printAstName("BlockStatement");
+    // create new scope, or if this is the main block of a function
+    // then use the scope already filled with the function parameters
+    if (blockStatement->scope == NULL)
+        blockStatement->scope = m_symbolTable->beginNewScope();
+    else
+        m_symbolTable->beginScope(blockStatement->scope);
+    
+    // analyse the statements 
     blockStatement->allChildrenAccept(*this);
+    
+    // end the scope
+    m_symbolTable->endScope();
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 {
-    // TODO continue here tmrw
-    printAstName("DefaultStatement");
+    if (m_switchStack.empty())
+    {
+        addError(defaultStatement, ERR_CC_DEFAULT_OUTSIDE_OF_SWITCH);
+        // don't handle anything inside the default statement
+        return;
+    }
+    
+    if (m_switchStack.back()->defaultLbl != NULL)
+    {
+        addError(defaultStatement, ERR_CC_MULTIPLE_DEFAULT);
+        // don't handle anything inside the default statement
+        return;
+    }
+    
+    defaultStatement->lbl = getRandomLabel("default");
+    
+    m_switchStack.back()->defaultLbl = defaultStatement->lbl;
+    
+    // analyse child statement:
     defaultStatement->allChildrenAccept(*this);
 }
 
@@ -359,6 +396,8 @@ void SemanticCheckVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 void SemanticCheckVisitor::visit(astnodes::CaseStatement * caseStatement)
 {
     // TODO const expression evaluator
+    // TODO
+    // TODO the expression evaluator (first finish semantic check for expressions)
     printAstName("CaseStatement");
     caseStatement->allChildrenAccept(*this);
 }
@@ -366,10 +405,34 @@ void SemanticCheckVisitor::visit(astnodes::CaseStatement * caseStatement)
 
 void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 {
-    printAstName("LabelStatement");
+    // look if a label with the same name already exists
+    std::map<std::string, astnodes::LabelStatement*>::iterator it;
+    if ((it = this->m_funcLabels.find(labelStatement->label)) != this->m_funcLabels.end())
+    {
+        addError(labelStatement, ERR_CC_DUPLICATE_LABEL, labelStatement->label);
+        addError(it->second, ERR_CC_NOTE_DUPLICATE_LABEL, labelStatement->label);
+        // don't handle anything inside the default statement
+        return;
+    }
+    
+    // insert label into the map
+    this->m_funcLabels[labelStatement->label] = labelStatement;
+    
+    // go on analysing the statement after the label:
     labelStatement->allChildrenAccept(*this);
 }
 
+
+
+
+
+/******************************/
+/*   Declarators !!           */
+/******************************/
+
+// TODO TODO FIXME TODO TODO FIXME
+// implement declarators ;)
+// first now implementing expressions
 
 void SemanticCheckVisitor::visit(astnodes::Declarator * declarator)
 {
@@ -462,10 +525,50 @@ void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
 }
 
 
+
+
+/******************************/
+/*      3.3 Expressions       */
+/******************************/
+
+
+/* 3.3.1 Primary expressions */
+
+// identifier
+
+void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
+{
+    if (!this->m_symbolTable->containsRec(identifier->name))
+    {
+        addError(identifier, ERR_CC_VARIABLE_NOT_IN_SCOPE, identifier->name);
+        // don't handle anything below
+        return;
+    }
+    
+    types::Type* varType = this->m_symbolTable->getTypeOfVariable(identifier->name);
+    if (varType == NULL)
+    {
+        // this must be a function then
+        types::FunctionType* funcType = this->m_symbolTable->getFunction(identifier->name);
+        if (funcType == NULL)
+        {
+            throw new errors::InternalCompilerException("Neither a variable nor a function was found by the name '" + identifier->name + "'.");
+        }
+        identifier->valType = new valuetypes::FunctionDesignator(funcType);
+    }
+    else
+    {
+        identifier->valType = new valuetypes::LValue(varType);
+    }
+}
+
+
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
 {
-    printAstName("AssignmentOperator");
+    // first check lhs and rhs expression
     assignmentOperator->allChildrenAccept(*this);
+    
+    // TODO check compatible types
 }
 
 
@@ -543,13 +646,6 @@ void SemanticCheckVisitor::visit(astnodes::Constant * constant)
 {
     printAstName("Constant");
     constant->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
-{
-    printAstName("Identifier");
-    identifier->allChildrenAccept(*this);
 }
 
 

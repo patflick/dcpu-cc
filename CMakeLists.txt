@@ -56,6 +56,12 @@ add_executable(dtcc2tests
     errors/derr.defs.cpp
     errors/ErrorList.cpp
     errors/ErrorList.h
+    valuetypes/LValue.h
+    valuetypes/LValue.cpp
+    valuetypes/RValue.h
+    valuetypes/CValue.h
+    valuetypes/ValueType.h
+    valuetypes/FunctionDesignator.h
     ${nodesHdr}
     ${nodesSrc}
     ${visitorHdr}

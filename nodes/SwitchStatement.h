@@ -47,6 +47,9 @@ namespace dtcc
             types::Type* promotedType;
             Expression * expr;
             Statement * statement;
+            
+            LabelStatement* defaultLbl;
+            // TODO add stuff for case labels
 
             
         public:
@@ -56,7 +59,7 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            SwitchStatement(Expression * expr, Statement * statement) : expr(expr), statement(statement), promotedType(NULL) {}
+            SwitchStatement(Expression * expr, Statement * statement) : expr(expr), statement(statement), promotedType(NULL), defaultLbl(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

@@ -19,6 +19,8 @@
 #include "Declarations.h"
 #include "Statements.h"
 
+// each block has it's own scope
+#include <symboltable/SymbolTableScope.h>
 
 namespace dtcc
 {
@@ -48,6 +50,7 @@ namespace dtcc
             Declarations * declarations;
             Statements * statements;
 
+            symboltable::SymbolTableScope* scope;
             
         public:
             ///
@@ -56,7 +59,7 @@ namespace dtcc
             /// @param statements TODO: FILLOUT
 
             ///
-            BlockStatement(Declarations * declarations, Statements * statements) : declarations(declarations), statements(statements) {}
+            BlockStatement(Declarations * declarations, Statements * statements) : declarations(declarations), statements(statements) , scope(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

@@ -4,7 +4,7 @@
 ///
 
 ///
-/// @file       IsTypeHelper.h
+/// @file       IsTypeHelper.cpp
 /// @brief      Definition of the IsTypeHelper helper class.
 /// @author     Patrick Flick
 ///
@@ -28,6 +28,16 @@ bool IsTypeHelper::isIntegralType(IntegralType* type)
 }
 
 bool IsTypeHelper::isIntegralType(Type* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isArrayType(ArrayType* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isArrayType(Type* type)
 {
     return false;
 }

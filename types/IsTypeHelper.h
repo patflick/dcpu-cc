@@ -17,6 +17,7 @@
 #include "Type.h"
 #include "ScalarType.h"
 #include "IntegralType.h"
+#include "ArrayType.h"
 
 
 namespace dtcc
@@ -62,6 +63,18 @@ namespace dtcc
             /// @param type     The type to be checked.
             /// @returns        True if the type is of type ScalarType, false otherwise.
             static bool isIntegralType(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a scalar type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type ScalarType, false otherwise.
+            static bool isArrayType(ArrayType* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a scalar type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type ScalarType, false otherwise.
+            static bool isArrayType(Type* type);
             
             ///
             /// @brief      The destructor of the IsTypeHelper helper class.

@@ -35,4 +35,6 @@ ERR_CC_EXPECTED_SCALAR_WHILE                         cc-expected-scalar-while   
 ERR_CC_EXPECTED_SCALAR_DOWHILE                       cc-expected-scalar-dowhile               "Expected scalar type for conditinal expression in do-while statement"
 ERR_CC_EXPECTED_SCALAR_IF                            cc-expected-scalar-if                    "Expected scalar type for conditinal expression in if statement"
 ERR_CC_EXPECTED_INTEGRAL_SWITCH                      cc-expected-integral-switch              "Expected integral type for controlling expression in switch statement"
+ERR_CC_DUPLICATE_LABEL                               cc-duplicate-label                       "duplicate label ‘%s’"
+ERR_CC_NOTE_DUPLICATE_LABEL                          cc-note-duplicate-label                  "NOTE: previous definition of ‘%s’ was here"
 

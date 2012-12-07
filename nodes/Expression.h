@@ -16,7 +16,8 @@
 
 // include needed nodes
 #include "Node.h"
-#include <types/Type.h>
+#include <valuetypes/ValueType.h>
+
 
 
 namespace dtcc
@@ -32,14 +33,14 @@ namespace dtcc
         {
             
         public:
-            /// Each expression has a type associated with it
-            types::Type* exprType;
+            /// Each expression has a value type associated with it
+            valuetypes::ValueType* valType;
             
         public:
             ///
             /// @brief      The constructor of the Expression AST node.
             ///
-            Expression() : exprType(NULL) {}
+            Expression() : valType(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

@@ -17,6 +17,7 @@
 // include needed nodes
 #include "Node.h"
 #include "Statement.h"
+#include "LabelStatement.h"
 
 
 namespace dtcc
@@ -45,6 +46,7 @@ namespace dtcc
             
         public:
             Statement * statement;
+            LabelStatement* lbl;
 
             
         public:
