@@ -551,6 +551,7 @@ void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
     if (!this->m_symbolTable->containsRec(identifier->name))
     {
         addError(identifier, ERR_CC_VARIABLE_NOT_IN_SCOPE, identifier->name);
+        identifier->valType = getInvalidValType();
         // don't handle anything below
         return;
     }

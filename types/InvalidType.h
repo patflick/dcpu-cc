@@ -28,14 +28,13 @@ namespace dtcc
         /// @class      InvalidType
         /// @brief      The InvalidType type class.
         ///
-        class InvalidType
+        class InvalidType : public Type
         {
             
             
         public:
             ///
             /// @brief      The constructor of the InvalidType type class.
-            
             ///
             InvalidType() {}
             
