@@ -60,6 +60,18 @@ namespace dtcc
             static bool isScalarType(Type* type);
             
             ///
+            /// @brief          Returns whether the given type is a arithmetic type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type ScalarType, false otherwise.
+            static bool isArithmeticType(ArithmeticType* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a arithmetic type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type ScalarType, false otherwise.
+            static bool isArithmeticType(Type* type);
+            
+            ///
             /// @brief          Returns whether the given type is a pointer type.
             /// @param type     The type to be checked.
             /// @returns        True if the type is of type pointer, false otherwise.

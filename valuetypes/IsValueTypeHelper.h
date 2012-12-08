@@ -16,6 +16,7 @@
 #include "ValueType.h"
 #include "RValue.h"
 #include "LValue.h"
+#include "FunctionDesignator.h"
 
 namespace dtcc
 {
@@ -34,6 +35,17 @@ namespace dtcc
             IsValueTypeHelper() {};
         public:
             
+            ///
+            /// @brief          Returns whether the given value type is a RValue.
+            /// @param type     The value type to be checked.
+            /// @returns        True if the value type is a RValue, false otherwise.
+            static bool isFunctionDesignator(FunctionDesignator* type);
+            
+            ///
+            /// @brief          Returns whether the given value type is a RValue.
+            /// @param type     The value type to be checked.
+            /// @returns        True if the value type is a RValue, false otherwise.
+            static bool isFunctionDesignator(ValueType* type);
             
             ///
             /// @brief          Returns whether the given value type is a RValue.
@@ -75,7 +87,7 @@ namespace dtcc
             /// @brief          Converts the given L value into a R value.
             /// @param type     The value type to be converted.
             /// @returns        The converted LValue as RValue.
-            static RValue* toRValue(LValue* type);
+            static RValue* toRValue(ValueType* type);
             
             ///
             /// @brief      The destructor of the IsValueTypeHelper helper class.

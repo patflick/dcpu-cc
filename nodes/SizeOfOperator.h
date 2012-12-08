@@ -46,6 +46,7 @@ namespace dtcc
         public:
             TypeName * typeName;
             Expression * expr;
+            Expression * constExpr;
 
             
         public:

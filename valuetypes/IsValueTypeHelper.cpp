@@ -13,6 +13,16 @@
 #include "IsValueTypeHelper.h"
 using namespace dtcc::valuetypes;
 
+bool IsValueTypeHelper::isFunctionDesignator(FunctionDesignator* type)
+{
+    return true;
+}
+
+bool IsValueTypeHelper::isFunctionDesignator(ValueType* type)
+{
+    return false;
+}
+
 bool IsValueTypeHelper::isRValue(RValue* type)
 {
     return true;
@@ -44,7 +54,7 @@ bool IsValueTypeHelper::isModifiableLValue(ValueType* type)
 }
 
 
-RValue* IsValueTypeHelper::toRValue(LValue* type)
+RValue* IsValueTypeHelper::toRValue(ValueType* type)
 {
     // TODO remove type qualifiers??
     return new RValue(type->type);

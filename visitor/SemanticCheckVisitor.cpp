@@ -18,8 +18,13 @@
 #include <valuetypes/CValue.h>
 #include <valuetypes/IsValueTypeHelper.h>
 
+// only include the int tokens
+#define YYSTYPE int
+#include <parser.hpp>
+
 using namespace dtcc;
 using namespace dtcc::visitor;
+
 
 /* constructor */
 
@@ -786,6 +791,92 @@ void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
     preIncDec->valType = preIncDec->expr->valType;
 }
 
+/* 3.3.3.2 Address and indirection operators */
+// TODO add the Address of Operator!
+
+
+/* 3.3.3.3 Unary arithmetic operators */
+
+void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
+{
+    // analyse inner expression first:
+    unaryOperator->allChildrenAccept(*this);
+    
+    switch(unaryOperator->optoken)
+    {
+        case ADD_OP:
+        case SUB_OP:
+            // check that the expression type is a arithmetic type
+            if(!types::IsTypeHelper::isArithmeticType(unaryOperator->expr->valType->type))
+            {
+                addError(unaryOperator, ERR_CC_UNARY_PLUS_MINUS_ARITH);
+                unaryOperator->valType = getInvalidValType();
+                return;
+            }
+            // TODO do integral promotion
+            unaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(unaryOperator->expr->valType);
+            break;
+            
+        case BIN_INV_OP:
+            // check that the expression type is a arithmetic type
+            if(!types::IsTypeHelper::isIntegralType(unaryOperator->expr->valType->type))
+            {
+                addError(unaryOperator, ERR_CC_UNARY_INV_INTEGRAL);
+                unaryOperator->valType = getInvalidValType();
+                return;
+            }
+            // TODO do integral promotion
+            unaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(unaryOperator->expr->valType);
+            break;
+            
+        case NOT_OP:
+            // check that the expression type is a arithmetic type
+            if(!types::IsTypeHelper::isScalarType(unaryOperator->expr->valType->type))
+            {
+                addError(unaryOperator, ERR_CC_UNARY_NOT_SCALAR);
+                unaryOperator->valType = getInvalidValType();
+                return;
+            }
+            unaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+            break;
+        default:
+            throw new errors::InternalCompilerException("Unknown unary operator encountered");
+    }
+}
+
+
+/* 3.3.3.4 The sizeof operator */
+
+void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
+{
+    // analyse the expression inside the sizeof operator
+    sizeOfOperator->allChildrenAccept(*this);
+    
+    // set return type as a CValue (constant RValue)
+    sizeOfOperator->valType = new valuetypes::CValue(new types::UnsignedInt());
+    
+    // check it is not a function type
+    if (valuetypes::IsValueTypeHelper::isFunctionDesignator(sizeOfOperator->valType))
+    {
+        addError(sizeOfOperator, ERR_CC_SIZEOF_FUNC);
+        return;
+    }
+    
+    // return the word size of the expression type
+    // TODO return byte size, and make word and byte independend from each other throughout the code
+    // TODO special return value for array types??
+    sizeOfOperator->constExpr = new astnodes::UnsignedIntLiteral(sizeOfOperator->valType->type->getWordSize());
+}
+
+
+/* 3.3.4 Cast operators */
+
+void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOperator)
+{
+    printAstName("ExplicitCastOperator");
+    explicitCastOperator->allChildrenAccept(*this);
+}
+
 
 
 
@@ -795,6 +886,7 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     assignmentOperator->allChildrenAccept(*this);
     
     // TODO check compatible types
+    
 }
 
 
@@ -812,25 +904,12 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOperator)
-{
-    printAstName("ExplicitCastOperator");
-    explicitCastOperator->allChildrenAccept(*this);
-}
 
 
-void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
-{
-    printAstName("SizeOfOperator");
-    sizeOfOperator->allChildrenAccept(*this);
-}
 
 
-void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
-{
-    printAstName("UnaryOperator");
-    unaryOperator->allChildrenAccept(*this);
-}
+
+
 
 
 

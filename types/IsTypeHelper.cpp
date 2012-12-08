@@ -33,6 +33,16 @@ bool IsTypeHelper::isScalarType(Type* type)
     return false;
 }
 
+bool IsTypeHelper::isArithmeticType(ArithmeticType* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isArithmeticType(Type* type)
+{
+    return false;
+}
+
 bool IsTypeHelper::isPointerType(PointerType* type)
 {
     return true;
