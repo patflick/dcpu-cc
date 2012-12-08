@@ -873,6 +873,9 @@ void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
 
 void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOperator)
 {
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
     printAstName("ExplicitCastOperator");
     explicitCastOperator->allChildrenAccept(*this);
 }

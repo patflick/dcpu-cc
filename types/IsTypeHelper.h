@@ -131,6 +131,80 @@ namespace dtcc
             /// @returns        True if the type is of type function, false otherwise.
             static bool isFunctionType(Type* type);
             
+            
+            /* base types */
+            ///
+            /// @brief          Returns whether the given type is a long double.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is long double, false otherwise.
+            static bool isLongDouble(LongDouble* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a long double.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is long double, false otherwise.
+            static bool isLongDouble(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a double.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is double, false otherwise.
+            static bool isDouble(Double* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a double.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is double, false otherwise.
+            static bool isDouble(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a float.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is float, false otherwise.
+            static bool isFloat(Float* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a float.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is float, false otherwise.
+            static bool isFloat(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a UnsignedLong.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is UnsignedLong, false otherwise.
+            static bool isUnsignedLong(UnsignedLong* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a UnsignedLong.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is UnsignedLong, false otherwise.
+            static bool isUnsignedLong(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a SignedLong.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is SignedLong, false otherwise.
+            static bool isSignedLong(SignedLong* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a SignedLong.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is SignedLong, false otherwise.
+            static bool isSignedLong(Type* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a UnsignedInt.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is UnsignedInt, false otherwise.
+            static bool isUnsignedInt(UnsignedInt* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a UnsignedInt.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is UnsignedInt, false otherwise.
+            static bool isUnsignedInt(Type* type);
+            
             /* "casting" operations */
             
             ///

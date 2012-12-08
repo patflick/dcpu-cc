@@ -94,7 +94,69 @@ bool IsTypeHelper::isFunctionType(Type* type)
     return false;
 }
 
+/* base types */
 
+bool IsTypeHelper::isLongDouble(LongDouble* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isLongDouble(Type* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isDouble(Double* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isDouble(Type* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isFloat(Float* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isFloat(Type* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isUnsignedLong(UnsignedLong* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isUnsignedLong(Type* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isSignedLong(SignedLong* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isSignedLong(Type* type)
+{
+    return false;
+}
+
+bool IsTypeHelper::isUnsignedInt(UnsignedInt* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isUnsignedInt(Type* type)
+{
+    return false;
+}
+
+/* "casting" ops */
 
 PointerType* IsTypeHelper::getPointerType(Type* type)
 {
