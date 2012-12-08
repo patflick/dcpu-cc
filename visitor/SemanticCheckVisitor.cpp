@@ -16,6 +16,7 @@
 #include <valuetypes/LValue.h>
 #include <valuetypes/RValue.h>
 #include <valuetypes/CValue.h>
+#include <valuetypes/IsValueTypeHelper.h>
 
 using namespace dtcc;
 using namespace dtcc::visitor;
@@ -674,6 +675,118 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
 }
 
 
+/* 3.3.2.2 Function calls */
+
+void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
+{
+    // analyse lhs and all arguments
+    methodCall->allChildrenAccept(*this);
+    
+    // check LHS type
+    types::Type* lhsType = methodCall->lhsExpr->valType->type;
+    if(!types::IsTypeHelper::isPointerType(lhsType))
+    {
+        addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
+        methodCall->valType = getInvalidValType();
+        return;
+    }
+    if (!types::IsTypeHelper::isFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
+    {
+        addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
+        methodCall->valType = getInvalidValType();
+        return;
+    }
+    
+    // now we are sure it is a pointer to a function, get the functiontype
+    types::FunctionType* funType = types::IsTypeHelper::getFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType);
+    methodCall->valType = new valuetypes::RValue(funType->returnType);
+    
+    // check for same size (or in case of variable arguments (...) for the call having
+    // at least as many arguments as there are parameters in the function type.
+    if ((funType->isVarArgs && methodCall->rhsExprs->size() < funType->paramTypes->size())
+        || (!funType->isVarArgs && methodCall->rhsExprs->size() != funType->paramTypes->size()))
+    {
+        addError(methodCall, ERR_CC_CALLED_FUNC_NUM_PARAMS);
+        return;
+    }
+    
+    for (unsigned int i = 0; i < methodCall->rhsExprs->size(); i++)
+    {
+        valuetypes::ValueType* from = (*methodCall->rhsExprs)[i]->valType;
+        types::Type* to = (*funType->paramTypes)[i];
+        // make sure all the parameter types match
+        // TODO check that they are assignable (see assignment operator)
+        // TODO FIXME TODO FIXME
+    }
+    
+    // TODO what to do if return type is bigger than 1 word??
+}
+
+
+/* 3.3.2.3 Structure and union members */
+
+void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structureResolutionOperator)
+{
+    // TODO FIXME TODO FIXME
+    // TODO implement structs properly
+    printAstName("StructureResolutionOperator");
+    structureResolutionOperator->allChildrenAccept(*this);
+}
+
+
+/* 3.3.2.4 Postfix increment and decrement operators */
+
+void SemanticCheckVisitor::visit(astnodes::PostIncDec * postIncDec)
+{
+    // fist analyse the inner expression
+    postIncDec->allChildrenAccept(*this);
+    
+    // check that the expression type is a scalar type
+    if(!types::IsTypeHelper::isScalarType(postIncDec->expr->valType->type))
+    {
+        addError(postIncDec, ERR_CC_EXPECTED_SCALAR_INCDEC);
+    }
+    
+    // check that the expression type is a scalar type
+    if(!valuetypes::IsValueTypeHelper::isModifiableLValue(postIncDec->expr->valType))
+    {
+        addError(postIncDec, ERR_CC_INCDEC_NO_MOD_LVALUE);
+    }
+    
+    // same value type
+    postIncDec->valType = postIncDec->expr->valType;
+}
+
+
+
+/******************************/
+/*  3.3.3 Unary operators     */
+/******************************/
+
+/* 3.3.3.1 Prefix increment and decrement operators */
+
+void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
+{
+    // fist analyse the inner expression
+    preIncDec->allChildrenAccept(*this);
+    
+    // check that the expression type is a scalar type
+    if(!types::IsTypeHelper::isScalarType(preIncDec->expr->valType->type))
+    {
+        addError(preIncDec, ERR_CC_EXPECTED_SCALAR_INCDEC);
+    }
+    
+    // check that the expression type is a scalar type
+    if(!valuetypes::IsValueTypeHelper::isModifiableLValue(preIncDec->expr->valType))
+    {
+        addError(preIncDec, ERR_CC_INCDEC_NO_MOD_LVALUE);
+    }
+    
+    // same value type
+    preIncDec->valType = preIncDec->expr->valType;
+}
+
+
 
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
@@ -720,25 +833,12 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
-{
-    printAstName("PreIncDec");
-    preIncDec->allChildrenAccept(*this);
-}
 
 
-void SemanticCheckVisitor::visit(astnodes::PostIncDec * postIncDec)
-{
-    printAstName("PostIncDec");
-    postIncDec->allChildrenAccept(*this);
-}
 
 
-void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
-{
-    printAstName("MethodCall");
-    methodCall->allChildrenAccept(*this);
-}
+
+
 
 
 
@@ -781,13 +881,6 @@ void SemanticCheckVisitor::visit(astnodes::Enumerator * enumerator)
 {
     printAstName("Enumerator");
     enumerator->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structureResolutionOperator)
-{
-    printAstName("StructureResolutionOperator");
-    structureResolutionOperator->allChildrenAccept(*this);
 }
 
 

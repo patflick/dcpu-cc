@@ -4,48 +4,39 @@
 ///
 
 ///
-/// @file       FunctionType.h
-/// @brief      Declaration of the FunctionType type class.
+/// @file       Void.h
+/// @brief      Declaration of the Void type class.
 /// @author     Patrick Flick
 ///
 
-#ifndef __DCPU_CC_TYPES_FUNCTIONTYPE_H
-#define __DCPU_CC_TYPES_FUNCTIONTYPE_H
+#ifndef __DCPU_CC_TYPES_VOID_H
+#define __DCPU_CC_TYPES_VOID_H
 
 #include <string>
 #include <stdint.h>
 
 // include needed type classes
 #include "Type.h"
-#include "ParameterTypeList.h"
 
 
 namespace dtcc
 {
     namespace types
     {
-
+        
         ///
-        /// @class      FunctionType
-        /// @brief      The FunctionType type class.
+        /// @class      Void
+        /// @brief      The Void type class.
         ///
-        class FunctionType : public Type
+        class Void : public Type
         {
             
-        public:
-            Type* returnType;
-            ParameterTypeList* paramTypes;
-            bool isVarArgs;
-
             
         public:
             ///
-            /// @brief      The constructor of the FunctionType type class.
-            /// @param returnType TODO: FILLOUT
-            /// @param paramTypes TODO: FILLOUT
-
+            /// @brief      The constructor of the Void type class.
             ///
-            FunctionType(Type* returnType, ParameterTypeList* paramTypes, bool isVarArgs) : returnType(returnType), paramTypes(paramTypes), isVarArgs(isVarArgs) {}
+            Void() {}
             
             ///
             /// @brief          Returns the size of the type in words.
@@ -54,7 +45,7 @@ namespace dtcc
             /// This might return 0 if the type is not yet resolved
             /// (i.e. for structs).
             virtual uint16_t getWordSize();
-
+            
             ///
             /// @brief          Returns whether the type is a complete type.
             /// @return         True, if the type is a complete type, false
@@ -69,12 +60,13 @@ namespace dtcc
             /// This is used especially for error messages and warnings.
             virtual std::string toString();
             
+            
             ///
-            /// @brief      The destructor of the FunctionType type class.
+            /// @brief      The destructor of the Void type class.
             ///
-            virtual ~FunctionType();
+            virtual ~Void() {}
         };
-
+        
     } // namespace types
 } // namespace dtcc
 

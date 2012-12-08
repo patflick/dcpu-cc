@@ -35,6 +35,17 @@ namespace dtcc
             IsTypeHelper() {};
         public:
             
+            ///
+            /// @brief          Returns whether the given type is a void type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type void, false otherwise.
+            static bool isVoid(Void* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a void type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type void, false otherwise.
+            static bool isVoid(Type* type);
             
             ///
             /// @brief          Returns whether the given type is a scalar type.
@@ -96,6 +107,17 @@ namespace dtcc
             /// @returns        True if the type is of type object, false otherwise.
             static bool isObjectType(Type* type);
             
+            ///
+            /// @brief          Returns whether the given type is a function type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type function, false otherwise.
+            static bool isFunctionType(FunctionType* type);
+            
+            ///
+            /// @brief          Returns whether the given type is a function type.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is of type function, false otherwise.
+            static bool isFunctionType(Type* type);
             
             /* "casting" operations */
             
@@ -104,6 +126,12 @@ namespace dtcc
             /// @param type     The type to be cast to pointer and returned.
             /// @returns        The pointer type if this is a pointer type, and NULL otherwise.
             static PointerType* getPointerType(Type* type);
+            
+            ///
+            /// @brief          Returns the function type if this is a function type, and NULL otherwise.
+            /// @param type     The type to be cast to function and returned.
+            /// @returns        The function type if this is a function type, and NULL otherwise.
+            static FunctionType* getFunctionType(Type* type);
             
             ///
             /// @brief      The destructor of the IsTypeHelper helper class.

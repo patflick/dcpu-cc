@@ -47,7 +47,7 @@ bool IsValueTypeHelper::isModifiableLValue(ValueType* type)
 RValue* IsValueTypeHelper::toRValue(LValue* type)
 {
     // TODO remove type qualifiers??
-    return new RValue(type);
+    return new RValue(type->type);
 }
 
 ///

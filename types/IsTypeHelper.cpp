@@ -12,6 +12,17 @@
 #include "IsTypeHelper.h"
 using namespace dtcc::types;
     
+
+bool IsTypeHelper::isVoid(Void* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isVoid(Type* type)
+{
+    return false;
+}
+
 bool IsTypeHelper::isScalarType(ScalarType* type)
 {
     return true;
@@ -63,11 +74,30 @@ bool IsTypeHelper::isObjectType(Type* type)
     return type->isComplete();
 }
 
+bool IsTypeHelper::isFunctionType(FunctionType* type)
+{
+    return true;
+}
+
+bool IsTypeHelper::isFunctionType(Type* type)
+{
+    return false;
+}
+
+
 
 PointerType* IsTypeHelper::getPointerType(Type* type)
 {
     if (IsTypeHelper::isPointerType(type))
         return (PointerType*) type;
+    else
+        return NULL;
+}
+
+FunctionType* IsTypeHelper::getFunctionType(Type* type)
+{
+    if (IsTypeHelper::isFunctionType(type))
+        return (FunctionType*) type;
     else
         return NULL;
 }

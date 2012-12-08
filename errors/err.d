@@ -33,6 +33,7 @@ ERR_CC_VAR_ASM_REF                                   cc-var-asm-ref             
 ERR_CC_EXPECTED_SCALAR_FOR                           cc-expected-scalar-for                   "Expected scalar type for conditinal expression in for statement"
 ERR_CC_EXPECTED_SCALAR_WHILE                         cc-expected-scalar-while                 "Expected scalar type for conditinal expression in while statement"
 ERR_CC_EXPECTED_SCALAR_DOWHILE                       cc-expected-scalar-dowhile               "Expected scalar type for conditinal expression in do-while statement"
+
 ERR_CC_EXPECTED_SCALAR_IF                            cc-expected-scalar-if                    "Expected scalar type for conditinal expression in if statement"
 ERR_CC_EXPECTED_INTEGRAL_SWITCH                      cc-expected-integral-switch              "Expected integral type for controlling expression in switch statement"
 ERR_CC_DUPLICATE_LABEL                               cc-duplicate-label                       "duplicate label ‘%s’"
@@ -41,4 +42,12 @@ ERR_CC_NOTE_DUPLICATE_LABEL                          cc-note-duplicate-label    
 ERR_CC_ARRAY_ACCESS_NO_POINTER                       cc-array-access-no-pointer               "subscripted value is neither array nor pointer."
 ERR_CC_DEREF_INCOMPLETE_TYPE                         cc-deref-incomplete-type                 "dereferencing pointer to incomplete type."
 ERR_CC_ARRAY_SUB_NOT_INT                             cc-array-sub-not-int                     "array subscript is not an integer."
+
+ERR_CC_CALLED_OBJ_NOT_FUNC                           cc-called-obj-not-func                   "called object is not a function."
+ERR_CC_CALLED_FUNC_NUM_PARAMS                        cc-called-func-num-params                "the function call has the wrong amount of arguments."
+
+ERR_CC_EXPECTED_SCALAR_INCDEC                        cc-expected-scalar-incdec                "Expected scalar type for inner expression of ++, -- operator"
+ERR_CC_INCDEC_NO_MOD_LVALUE                          cc-incdec-no-mod-lvalue                  "invalid ++,-- operator on non modifiable expression."
+
+
 
