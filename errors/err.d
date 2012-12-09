@@ -53,5 +53,10 @@ ERR_CC_UNARY_PLUS_MINUS_ARITH                        cc-unary-plus-minus-arith  
 ERR_CC_UNARY_INV_INTEGRAL                            cc-unary-inv-integral                    "expected integral type for operand of unary ~ operator."
 ERR_CC_UNARY_NOT_SCALAR                              cc-unary-not-scalar                      "expected scalar type for operand of unary ! operator."
 ERR_CC_SIZEOF_FUNC                                   cc-sizeof-func                           "cannot get size of function designator."
+ERR_CC_BIN_EXPECTED_ARITH                            cc-bin-expected-arith                    "expected arithmetic type in binary operator."
+ERR_CC_BIN_EXPECTED_INTEGRAL                         cc-bin-expected-integral                 "expected integral type in binary operator."
+ERR_CC_BIN_ADD_INVALID_TYPES                         cc-bin-add-invalid-types                 "invalid type(s) to binary +"
+ERR_CC_BIN_SUB_INVALID_TYPES                         cc-bin-sub-invalid-types                 "invalid type(s) to binary -"
+ERR_CC_COMP_INVALID_TYPES                            cc-comp-invalid-types                    "invalid type(s) to comparison operator."
 
 

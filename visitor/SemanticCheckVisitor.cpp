@@ -17,6 +17,7 @@
 #include <valuetypes/RValue.h>
 #include <valuetypes/CValue.h>
 #include <valuetypes/IsValueTypeHelper.h>
+#include <valuetypes/PromotionHelper.h>
 
 // only include the int tokens
 #define YYSTYPE int
@@ -813,8 +814,7 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
                 unaryOperator->valType = getInvalidValType();
                 return;
             }
-            // TODO do integral promotion
-            unaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(unaryOperator->expr->valType);
+            unaryOperator->valType = valuetypes::PromotionHelper::promote(unaryOperator->expr->valType);
             break;
             
         case BIN_INV_OP:
@@ -825,8 +825,7 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
                 unaryOperator->valType = getInvalidValType();
                 return;
             }
-            // TODO do integral promotion
-            unaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(unaryOperator->expr->valType);
+            unaryOperator->valType = valuetypes::PromotionHelper::promote(unaryOperator->expr->valType);
             break;
             
         case NOT_OP:
@@ -881,6 +880,229 @@ void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
 }
 
 
+/* binary operators */
+
+void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
+{
+    // analyse both sub-expressions
+    binaryOperator->allChildrenAccept(*this);
+    
+    valuetypes::ValueType* lhsVtype = binaryOperator->lhsExrp->valType;
+    valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
+    types::Type* lhsType = lhsVtype->type;
+    types::Type* rhsType = rhsVtype->type;
+    
+    
+    switch(binaryOperator->optoken)
+    {
+        
+        /* 3.3.5 Multiplicative operators */
+        
+        case MUL_OP:
+        case DIV_OP:
+            // check that the expression type is a arithmetic type
+            if((!types::IsTypeHelper::isArithmeticType(lhsType))
+                || !types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                addError(binaryOperator, ERR_CC_BIN_EXPECTED_ARITH);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            break;
+        case MOD_OP:
+            // check that the expression type is a integral type
+            if((!types::IsTypeHelper::isIntegralType(lhsType))
+                || !types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            break;
+        
+            
+        /* 3.3.6 Additive operators */
+        
+        case ADD_OP:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && !types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            }
+            else if(((types::IsTypeHelper::isPointerType(lhsType))
+                && !types::IsTypeHelper::isIntegralType(rhsType)))
+
+            {
+                // pointer op
+                // TODO set word size somewhere
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
+            }
+            else if ((types::IsTypeHelper::isIntegralType(lhsType))
+                && !types::IsTypeHelper::isPointerType(rhsType))
+            {
+                // pointer op
+                // TODO set word size somewhere
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
+            }
+            else
+            {
+                addError(binaryOperator, ERR_CC_BIN_ADD_INVALID_TYPES);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+        case SUB_OP:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && !types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            } else if((binaryOperator->optoken == SUB_OP)
+                && (types::IsTypeHelper::isPointerType(lhsType))
+                && !types::IsTypeHelper::isPointerType(rhsType))
+            {
+                // TODO check for compatible types pointed to
+                // TODO set pointer ops and word size somewhere
+                // TODO add ptrdiff_t to stddef.h
+                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+            } else if((types::IsTypeHelper::isPointerType(lhsType))
+                && !types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                // TODO set pointer ops and word size somewhere
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
+            }
+            else
+            {
+                addError(binaryOperator, ERR_CC_BIN_SUB_INVALID_TYPES);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+            
+            
+        /* 3.3.7 Bitwise shift operators */
+            
+        case LEFT_OP:
+        case RIGHT_OP:
+            // check that the expression type is a integral type
+            if((!types::IsTypeHelper::isIntegralType(lhsType))
+                || !types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            
+            binaryOperator->valType = valuetypes::PromotionHelper::promote(lhsVtype);
+            break;
+            
+        /* 3.3.8 Relational operators */
+        case LT_OP:
+        case GT_OP:
+        case LE_OP:
+        case GE_OP:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && !types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+                // TODO separate return type and common type
+                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+            } else if((types::IsTypeHelper::isPointerType(lhsType))
+                && !types::IsTypeHelper::isPointerType(rhsType))
+            {
+                // TODO check for compatible types pointed to
+                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+            }
+            else
+            {
+                addError(binaryOperator, ERR_CC_COMP_INVALID_TYPES);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+            
+            
+            /* 3.3.9 Equality operators */
+            
+            case EQ_OP:
+            case NE_OP:
+                if((types::IsTypeHelper::isArithmeticType(lhsType))
+                    && !types::IsTypeHelper::isArithmeticType(rhsType))
+                {
+                    // both are arithmetic types
+                    // promote:
+                    binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+                    // TODO separate return type and common type
+                    binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                } else if((types::IsTypeHelper::isPointerType(lhsType))
+                    && !types::IsTypeHelper::isPointerType(rhsType))
+                {
+                    // TODO check for compatible types pointed to
+                    binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                }
+                // TODO case for Null pointer constant
+                else
+                {
+                    addError(binaryOperator, ERR_CC_COMP_INVALID_TYPES);
+                    binaryOperator->valType = getInvalidValType();
+                    return;
+                }
+                break;
+            
+                
+            /* 3.3.10 Bitwise AND operator */
+            /* 3.3.11 Bitwise exclusive OR operator */
+            /* 3.3.12 Bitwise inclusive OR operator */
+            
+            case BIN_AND_OP:
+            case BIN_XOR_OP:
+            case BIN_OR_OP:
+                // check that the expression type is a integral type
+                if((!types::IsTypeHelper::isIntegralType(lhsType))
+                    || !types::IsTypeHelper::isIntegralType(rhsType))
+                {
+                    addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
+                    binaryOperator->valType = getInvalidValType();
+                    return;
+                }
+                
+                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+                break;
+                
+                
+                /* 3.3.13 Logical AND operator */
+                /* 3.3.14 Logical OR operator */
+                
+            case AND_OP:
+            case OR_OP:
+                
+                // check that the expression type is a integral type
+                if((!types::IsTypeHelper::isIntegralType(lhsType))
+                    || !types::IsTypeHelper::isIntegralType(rhsType))
+                {
+                    addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
+                    binaryOperator->valType = getInvalidValType();
+                    return;
+                }
+                
+                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                break;
+                
+            default:
+                throw new errors::InternalCompilerException("unknown binary operator encountered");
+    }
+}
+
+
+
+
 
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
@@ -900,11 +1122,7 @@ void SemanticCheckVisitor::visit(astnodes::ConditionalOperator * conditionalOper
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
-{
-    printAstName("BinaryOperator");
-    binaryOperator->allChildrenAccept(*this);
-}
+
 
 
 

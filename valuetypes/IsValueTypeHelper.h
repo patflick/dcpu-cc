@@ -16,6 +16,7 @@
 #include "ValueType.h"
 #include "RValue.h"
 #include "LValue.h"
+#include "CValue.h"
 #include "FunctionDesignator.h"
 
 namespace dtcc
@@ -58,6 +59,18 @@ namespace dtcc
             /// @param type     The value type to be checked.
             /// @returns        True if the value type is a RValue, false otherwise.
             static bool isRValue(ValueType* type);
+            
+            ///
+            /// @brief          Returns whether the given value type is a RValue.
+            /// @param type     The value type to be checked.
+            /// @returns        True if the value type is a RValue, false otherwise.
+            static bool isCValue(CValue* type);
+            
+            ///
+            /// @brief          Returns whether the given value type is a RValue.
+            /// @param type     The value type to be checked.
+            /// @returns        True if the value type is a RValue, false otherwise.
+            static bool isCValue(ValueType* type);
             
             ///
             /// @brief          Returns whether the given value type is a LValue.

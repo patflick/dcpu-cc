@@ -33,6 +33,16 @@ bool IsValueTypeHelper::isRValue(ValueType* type)
     return false;
 }
 
+bool IsValueTypeHelper::isCValue(CValue* type)
+{
+    return true;
+}
+
+bool IsValueTypeHelper::isCValue(ValueType* type)
+{
+    return false;
+}
+
 bool IsValueTypeHelper::isLValue(LValue* type)
 {
     return true;
