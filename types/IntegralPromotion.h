@@ -9,6 +9,7 @@
 /// @author     Patrick Flick
 ///
 
+#include "Type.h"
 
 #ifndef __DCPU_CC_TYPES_INTEGRALPROMOTION_H
 #define __DCPU_CC_TYPES_INTEGRALPROMOTION_H
@@ -40,42 +41,6 @@ namespace dtcc
             /// @param type     The type to be promoted.
             /// @returns        The promoted type.
             static IntegralType* promote(Type* type);
-
-            ///
-            /// @brief          Returns the type of the integral that is promoted.
-            /// @param type     The type to be promoted.
-            /// @returns        The promoted type.
-            static IntegralType* promote(SignedChar* type);
-            
-            ///
-            /// @brief          Returns the type of the integral that is promoted.
-            /// @param type     The type to be promoted.
-            /// @returns        The promoted type.
-            static IntegralType* promote(UnsignedChar* type);
-            
-            ///
-            /// @brief          Returns the type of the integral that is promoted.
-            /// @param type     The type to be promoted.
-            /// @returns        The promoted type.
-            static IntegralType* promote(SignedShort* type);
-            
-            ///
-            /// @brief          Returns the type of the integral that is promoted.
-            /// @param type     The type to be promoted.
-            /// @returns        The promoted type.
-            static IntegralType* promote(UnsignedShort* type);
-    
-            ///
-            /// @brief          Returns the type of the integral that is promoted.
-            /// @param type     The type to be promoted.
-            /// @returns        The promoted type.
-            static IntegralType* promote(EnumType* type);
-            
-            ///
-            /// @brief          Returns the type of the integral that is promoted.
-            /// @param type     The type to be promoted.
-            /// @returns        The promoted type.
-            static IntegralType* promote(IntegralType* type);
             
             ///
             /// @brief      The destructor of the IntegralPromotion helper class.

@@ -131,8 +131,50 @@ def parserow(row):
     className = ClassName[0].lower() + ClassName[1:]
     ##print "#include \"" + ClassName + ".h\""
     
+    ##for printing out a print-out-visitor
+    #print " "*12 + "///"
+    #print " "*12 + "/// @brief      Visit function of the visitor pattern."
+    #print " "*12 + "/// @sa         http://en.wikipedia.org/wiki/Visitor_pattern"
+    #print " "*12 + "/// @param " + className + "    The node to visit this visitor"
+    #print " "*12 + "virtual void visit(" + ClassName + " * " + className + ");"
+    #print " "*12
+    #print " "*12
     
+    #print "bool TypeVisitor::visit(" + ClassName + " * " + className + ")"
+    #print "{"
+    #print " "*4 + "return false;"
+    ##print " "*4 + "increaseIdentation();"
+    ##print " "*4 + className + "->allChildrenAccept(*this);"
+    ##print " "*4 + "decreaseIdentation();"
+    #print "}"
+    #print ""
+    #print ""
     
+
+    print """
+        ///
+        /// @brief          Returns whether the given type is a """ + ClassName + """.
+        /// @param type     The type to be checked.
+        /// @returns        True if the type is """ + ClassName + """, false otherwise.
+        static bool is""" + ClassName + """(Type * type);
+    """
+    
+    #print "bool IsTypeHelper::is" + ClassName + "(Type * type)"
+    ##print "{"
+    #print '''{
+    #class : public TypeVisitor
+    #{
+        #public:
+        #virtual bool visit(''' + ClassName + ''' * t)
+        #{
+            #return true;
+        #}
+    #} tv;
+    #type->accept(tv);
+#}'''
+    ##print "}"
+    #print ""
+    #print ""
     
 def main():
     parsefile(CLASS_NAMES_FILE)

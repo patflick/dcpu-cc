@@ -9,6 +9,8 @@
 /// @author     Patrick Flick
 ///
 
+#include "Type.h"
+
 #ifndef __DCPU_CC_TYPES_FUNCTIONTYPE_H
 #define __DCPU_CC_TYPES_FUNCTIONTYPE_H
 
@@ -43,6 +45,7 @@ namespace dtcc
             /// @brief      The constructor of the FunctionType type class.
             /// @param returnType TODO: FILLOUT
             /// @param paramTypes TODO: FILLOUT
+            /// @param isVarArgs TODO: FILLOUT
 
             ///
             FunctionType(Type* returnType, ParameterTypeList* paramTypes, bool isVarArgs) : returnType(returnType), paramTypes(paramTypes), isVarArgs(isVarArgs) {}
@@ -56,11 +59,27 @@ namespace dtcc
             virtual uint16_t getWordSize();
 
             ///
+            /// @brief          Returns the size of the type in bytes.
+            /// @return         The size of the type.
+            ///
+            /// This might return 0 if the type is not yet resolved
+            /// (i.e. for structs).
+            virtual uint16_t getByteSize();
+            
+            ///
             /// @brief          Returns whether the type is a complete type.
             /// @return         True, if the type is a complete type, false
             ///                 otherwise
             ///
             virtual bool isComplete();
+            
+            
+            ///
+            /// @brief          The accept method of the visitor pattern.
+            /// @param tv       The TypeVisitor to be accepted.
+            /// @return         The boolean value returned by tv.accept(this)
+            ///
+            virtual bool accept(TypeVisitor& tv);
             
             ///
             /// @brief          Returns a string representation of the type.

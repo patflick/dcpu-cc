@@ -10,151 +10,343 @@
 ///
     
 #include "IsTypeHelper.h"
+#include "alltypes.h"
+#include "TypeVisitor.h"
 using namespace dtcc::types;
     
 
-bool IsTypeHelper::isVoid(Void* type)
+bool IsTypeHelper::isType(Type * type)
 {
+    // quite a trivial question, but yea .. xD
     return true;
 }
 
-bool IsTypeHelper::isVoid(Type* type)
-{
-    return false;
-}
 
-bool IsTypeHelper::isScalarType(ScalarType* type)
+bool IsTypeHelper::isScalarType(Type * type)
 {
-    return true;
-}
-
-bool IsTypeHelper::isScalarType(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isArithmeticType(ArithmeticType* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isArithmeticType(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isPointerType(PointerType* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isPointerType(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isIntegralType(IntegralType* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isIntegralType(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isArrayType(ArrayType* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isArrayType(Type* type)
-{
-    return false;
+    if (IsTypeHelper::isArithmeticType(type)
+        || IsTypeHelper::isPointerType(type))
+    {
+        return true;
+    }
+    else
+        return false;
 }
 
 
-bool IsTypeHelper::isObjectType(FunctionType* type)
+bool IsTypeHelper::isArithmeticType(Type * type)
 {
-    return false;
+    if (IsTypeHelper::isFloatType(type)
+        || IsTypeHelper::isIntegralType(type))
+    {
+        return true;
+    }
+    else
+        return false;
 }
+
+
+bool IsTypeHelper::isFloatType(Type * type)
+{
+    if (IsTypeHelper::isFloat(type)
+        || IsTypeHelper::isDouble(type)
+        || IsTypeHelper::isLongDouble(type))
+    {
+        return true;
+    }
+    else
+        return false;
+}
+
+
+bool IsTypeHelper::isFloat(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(Float * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isDouble(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(Double * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isLongDouble(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(LongDouble * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isIntegralType(Type * type)
+{
+    if (IsTypeHelper::isSignedChar(type)
+        || IsTypeHelper::isUnsignedChar(type)
+        || IsTypeHelper::isSignedShort(type)
+        || IsTypeHelper::isUnsignedShort(type)
+        || IsTypeHelper::isSignedInt(type)
+        || IsTypeHelper::isUnsignedInt(type)
+        || IsTypeHelper::isSignedLong(type)
+        || IsTypeHelper::isUnsignedLong(type)
+        || IsTypeHelper::isEnumType(type))
+    {
+        return true;
+    }
+    else
+        return false;
+}
+
+
+bool IsTypeHelper::isSignedChar(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(SignedChar * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isUnsignedChar(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(UnsignedChar * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isSignedShort(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(SignedShort * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isUnsignedShort(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(UnsignedShort * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isSignedInt(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(SignedInt * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isUnsignedInt(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(UnsignedInt * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isSignedLong(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(SignedLong * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isUnsignedLong(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(UnsignedLong * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isEnumType(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(EnumType * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isPointerType(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(PointerType * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isFunctionType(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(FunctionType * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isAggregateType(Type * type)
+{
+    if (IsTypeHelper::isArrayType(type)
+        || IsTypeHelper::isStructUnionType(type))
+    {
+        return true;
+    }
+    else
+        return false;
+}
+
+
+bool IsTypeHelper::isArrayType(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(ArrayType * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isStructUnionType(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(StructUnionType * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isVoid(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(Void * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
+
+bool IsTypeHelper::isInvalidType(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(InvalidType * t)
+        {
+            return true;
+        }
+    } tv;
+    type->accept(tv);
+}
+
 
 bool IsTypeHelper::isObjectType(Type* type)
 {
     return type->isComplete();
 }
 
-bool IsTypeHelper::isFunctionType(FunctionType* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isFunctionType(Type* type)
-{
-    return false;
-}
-
-/* base types */
-
-bool IsTypeHelper::isLongDouble(LongDouble* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isLongDouble(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isDouble(Double* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isDouble(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isFloat(Float* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isFloat(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isUnsignedLong(UnsignedLong* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isUnsignedLong(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isSignedLong(SignedLong* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isSignedLong(Type* type)
-{
-    return false;
-}
-
-bool IsTypeHelper::isUnsignedInt(UnsignedInt* type)
-{
-    return true;
-}
-
-bool IsTypeHelper::isUnsignedInt(Type* type)
-{
-    return false;
-}
 
 /* "casting" ops */
 

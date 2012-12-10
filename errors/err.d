@@ -48,6 +48,7 @@ ERR_CC_CALLED_FUNC_NUM_PARAMS                        cc-called-func-num-params  
 
 ERR_CC_EXPECTED_SCALAR_INCDEC                        cc-expected-scalar-incdec                "Expected scalar type for inner expression of ++, -- operator"
 ERR_CC_INCDEC_NO_MOD_LVALUE                          cc-incdec-no-mod-lvalue                  "invalid ++,-- operator on non modifiable expression."
+ERR_CC_ASSIGN_NO_MOD_LVALUE                          cc-assign-no-mod-lvalue                  "Left side of assignment is not modifiable."
 
 ERR_CC_UNARY_PLUS_MINUS_ARITH                        cc-unary-plus-minus-arith                "expected arithmetc type for operand of unary +,- operator."
 ERR_CC_UNARY_INV_INTEGRAL                            cc-unary-inv-integral                    "expected integral type for operand of unary ~ operator."

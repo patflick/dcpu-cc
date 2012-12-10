@@ -156,6 +156,23 @@ void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid, std::stri
 /* visit functions            */
 /******************************/
 
+
+void SemanticCheckVisitor::visit(astnodes::Program * program)
+{
+    if (!types::IsTypeHelper::isArithmeticType((types::Type*)new types::SignedInt()))
+    {
+        std::cout << "FUUUUUUUCKK !!! " << std::endl;
+    }
+    else
+    {
+        std::cout << "Don't worry, everything is fine. " << std::endl;
+    }
+    
+    // analyse everything
+    program->allChildrenAccept(*this);
+}
+
+
 void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefinition)
 {
     // clear labels
@@ -926,15 +943,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         /* 3.3.6 Additive operators */
         
         case ADD_OP:
+            std::cout << "bin add with types " << lhsType->toString() << ", " << rhsType->toString() << std::endl;
+            std::cout << "are arithmetic? " << types::IsTypeHelper::isArithmeticType(lhsType) << ", " << types::IsTypeHelper::isArithmeticType(rhsType) << std::endl;
             if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && !types::IsTypeHelper::isArithmeticType(rhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
             {
                 // both are arithmetic types
                 // promote:
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
             }
             else if(((types::IsTypeHelper::isPointerType(lhsType))
-                && !types::IsTypeHelper::isIntegralType(rhsType)))
+                && types::IsTypeHelper::isIntegralType(rhsType)))
 
             {
                 // pointer op
@@ -942,7 +961,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
             }
             else if ((types::IsTypeHelper::isIntegralType(lhsType))
-                && !types::IsTypeHelper::isPointerType(rhsType))
+                && types::IsTypeHelper::isPointerType(rhsType))
             {
                 // pointer op
                 // TODO set word size somewhere
@@ -957,21 +976,21 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             break;
         case SUB_OP:
             if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && !types::IsTypeHelper::isArithmeticType(rhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
             {
                 // both are arithmetic types
                 // promote:
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
             } else if((binaryOperator->optoken == SUB_OP)
                 && (types::IsTypeHelper::isPointerType(lhsType))
-                && !types::IsTypeHelper::isPointerType(rhsType))
+                && types::IsTypeHelper::isPointerType(rhsType))
             {
                 // TODO check for compatible types pointed to
                 // TODO set pointer ops and word size somewhere
                 // TODO add ptrdiff_t to stddef.h
                 binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
             } else if((types::IsTypeHelper::isPointerType(lhsType))
-                && !types::IsTypeHelper::isIntegralType(rhsType))
+                && types::IsTypeHelper::isIntegralType(rhsType))
             {
                 // TODO set pointer ops and word size somewhere
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
@@ -1007,7 +1026,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         case LE_OP:
         case GE_OP:
             if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && !types::IsTypeHelper::isArithmeticType(rhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
             {
                 // both are arithmetic types
                 // promote:
@@ -1015,7 +1034,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // TODO separate return type and common type
                 binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
             } else if((types::IsTypeHelper::isPointerType(lhsType))
-                && !types::IsTypeHelper::isPointerType(rhsType))
+                && types::IsTypeHelper::isPointerType(rhsType))
             {
                 // TODO check for compatible types pointed to
                 binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
@@ -1034,7 +1053,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             case EQ_OP:
             case NE_OP:
                 if((types::IsTypeHelper::isArithmeticType(lhsType))
-                    && !types::IsTypeHelper::isArithmeticType(rhsType))
+                    && types::IsTypeHelper::isArithmeticType(rhsType))
                 {
                     // both are arithmetic types
                     // promote:
@@ -1042,7 +1061,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                     // TODO separate return type and common type
                     binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
                 } else if((types::IsTypeHelper::isPointerType(lhsType))
-                    && !types::IsTypeHelper::isPointerType(rhsType))
+                    && types::IsTypeHelper::isPointerType(rhsType))
                 {
                     // TODO check for compatible types pointed to
                     binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
@@ -1091,7 +1110,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                     binaryOperator->valType = getInvalidValType();
                     return;
                 }
-                
+                // TODO here and also up, properly construct R or C value
                 binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
                 break;
                 
@@ -1101,9 +1120,19 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
 }
 
 
+/* 3.3.15 Conditional operator */
+ 
+void SemanticCheckVisitor::visit(astnodes::ConditionalOperator * conditionalOperator)
+{
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
+    printAstName("ConditionalOperator");
+    conditionalOperator->allChildrenAccept(*this);
+}
 
 
-
+/* 3.3.16 Assignment operators */
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
 {
@@ -1111,24 +1140,40 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     assignmentOperator->allChildrenAccept(*this);
     
     // TODO check compatible types
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
+    printAstName("assignment operator");
     
+    // check that the lhs is a modifiable LValue
+    if(!valuetypes::IsValueTypeHelper::isModifiableLValue(assignmentOperator->lhsExrp->valType))
+    {
+        addError(assignmentOperator, ERR_CC_ASSIGN_NO_MOD_LVALUE);
+    }
+    
+    // to RValue TODO unqualified version of the type
+    assignmentOperator->valType = valuetypes::IsValueTypeHelper::toRValue(assignmentOperator->lhsExrp->valType);
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::ConditionalOperator * conditionalOperator)
+
+/* 3.3.17 Comma operator */
+
+void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 {
-    printAstName("ConditionalOperator");
-    conditionalOperator->allChildrenAccept(*this);
+    // analyse all children
+    chainExpressions->allChildrenAccept(*this);
+    
+    // has type of last expression
+    if (chainExpressions->exprs != NULL && chainExpressions->exprs->size() > 0)
+    {
+        chainExpressions->valType = chainExpressions->exprs->back()->valType;
+    }
+    else
+    {
+        throw new errors::InternalCompilerException("chain expressions without any expressions");
+    }
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1150,18 +1195,9 @@ void SemanticCheckVisitor::visit(astnodes::Constant * constant)
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
-{
-    printAstName("ChainExpressions");
-    chainExpressions->allChildrenAccept(*this);
-}
 
 
-void SemanticCheckVisitor::visit(astnodes::Program * program)
-{
-    printAstName("Program");
-    program->allChildrenAccept(*this);
-}
+
 
 void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpecifier)
 {

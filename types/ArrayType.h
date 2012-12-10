@@ -9,6 +9,8 @@
 /// @author     Patrick Flick
 ///
 
+#include "Type.h"
+
 #ifndef __DCPU_CC_TYPES_ARRAYTYPE_H
 #define __DCPU_CC_TYPES_ARRAYTYPE_H
 
@@ -17,6 +19,7 @@
 
 // include needed type classes
 #include "AggregateType.h"
+#include "Type.h"
 
 
 namespace dtcc
@@ -34,12 +37,14 @@ namespace dtcc
         public:
             Type* basetype;
             unsigned int size;
+
             
         public:
             ///
-            /// @brief          The constructor of the ArrayType type class.
-            /// @param basetype The type of the elements in the array.
-            /// @param size     The size (length) of the array.
+            /// @brief      The constructor of the ArrayType type class.
+            /// @param basetype TODO: FILLOUT
+            /// @param size TODO: FILLOUT
+
             ///
             ArrayType(Type* basetype, unsigned int size) : basetype(basetype), size(size) {}
             
@@ -52,11 +57,27 @@ namespace dtcc
             virtual uint16_t getWordSize();
 
             ///
+            /// @brief          Returns the size of the type in bytes.
+            /// @return         The size of the type.
+            ///
+            /// This might return 0 if the type is not yet resolved
+            /// (i.e. for structs).
+            virtual uint16_t getByteSize();
+            
+            ///
             /// @brief          Returns whether the type is a complete type.
             /// @return         True, if the type is a complete type, false
             ///                 otherwise
             ///
             virtual bool isComplete();
+            
+            
+            ///
+            /// @brief          The accept method of the visitor pattern.
+            /// @param tv       The TypeVisitor to be accepted.
+            /// @return         The boolean value returned by tv.accept(this)
+            ///
+            virtual bool accept(TypeVisitor& tv);
             
             ///
             /// @brief          Returns a string representation of the type.

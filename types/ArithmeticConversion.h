@@ -9,6 +9,7 @@
 /// @author     Patrick Flick
 ///
 
+#include "Type.h"
 
 #ifndef __DCPU_CC_TYPES_ARITHMETICCONVERSION_H
 #define __DCPU_CC_TYPES_ARITHMETICCONVERSION_H

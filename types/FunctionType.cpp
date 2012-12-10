@@ -17,8 +17,17 @@ using namespace dtcc::types;
 uint16_t FunctionType::getWordSize()
 {
     // return the word size
+    // on the DCPU byte size == word size
+    // (smallest addressable unit is 16 bit)
+    return this->getByteSize();
+}
+
+// returns the word size of this type
+uint16_t FunctionType::getByteSize()
+{
+    // return the word size
     // TODO in case of bigger types, return something else here
-    return (uint16_t) 1u;
+    return (uint16_t) 1;
 }
 
 // returns the word size of this type
@@ -26,6 +35,12 @@ bool FunctionType::isComplete()
 {
     // TODO in case of aggregate types, return the actual state here
     return true;
+}
+
+// function for the type visitors
+bool FunctionType::accept(TypeVisitor& tv)
+{
+    return tv.visit(this);
 }
 
 // returns the word size of this type
@@ -41,6 +56,7 @@ FunctionType::~FunctionType()
 {
     this->safe_delete(this->returnType);
     this->safe_delete(this->paramTypes);
+
 }
 
 ///

@@ -15,14 +15,14 @@
 #include <string>
 #include <stdint.h>
 
-// include needed type classes
-#include "Type.h"
-
 
 namespace dtcc
 {
     namespace types
     {
+        
+        // forward declare the type visitor
+        class TypeVisitor;
 
         ///
         /// @class      Type
@@ -40,7 +40,7 @@ namespace dtcc
             /// @brief      The constructor of the Type type class.
 
             ///
-            Type() : isConst(false), isVolatile(false) {}
+            Type()  {}
             
             ///
             /// @brief          Returns the size of the type in words.
@@ -51,18 +51,34 @@ namespace dtcc
             virtual uint16_t getWordSize() = 0;
 
             ///
+            /// @brief          Returns the size of the type in bytes.
+            /// @return         The size of the type.
+            ///
+            /// This might return 0 if the type is not yet resolved
+            /// (i.e. for structs).
+            virtual uint16_t getByteSize() = 0;
+            
+            ///
             /// @brief          Returns whether the type is a complete type.
             /// @return         True, if the type is a complete type, false
             ///                 otherwise
             ///
             virtual bool isComplete() = 0;
             
+            
+            ///
+            /// @brief          The accept method of the visitor pattern.
+            /// @param tv       The TypeVisitor to be accepted.
+            /// @return         The boolean value returned by tv.accept(this)
+            ///
+            virtual bool accept(TypeVisitor& tv) = 0;
+            
             ///
             /// @brief          Returns a string representation of the type.
             /// @return         A string representation of the type.
             ///
             /// This is used especially for error messages and warnings.
-            virtual std::string toString() = 0;
+            virtual std::string toString();
             
             ///
             /// @brief          Performes a safe deletion of the given pointer.
@@ -78,11 +94,17 @@ namespace dtcc
             ///
             /// @brief      The destructor of the Type type class.
             ///
-            virtual ~Type() {}
+            virtual ~Type();
         };
 
     } // namespace types
 } // namespace dtcc
+
+
+// include type visitor afterwards
+#ifndef __DCPU_CC_AST_NODES_ALLNODES_H
+#include "TypeVisitor.h"
+#endif
 
 #endif
 

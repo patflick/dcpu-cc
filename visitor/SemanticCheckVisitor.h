@@ -79,6 +79,12 @@ namespace dtcc
             
             SemanticCheckVisitor();
             
+            // TODO do this properly
+            void printErrorsAndWarnings()
+            {
+                this->m_errorList.printall();
+            }
+            
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern

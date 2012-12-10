@@ -14,9 +14,11 @@ SignedInt(): IntegralType
 UnsignedInt(): IntegralType
 SignedLong(): IntegralType
 UnsignedLong(): IntegralType
-EnumType(): IntegralType
+EnumType(): SignedInt
 PointerType(Type* baseType): ScalarType
-FunctionType(Type* returnType, ParameterTypeList* paramTypes) : Type
+FunctionType(Type* returnType, ParameterTypeList* paramTypes, bool isVarArgs) : Type
 AggregateType() : Type
-ArrayType(): AggregateType
+ArrayType(Type* basetype, unsigned int size): AggregateType
 StructUnionType(): AggregateType
+Void() : Type
+InvalidType() : Type

@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include <visitor/PrintAstVisitor.h>
+#include <visitor/SemanticCheckVisitor.h>
+#include <errors/InternalCompilerException.h>
 
 #include <iostream>
 #include <fstream>
@@ -55,8 +57,18 @@ int main(int argc, char **argv) {
     }
     
     dtcc::visitor::PrintAstVisitor* printVisitor = new dtcc::visitor::PrintAstVisitor();
+    dtcc::visitor::SemanticCheckVisitor* semCheck = new dtcc::visitor::SemanticCheckVisitor();
     
-    program->accept(*printVisitor);
+    
+    //program->accept(*printVisitor);
+    try{
+        program->accept(*semCheck);
+    } catch (dtcc::errors::InternalCompilerException*  e)
+    {
+        std::cout << "INTERNAL COMPILER EXCEPTION: " << e->getMessage() << std::endl;
+    }
+    
+    semCheck->printErrorsAndWarnings();
     
     delete(program);
     

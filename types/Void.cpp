@@ -17,20 +17,44 @@ using namespace dtcc::types;
 uint16_t Void::getWordSize()
 {
     // return the word size
-    return (uint16_t) 0;
+    // on the DCPU byte size == word size
+    // (smallest addressable unit is 16 bit)
+    return this->getByteSize();
+}
+
+// returns the word size of this type
+uint16_t Void::getByteSize()
+{
+    // return the word size
+    // TODO in case of bigger types, return something else here
+    return (uint16_t) 1;
 }
 
 // returns the word size of this type
 bool Void::isComplete()
 {
-    return false;
+    // TODO in case of aggregate types, return the actual state here
+    return true;
+}
+
+// function for the type visitors
+bool Void::accept(TypeVisitor& tv)
+{
+    return tv.visit(this);
 }
 
 // returns the word size of this type
 std::string Void::toString()
 {
     // return the name of the type
-    return std::string("void");
+    return std::string("Void");
+}
+
+
+// implements the destructor, which deletes all children
+Void::~Void()
+{
+
 }
 
 ///
