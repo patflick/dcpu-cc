@@ -51,37 +51,37 @@ U                       (u|U)
 
     /* C keywords */
 "auto"                  { count(); return yylval.token = AUTO; }
-"break"                 { count(); return(BREAK); }
-"case"                  { count(); return(CASE); }
+"break"                 { count(); return yylval.token = BREAK; }
+"case"                  { count(); return yylval.token = CASE; }
 "char"                  { count(); return yylval.token = CHAR; }
 "const"                 { count(); return yylval.token = CONST; }
-"continue"              { count(); return(CONTINUE); }
-"default"               { count(); return(DEFAULT); }
-"do"                    { count(); return(DO); }
+"continue"              { count(); return yylval.token = CONTINUE; }
+"default"               { count(); return yylval.token = DEFAULT; }
+"do"                    { count(); return yylval.token = DO; }
 "double"                { count(); return yylval.token = DOUBLE; }
-"else"                  { count(); return(ELSE); }
-"enum"                  { count(); return(ENUM); }
+"else"                  { count(); return yylval.token = ELSE; }
+"enum"                  { count(); return yylval.token = ENUM; }
 "extern"                { count(); return yylval.token = EXTERN; }
 "float"                 { count(); return yylval.token = FLOAT; }
-"for"                   { count(); return(FOR); }
-"goto"                  { count(); return(GOTO); }
-"if"                    { count(); return(IF); }
+"for"                   { count(); return yylval.token = FOR; }
+"goto"                  { count(); return yylval.token = GOTO; }
+"if"                    { count(); return yylval.token = IF; }
 "int"                   { count(); return yylval.token = INT; }
 "long"                  { count(); return yylval.token = LONG; }
 "register"              { count(); return yylval.token = REGISTER; }
-"return"                { count(); return(RETURN); }
+"return"                { count(); return yylval.token = RETURN; }
 "short"                 { count(); return yylval.token = SHORT; }
 "signed"                { count(); return yylval.token = SIGNED; }
-"sizeof"                { count(); return(SIZEOF); }
+"sizeof"                { count(); return yylval.token = SIZEOF; }
 "static"                { count(); return yylval.token = STATIC; }
 "struct"                { count(); return yylval.token = STRUCT; }
-"switch"                { count(); return(SWITCH); }
+"switch"                { count(); return yylval.token = SWITCH; }
 "typedef"               { count(); return yylval.token = TYPEDEF; }
 "union"                 { count(); return yylval.token = UNION; }
 "unsigned"              { count(); return yylval.token = UNSIGNED; }
 "void"                  { count(); return yylval.token = VOID; }
 "volatile"              { count(); return yylval.token = VOLATILE; }
-"while"                 { count(); return(WHILE); }
+"while"                 { count(); return yylval.token = WHILE; }
 
 
     /* Build-In functions */

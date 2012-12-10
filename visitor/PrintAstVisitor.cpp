@@ -411,15 +411,6 @@ void PrintAstVisitor::visit(astnodes::StringLiteral * stringLiteral)
 }
 
 
-void PrintAstVisitor::visit(astnodes::Constant * constant)
-{
-    printAstName("Constant");
-    increaseIdentation();
-    constant->allChildrenAccept(*this);
-    decreaseIdentation();
-}
-
-
 void PrintAstVisitor::visit(astnodes::Identifier * identifier)
 {
     printAstName("Identifier");

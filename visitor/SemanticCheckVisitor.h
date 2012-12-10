@@ -389,13 +389,6 @@ namespace dtcc
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
-            /// @param constant    The node to visit this visitor
-            virtual void visit(astnodes::Constant * constant);
-            
-            
-            ///
-            /// @brief      Visit function of the visitor pattern.
-            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param identifier    The node to visit this visitor
             virtual void visit(astnodes::Identifier * identifier);
             

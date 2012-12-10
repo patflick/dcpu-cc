@@ -1188,16 +1188,6 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 
 
-void SemanticCheckVisitor::visit(astnodes::Constant * constant)
-{
-    printAstName("Constant");
-    constant->allChildrenAccept(*this);
-}
-
-
-
-
-
 
 void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpecifier)
 {

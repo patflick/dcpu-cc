@@ -229,11 +229,6 @@ void EmptyVisitor::visit(astnodes::StringLiteral * stringLiteral)
 }
 
 
-void EmptyVisitor::visit(astnodes::Constant * constant)
-{
-}
-
-
 void EmptyVisitor::visit(astnodes::Identifier * identifier)
 {
 }

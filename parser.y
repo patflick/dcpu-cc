@@ -79,7 +79,7 @@ void checkForTypedefs(Declaration * declaration);
 %token <floatLiteral> FLOAT_LITERAL DOUBLE_LITERAL LDOUBLE_LITERAL
 %token <string> STRING_LITERAL CHARACTER_LITERAL IDENTIFIER TYPE_NAME ASSEMBLY
 
-%token <token> CONSTANT SIZEOF
+%token <token> SIZEOF
 %token <token> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token <token> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token <token> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -146,10 +146,6 @@ primary_expression
         : ident
         {
             $$ = $1;
-        }
-        | CONSTANT
-        {
-            $$ = new Constant($1);
         }
         | STRING_LITERAL
         {
