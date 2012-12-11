@@ -48,7 +48,7 @@ void SemanticCheckVisitor::printAstName(const char * name)
 
 valuetypes::ValueType* SemanticCheckVisitor::getInvalidValType()
 {
-    return this->m_invalidValType;
+    return new valuetypes::RValue(new types::InvalidType());
 }
 
 
@@ -643,7 +643,8 @@ void SemanticCheckVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral
 
 void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
 {
-    stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length()));
+   // stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length()));
+   stringLiteral->valType = new valuetypes::CValue(new types::Double());
 }
 
 
@@ -1304,7 +1305,7 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
     // has type of last expression
     if (chainExpressions->exprs != NULL && chainExpressions->exprs->size() > 0)
     {
-        chainExpressions->valType = chainExpressions->exprs->back()->valType;
+        chainExpressions->valType = new valuetypes::RValue(chainExpressions->exprs->back()->valType->type);
     }
     else
     {
