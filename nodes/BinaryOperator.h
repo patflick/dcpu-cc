@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Expression.h"
+#include <types/Type.h>
 
 
 namespace dtcc
@@ -46,6 +47,12 @@ namespace dtcc
             Expression * lhsExrp;
             int optoken;
             Expression * rhsExpr;
+            
+            // filled out by semantic check:
+            bool lhsPtr;
+            bool rhsPtr;
+            unsigned int pointerSize;
+            types::Type* commonType;
 
             
         public:
@@ -56,7 +63,9 @@ namespace dtcc
             /// @param rhsExpr TODO: FILLOUT
 
             ///
-            BinaryOperator(Expression * lhsExrp, int optoken, Expression * rhsExpr) : lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr) {}
+            BinaryOperator(Expression * lhsExrp, int optoken, Expression * rhsExpr) :
+                lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr),
+                commonType(NULL), lhsPtr(false), rhsPtr(false), pointerSize(0) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

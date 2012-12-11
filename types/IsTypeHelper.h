@@ -228,6 +228,12 @@ namespace dtcc
             static FunctionType* getFunctionType(Type* type);
             
             ///
+            /// @brief          Returns the size of the base type that the pointer points to.
+            /// @param type     The type to be cast to pointer and returned.
+            /// @returns        The size of the base type, 1 if the base class is incomplete.
+            static uint16_t getPointerBaseSize(Type* type);
+            
+            ///
             /// @brief      The destructor of the IsTypeHelper helper class.
             ///
             virtual ~IsTypeHelper();

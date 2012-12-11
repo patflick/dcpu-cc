@@ -12,6 +12,8 @@
 #include "IsTypeHelper.h"
 #include "alltypes.h"
 #include "TypeVisitor.h"
+#include <errors/InternalCompilerException.h>
+
 using namespace dtcc::types;
     
 
@@ -364,6 +366,21 @@ FunctionType* IsTypeHelper::getFunctionType(Type* type)
         return (FunctionType*) type;
     else
         return NULL;
+}
+
+
+uint16_t IsTypeHelper::getPointerBaseSize(Type* type)
+{
+    PointerType* ptr;
+    if (!IsTypeHelper::isPointerType(type))
+        throw new errors::InternalCompilerException("Cannot get size of base class of non pointer type");
+        
+    ptr = (PointerType*) type;
+    
+    uint16_t size = ptr->baseType->getWordSize();
+    if (size == 0)
+        return 1;
+    return size;
 }
 
 ///

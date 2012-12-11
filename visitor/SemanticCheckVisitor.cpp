@@ -159,15 +159,6 @@ void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid, std::stri
 
 void SemanticCheckVisitor::visit(astnodes::Program * program)
 {
-    if (!types::IsTypeHelper::isArithmeticType((types::Type*)new types::SignedInt()))
-    {
-        std::cout << "FUUUUUUUCKK !!! " << std::endl;
-    }
-    else
-    {
-        std::cout << "Don't worry, everything is fine. " << std::endl;
-    }
-    
     // analyse everything
     program->allChildrenAccept(*this);
 }
@@ -926,6 +917,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 return;
             }
             binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            binaryOperator->commonType = binaryOperator->valType->type;
             break;
         case MOD_OP:
             // check that the expression type is a integral type
@@ -937,6 +929,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 return;
             }
             binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            binaryOperator->commonType = binaryOperator->valType->type;
             break;
         
             
@@ -951,21 +944,26 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // both are arithmetic types
                 // promote:
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+                binaryOperator->commonType = binaryOperator->valType->type;
             }
             else if(((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isIntegralType(rhsType)))
 
             {
                 // pointer op
-                // TODO set word size somewhere
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
+                binaryOperator->rhsPtr = true;
+                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                binaryOperator->commonType = types::IntegralPromotion::promote(rhsType);
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
             }
             else if ((types::IsTypeHelper::isIntegralType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
             {
                 // pointer op
-                // TODO set word size somewhere
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
+                binaryOperator->rhsPtr = true;
+                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(rhsType);
+                binaryOperator->commonType = types::IntegralPromotion::promote(lhsType);
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(rhsType, lhsVtype, rhsVtype);
             }
             else
             {
@@ -981,19 +979,30 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // both are arithmetic types
                 // promote:
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+                binaryOperator->commonType = binaryOperator->valType->type;
             } else if((binaryOperator->optoken == SUB_OP)
                 && (types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
             {
-                // TODO check for compatible types pointed to
-                // TODO set pointer ops and word size somewhere
                 // TODO add ptrdiff_t to stddef.h
-                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                binaryOperator->lhsPtr = true;
+                binaryOperator->rhsPtr = true;
+                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                // TODO properly check for compatible types pointed to
+                if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
+                {
+                    addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
+                    binaryOperator->valType = getInvalidValType();
+                    return;
+                }
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
             } else if((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isIntegralType(rhsType))
             {
-                // TODO set pointer ops and word size somewhere
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toRValue(lhsVtype);
+                binaryOperator->lhsPtr = true;
+                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                binaryOperator->commonType = types::IntegralPromotion::promote(rhsType);
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
             }
             else
             {
@@ -1017,7 +1026,8 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 return;
             }
             
-            binaryOperator->valType = valuetypes::PromotionHelper::promote(lhsVtype);
+            binaryOperator->commonType = valuetypes::PromotionHelper::promote(lhsVtype)->type;
+            binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(binaryOperator->commonType, lhsVtype, rhsVtype);
             break;
             
         /* 3.3.8 Relational operators */
@@ -1030,14 +1040,24 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             {
                 // both are arithmetic types
                 // promote:
-                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-                // TODO separate return type and common type
-                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
             } else if((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
             {
-                // TODO check for compatible types pointed to
-                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                binaryOperator->lhsPtr = true;
+                binaryOperator->rhsPtr = true;
+                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                
+                // TODO properly check for compatible types pointed to
+                if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
+                {
+                    addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
+                    binaryOperator->valType = getInvalidValType();
+                    return;
+                }
+                
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
             }
             else
             {
@@ -1057,14 +1077,24 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 {
                     // both are arithmetic types
                     // promote:
-                    binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-                    // TODO separate return type and common type
-                    binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                    binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                    binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
                 } else if((types::IsTypeHelper::isPointerType(lhsType))
                     && types::IsTypeHelper::isPointerType(rhsType))
                 {
-                    // TODO check for compatible types pointed to
-                    binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                    binaryOperator->lhsPtr = true;
+                    binaryOperator->rhsPtr = true;
+                    binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                    
+                    // TODO properly check for compatible types pointed to
+                    if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
+                    {
+                        addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
+                        binaryOperator->valType = getInvalidValType();
+                        return;
+                    }
+                    
+                    binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
                 }
                 // TODO case for Null pointer constant
                 else
@@ -1093,6 +1123,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 }
                 
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+                binaryOperator->commonType = binaryOperator->valType->type;
                 break;
                 
                 
@@ -1110,8 +1141,9 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                     binaryOperator->valType = getInvalidValType();
                     return;
                 }
-                // TODO here and also up, properly construct R or C value
-                binaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+
+                binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
                 break;
                 
             default:

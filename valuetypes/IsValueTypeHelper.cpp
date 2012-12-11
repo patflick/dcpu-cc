@@ -13,54 +13,39 @@
 #include "IsValueTypeHelper.h"
 using namespace dtcc::valuetypes;
 
-bool IsValueTypeHelper::isFunctionDesignator(FunctionDesignator* type)
-{
-    return true;
-}
 
 bool IsValueTypeHelper::isFunctionDesignator(ValueType* type)
 {
-    return false;
-}
-
-bool IsValueTypeHelper::isRValue(RValue* type)
-{
-    return true;
+    return type->valType == FUNC_DESIGN;
 }
 
 bool IsValueTypeHelper::isRValue(ValueType* type)
 {
-    return false;
-}
-
-bool IsValueTypeHelper::isCValue(CValue* type)
-{
-    return true;
+    return type->valType == RVALUE;
 }
 
 bool IsValueTypeHelper::isCValue(ValueType* type)
 {
-    return false;
-}
-
-bool IsValueTypeHelper::isLValue(LValue* type)
-{
-    return true;
+    return type->valType == CVALUE;
 }
 
 bool IsValueTypeHelper::isLValue(ValueType* type)
 {
-    return false;
-}
-
-bool IsValueTypeHelper::isModifiableLValue(LValue* type)
-{
-    return type->isModifiable();
+    if (type->valType == LVALUE)
+        return true;
+    else
+        return false;
 }
 
 bool IsValueTypeHelper::isModifiableLValue(ValueType* type)
 {
-    return false;
+    if (!type->valType == LVALUE)
+        return false;
+    else
+    {
+        LValue* lval = (LValue*) type;
+        return lval->isModifiable();
+    }
 }
 
 
@@ -68,6 +53,19 @@ RValue* IsValueTypeHelper::toRValue(ValueType* type)
 {
     // TODO remove type qualifiers??
     return new RValue(type->type);
+}
+
+RValue* IsValueTypeHelper::toCorRValue(types::Type* newType, ValueType* vt1, ValueType* vt2)
+{
+    if (IsValueTypeHelper::isCValue(vt1)
+        && IsValueTypeHelper::isCValue(vt2))
+    {
+        return new CValue(newType);
+    }
+    else
+    {
+        return new RValue(newType);
+    }
 }
 
 ///

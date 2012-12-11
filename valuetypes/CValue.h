@@ -37,7 +37,7 @@ namespace dtcc
             ///
             /// @brief      The constructor of the CValue class.
             ///
-            CValue(types::Type* type) : RValue(type) {}
+            CValue(types::Type* type) : RValue(type, CVALUE) {}
             
             ///
             /// @brief      The destructor of the CValue class.

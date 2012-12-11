@@ -37,7 +37,12 @@ namespace dtcc
             ///
             /// @brief      The constructor of the RValue class.
             ///
-            RValue(types::Type* type) : ValueType(type) {}
+            RValue(types::Type* type) : ValueType(type, RVALUE) {}
+            
+            ///
+            /// @brief      The constructor of the RValue class.
+            ///
+            RValue(types::Type* type, ValType vt) : ValueType(type, vt) {}
             
             ///
             /// @brief      The destructor of the RValue class.

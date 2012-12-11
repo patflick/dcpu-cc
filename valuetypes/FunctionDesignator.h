@@ -40,7 +40,7 @@ namespace dtcc
             ///
             /// @brief      The constructor of the FunctionDesignator class.
             ///
-            FunctionDesignator(types::FunctionType* type) : ValueType(type), funType(type) {}
+            FunctionDesignator(types::FunctionType* type) : ValueType(type, FUNC_DESIGN), funType(type) {}
             
             
             ///

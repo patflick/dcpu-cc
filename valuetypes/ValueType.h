@@ -24,6 +24,8 @@ namespace dtcc
     namespace valuetypes
     {
         
+        enum ValType {RVALUE, CVALUE, LVALUE, FUNC_DESIGN};
+        
         ///
         /// @class      ValueType
         /// @brief      The ValueType class.
@@ -35,11 +37,14 @@ namespace dtcc
             /// The base type of this value type.
             types::Type* type;
             
+            // the actual value type 
+            ValType valType;
+            
         public:
             ///
             /// @brief      The constructor of the ValueType class.
             ///
-            ValueType(types::Type* type) : type(type) {}
+            ValueType(types::Type* type, ValType vt) : type(type), valType(vt) {}
             
             ///
             /// @brief          Performes a safe deletion of the given pointer.

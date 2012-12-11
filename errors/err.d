@@ -59,5 +59,5 @@ ERR_CC_BIN_EXPECTED_INTEGRAL                         cc-bin-expected-integral   
 ERR_CC_BIN_ADD_INVALID_TYPES                         cc-bin-add-invalid-types                 "invalid type(s) to binary +"
 ERR_CC_BIN_SUB_INVALID_TYPES                         cc-bin-sub-invalid-types                 "invalid type(s) to binary -"
 ERR_CC_COMP_INVALID_TYPES                            cc-comp-invalid-types                    "invalid type(s) to comparison operator."
-
+ERR_CC_PTR_NOT_COMPAT                                cc-ptr-not-compat                        "base types of pointers in binary operation not compatible"
 
