@@ -643,8 +643,7 @@ void SemanticCheckVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral
 
 void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
 {
-   // stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length()));
-   stringLiteral->valType = new valuetypes::CValue(new types::Double());
+   stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length()));
 }
 
 
