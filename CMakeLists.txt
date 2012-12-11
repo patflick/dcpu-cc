@@ -66,6 +66,8 @@ add_executable(dtcc2tests
     valuetypes/IsValueTypeHelper.cpp
     valuetypes/PromotionHelper.h
     valuetypes/PromotionHelper.cpp
+    valuetypes/ConstHelper.cpp
+    valuetypes/ConstHelper.h
     ${nodesHdr}
     ${nodesSrc}
     ${visitorHdr}

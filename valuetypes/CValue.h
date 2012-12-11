@@ -32,6 +32,11 @@ namespace dtcc
         {
             
         public:
+            double floatConst;
+            long integralConst;
+            /// true if it is a const with double value
+            /// false if it is a const with integral value
+            bool isDoubleConst;
             
         public:
             ///

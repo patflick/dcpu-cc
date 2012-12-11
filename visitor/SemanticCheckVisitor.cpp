@@ -571,6 +571,8 @@ void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
         return;
     }
     
+    // TODO enum types are constants!! 
+    
     types::Type* varType = this->m_symbolTable->getTypeOfVariable(identifier->name);
     if (varType == NULL)
     {
@@ -870,13 +872,15 @@ void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
     }
     
     // return the word size of the expression type
-    // TODO return byte size, and make word and byte independend from each other throughout the code
     // TODO special return value for array types??
-    sizeOfOperator->constExpr = new astnodes::UnsignedIntLiteral(sizeOfOperator->valType->type->getWordSize());
+    sizeOfOperator->constExpr = new astnodes::UnsignedIntLiteral(sizeOfOperator->valType->type->getByteSize());
+    sizeOfOperator->constExpr->accept(*this);
 }
 
 
-/* 3.3.4 Cast operators */
+/******************************/
+/*  3.3.4 Cast operators      */
+/******************************/
 
 void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOperator)
 {
@@ -888,7 +892,10 @@ void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
 }
 
 
-/* binary operators */
+
+/******************************/
+/*     binary operators       */
+/******************************/
 
 void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
 {
@@ -1151,8 +1158,9 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     }
 }
 
-
-/* 3.3.15 Conditional operator */
+/********************************/
+/* 3.3.15 Conditional operator  */
+/********************************/
  
 void SemanticCheckVisitor::visit(astnodes::ConditionalOperator * conditionalOperator)
 {
@@ -1164,7 +1172,10 @@ void SemanticCheckVisitor::visit(astnodes::ConditionalOperator * conditionalOper
 }
 
 
-/* 3.3.16 Assignment operators */
+
+/********************************/
+/* 3.3.16 Assignment operators  */
+/********************************/
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
 {
@@ -1219,7 +1230,7 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             break;
             
             
-            /* 3.3.16.2 Compound assignment */
+        /* 3.3.16.2 Compound assignment */
             
         case ADD_ASSIGN:
         case SUB_ASSIGN:
@@ -1294,7 +1305,9 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
 
 
 
-/* 3.3.17 Comma operator */
+/********************************/
+/*  3.3.17 Comma operator       */
+/********************************/
 
 void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 {
@@ -1317,7 +1330,8 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 
 
-
+// TODO implement those below
+// TODO implement deref und address of operators!!
 
 
 
