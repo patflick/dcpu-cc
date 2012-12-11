@@ -1171,11 +1171,11 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     // first check lhs and rhs expression
     assignmentOperator->allChildrenAccept(*this);
     
-    // TODO check compatible types
-    // TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    printAstName("assignment operator");
+    valuetypes::ValueType* lhsVtype = assignmentOperator->lhsExrp->valType;
+    valuetypes::ValueType* rhsVtype = assignmentOperator->rhsExpr->valType;
+    types::Type* lhsType = lhsVtype->type;
+    types::Type* rhsType = rhsVtype->type;
+   
     
     // check that the lhs is a modifiable LValue
     if(!valuetypes::IsValueTypeHelper::isModifiableLValue(assignmentOperator->lhsExrp->valType))
@@ -1183,8 +1183,113 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         addError(assignmentOperator, ERR_CC_ASSIGN_NO_MOD_LVALUE);
     }
     
-    // to RValue TODO unqualified version of the type
-    assignmentOperator->valType = valuetypes::IsValueTypeHelper::toRValue(assignmentOperator->lhsExrp->valType);
+    switch (assignmentOperator->optoken)
+    {
+        
+        /* 3.3.16.1 Simple assignment */
+        
+        case ASSIGN_EQUAL:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+            }
+            else if((types::IsTypeHelper::isPointerType(lhsType))
+                && types::IsTypeHelper::isPointerType(rhsType))
+            {
+                // TODO properly check for compatible types pointed to
+                assignmentOperator->ptrop = true;
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+            }
+            else if((types::IsTypeHelper::isStructUnionType(lhsType))
+                && types::IsTypeHelper::isStructUnionType(rhsType))
+            {
+                // TODO properly check for compatible structs/unions
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+            }
+            else
+            {
+                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
+                assignmentOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+            
+            
+            /* 3.3.16.2 Compound assignment */
+            
+        case ADD_ASSIGN:
+        case SUB_ASSIGN:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+            }
+            else if(((types::IsTypeHelper::isPointerType(lhsType))
+                && types::IsTypeHelper::isIntegralType(rhsType)))
+                
+            {
+                // pointer op
+                assignmentOperator->ptrop = true;
+                assignmentOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+            }
+            else
+            {
+                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
+                assignmentOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+            
+        case MUL_ASSIGN:
+        case DIV_ASSIGN:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+            }
+            else
+            {
+                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
+                assignmentOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+            
+        case MOD_ASSIGN:
+        case LEFT_ASSIGN:
+        case RIGHT_ASSIGN:
+        case AND_ASSIGN:
+        case XOR_ASSIGN:
+        case OR_ASSIGN:
+            if((types::IsTypeHelper::isIntegralType(lhsType))
+                && types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
+                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+            }
+            else
+            {
+                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
+                assignmentOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+        default:
+            throw new errors::InternalCompilerException("unknown assignment operator encountered");
+    }
 }
 
 

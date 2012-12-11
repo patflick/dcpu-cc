@@ -46,6 +46,10 @@ namespace dtcc
             Expression * lhsExrp;
             int optoken;
             Expression * rhsExpr;
+            
+            bool ptrop;
+            unsigned int pointerSize;
+            types::Type* commonType;
 
             
         public:
