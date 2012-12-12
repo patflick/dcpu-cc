@@ -215,8 +215,12 @@ namespace dtcc
             /********************************/
             /*  3.3.17 Comma operator       */
             /********************************/
-            
-            // not constant
+
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param chainExpressions    The node to visit this visitor
+            virtual void visit(astnodes::ChainExpressions * chainExpressions);
             
 
         };

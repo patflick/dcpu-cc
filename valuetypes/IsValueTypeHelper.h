@@ -80,6 +80,15 @@ namespace dtcc
             ///
             /// @brief          Creates a new R or C value with the given type.
             /// @param type     The new type of the value type.
+            /// @param vt       The previous ValueType
+            /// @returns        The converted a RValue or CValue with the type newType.
+            ///                 It will be a CValue if vt was a CValue,
+            ///                 and an RValue otherwise.
+            static RValue* toCorRValue(types::Type* newType, ValueType* vt);
+            
+            ///
+            /// @brief          Creates a new R or C value with the given type.
+            /// @param type     The new type of the value type.
             /// @param vt1      The lhs RValue.
             /// @param vt2      The rhs RValue.
             /// @returns        The converted a RValue or CValue with the type newType.

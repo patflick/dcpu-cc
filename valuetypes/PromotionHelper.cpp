@@ -21,6 +21,9 @@
 
 #include <errors/InternalCompilerException.h>
 
+#include <iostream>
+
+
 using namespace dtcc::types;
 using namespace dtcc::valuetypes;
 

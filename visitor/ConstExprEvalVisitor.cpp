@@ -35,6 +35,9 @@ using namespace dtcc::visitor;
 
 void ConstExprEvalVisitor::visit(astnodes::Identifier * identifier)
 {
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
+    // TODO TODO TODO TODO
     // TODO must be an enum type or a function declarator
     // in case of enum type, there must be the constant value insude the
     // type variable somehow
@@ -387,6 +390,25 @@ void ConstExprEvalVisitor::visit(astnodes::ConditionalOperator * conditionalOper
     // TODO TODO TODO TODO
     // TODO TODO TODO TODO
     conditionalOperator->allChildrenAccept(*this);
+}
+
+
+
+/********************************/
+/*  3.3.17 Comma operator       */
+/********************************/
+
+void ConstExprEvalVisitor::visit(astnodes::ChainExpressions * chainExpressions)
+{
+    // analyse only last child
+    chainExpressions->exprs->back()->accept(*this);
+    
+    bool floatOp = types::IsTypeHelper::isFloatType(chainExpressions->exprs->back()->valType->type);
+    
+    if (floatOp)
+        valuetypes::ConstHelper::setFloatConst(chainExpressions->valType, valuetypes::ConstHelper::getFloatConst(chainExpressions->exprs->back()->valType));
+    else
+        valuetypes::ConstHelper::setIntegralConst(chainExpressions->valType, valuetypes::ConstHelper::getIntegralConst(chainExpressions->exprs->back()->valType));
 }
 
 

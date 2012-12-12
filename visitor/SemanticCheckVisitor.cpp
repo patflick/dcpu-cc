@@ -11,6 +11,8 @@
 #include <types/alltypes.h>
 #include <types/IsTypeHelper.h>
 
+#include <visitor/ConstExprEvalVisitor.h>
+
 #include <valuetypes/ValueType.h>
 #include <valuetypes/FunctionDesignator.h>
 #include <valuetypes/LValue.h>
@@ -18,6 +20,7 @@
 #include <valuetypes/CValue.h>
 #include <valuetypes/IsValueTypeHelper.h>
 #include <valuetypes/PromotionHelper.h>
+#include <valuetypes/ConstHelper.h>
 
 // only include the int tokens
 #define YYSTYPE int
@@ -1314,10 +1317,20 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
     // analyse all children
     chainExpressions->allChildrenAccept(*this);
     
-    // has type of last expression
+    // check if all values types are constant
+    bool isCValue = true;
     if (chainExpressions->exprs != NULL && chainExpressions->exprs->size() > 0)
     {
-        chainExpressions->valType = new valuetypes::RValue(chainExpressions->exprs->back()->valType->type);
+        for (astnodes::Expressions::iterator i = chainExpressions->exprs->begin(); i != chainExpressions->exprs->end(); ++i)
+        {
+            if (!valuetypes::IsValueTypeHelper::isCValue((*i)->valType))
+                isCValue = false;
+        }
+        
+        if (isCValue)
+            chainExpressions->valType = new valuetypes::CValue(chainExpressions->exprs->back()->valType->type);
+        else
+            chainExpressions->valType = new valuetypes::RValue(chainExpressions->exprs->back()->valType->type);
     }
     else
     {

@@ -55,6 +55,18 @@ RValue* IsValueTypeHelper::toRValue(ValueType* type)
     return new RValue(type->type);
 }
 
+RValue* IsValueTypeHelper::toCorRValue(types::Type* newType, ValueType* vt)
+{
+    if (IsValueTypeHelper::isCValue(vt))
+    {
+        return new CValue(newType);
+    }
+    else
+    {
+        return new RValue(newType);
+    }
+}
+
 RValue* IsValueTypeHelper::toCorRValue(types::Type* newType, ValueType* vt1, ValueType* vt2)
 {
     if (IsValueTypeHelper::isCValue(vt1)
