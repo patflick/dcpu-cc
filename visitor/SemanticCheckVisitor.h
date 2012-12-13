@@ -70,6 +70,23 @@ namespace dtcc
             valuetypes::ValueType* m_invalidValType;
             valuetypes::ValueType* getInvalidValType();
             
+            /* declaration specifiers */
+            struct DeclSpecs {
+                bool isAdvType;
+                types::Type* type;
+                bool isVoid;
+                bool isChar;
+                bool isSigned;
+                bool isUnsigned;
+                bool isInt;
+                bool isLong;
+                bool isShort;
+                bool isFloat;
+                bool isDouble;
+            } declSpecs;
+            void resetDeclSpecs();
+            types::Type* declSpecsToType(astnodes::Declaration* decl);
+            
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);
             

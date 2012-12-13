@@ -62,4 +62,14 @@ ERR_CC_COMP_INVALID_TYPES                            cc-comp-invalid-types      
 ERR_CC_PTR_NOT_COMPAT                                cc-ptr-not-compat                        "base types of pointers in binary operation not compatible"
 ERR_CC_ASSIGN_INVALID_TYPES                          cc-assign-invalid-types                  "non compatible types in assignment operation"
 
-
+ERR_CC_DECLSPEC_CHAR_DUPL                            cc-declspec-char-dupl                    "duplicate base type 'char' in type specifiers"
+ERR_CC_DECLSPEC_SHORT_DUPL                           cc-declspec-short-dupl                   "duplicate base type 'short' in type specifiers"
+ERR_CC_DECLSPEC_INT_DUPL                             cc-declspec-int-dupl                     "duplicate base type 'int' in type specifiers"
+ERR_CC_DECLSPEC_VOID_DUPL                            cc-declspec-void-dupl                    "duplicate base type 'void' in type specifiers"
+ERR_CC_DECLSPEC_LONG_DUPL                            cc-declspec-long-dupl                    "duplicate base type 'long' in type specifiers"
+ERR_CC_DECLSPEC_FLOAT_DUPL                           cc-declspec-float-dupl                   "duplicate base type 'float' in type specifiers"
+ERR_CC_DECLSPEC_DOUBLE_DUPL                          cc-declspec-double-dupl                  "duplicate base type 'double' in type specifiers"
+ERR_CC_DECLSPEC_SIGNED_DUPL                          cc-declspec-signed-dupl                  "duplicate base type 'signed' in type specifiers"
+ERR_CC_DECLSPEC_UNSIGNED_DUPL                        cc-declspec-unsigned-dupl                "duplicate base type 'unsigned' in type specifiers"
+ERR_CC_DECLSPEC_CONFL_SIGNED                         cc-declspec-confl-signed                 "type specifiers define a conflicting signedness, both: 'unsigned' and 'signed' appear"
+ERR_CC_DECLSPEC_CONFL                                cc-declspec-confl                        "type specifiers conflict and do not define a unique type"

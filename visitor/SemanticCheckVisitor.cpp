@@ -456,14 +456,15 @@ void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 /*   Declarators !!           */
 /******************************/
 
+
+
 // TODO TODO FIXME TODO TODO FIXME
 // implement declarators ;)
 // first now implementing expressions
 
 void SemanticCheckVisitor::visit(astnodes::Declarator * declarator)
 {
-    printAstName("Declarator");
-    declarator->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("Declarator Node is only abstract and cannot be visited");
 }
 
 
@@ -523,11 +524,217 @@ void SemanticCheckVisitor::visit(astnodes::TypeQualifier * typeQualifier)
 }
 
 
+
+
+
+void SemanticCheckVisitor::resetDeclSpecs()
+{
+    declSpecs.isAdvType = false;
+    declSpecs.type = NULL;
+    declSpecs.isVoid = false;
+    declSpecs.isChar = false;
+    declSpecs.isSigned = false;
+    declSpecs.isUnsigned = false;
+    declSpecs.isInt = false;
+    declSpecs.isLong = false;
+    declSpecs.isShort = false;
+    declSpecs.isFloat = false;
+    declSpecs.isDouble = false;
+}
+
+types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::Declaration* decl)
+{
+    types::Type* result = NULL;
+    
+    // check for non-basic types
+    if (declSpecs.isAdvType && declSpecs.type != NULL)
+    {
+        result = declSpecs.type;
+    }
+    // now check for all the basic types
+    else if (declSpecs.isVoid)
+    {
+        result = new types::Void();
+        declSpecs.isVoid = false;
+    }
+    else if (declSpecs.isFloat)
+    {
+        result = new types::Float();
+        declSpecs.isFloat = false;
+    }
+    else if (declSpecs.isDouble && declSpecs.isLong)
+    {
+        result = new types::LongDouble();
+        declSpecs.isDouble = false;
+        declSpecs.isLong = false;
+    }
+    else if (declSpecs.isDouble)
+    {
+        result = new types::Double();
+        declSpecs.isDouble = false;
+    }
+    else if (declSpecs.isChar && declSpecs.isSigned)
+    {
+        result = new types::SignedChar();
+        declSpecs.isSigned = false;
+        declSpecs.isChar = false;
+    }
+    else if (declSpecs.isChar)
+    {
+        result = new types::UnsignedChar();
+        declSpecs.isUnsigned = false;
+        declSpecs.isChar = false;
+    }
+    else if (declSpecs.isShort && declSpecs.isUnsigned)
+    {
+        result = new types::UnsignedShort();
+        declSpecs.isUnsigned = false;
+        declSpecs.isShort = false;
+        declSpecs.isInt = false;
+    }
+    else if (declSpecs.isShort)
+    {
+        result = new types::SignedShort();
+        declSpecs.isSigned = false;
+        declSpecs.isShort = false;
+        declSpecs.isInt = false;
+    }
+
+    else if (declSpecs.isLong && declSpecs.isUnsigned)
+    {
+        result = new types::UnsignedLong();
+        declSpecs.isUnsigned = false;
+        declSpecs.isLong = false;
+        declSpecs.isInt = false;
+    }
+    else if (declSpecs.isLong)
+    {
+        result = new types::SignedLong();
+        declSpecs.isSigned = false;
+        declSpecs.isLong = false;
+        declSpecs.isInt = false;
+    }
+    else if (declSpecs.isUnsigned)
+    {
+        result = new types::UnsignedInt();
+        declSpecs.isUnsigned = false;
+        declSpecs.isInt = false;
+    }
+    else
+    {
+        result = new types::SignedInt();
+        declSpecs.isSigned = false;
+        declSpecs.isInt = false;
+    }
+    
+    // if any of the bools are still set, we've got a conflict
+    if (   declSpecs.isVoid
+        || declSpecs.isChar
+        || declSpecs.isSigned
+        || declSpecs.isUnsigned
+        || declSpecs.isInt
+        || declSpecs.isLong
+        || declSpecs.isShort
+        || declSpecs.isFloat
+        || declSpecs.isDouble)
+    {
+        addError(decl, ERR_CC_DECLSPEC_CONFL);
+        return new types::InvalidType();
+    }
+    
+    if (result == NULL)
+        throw new errors::InternalCompilerException("something weird has happend during resolution of type specifiers");
+    
+    return result;
+}
+
 void SemanticCheckVisitor::visit(astnodes::TypeSpecifier * typeSpecifier)
 {
-    printAstName("TypeSpecifier");
-    typeSpecifier->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("Declarator Node is only abstract and cannot be visited");
 }
+
+void SemanticCheckVisitor::visit(astnodes::TypeBaseSpecifier * typeBaseSpecifier)
+{
+    switch(typeBaseSpecifier->token)
+    {
+        case VOID:
+            if (declSpecs.isVoid)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_VOID_DUPL);
+            else
+                declSpecs.isVoid = true;
+            break;
+        case CHAR:
+            if (declSpecs.isChar)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_CHAR_DUPL);
+            else
+                declSpecs.isChar = true;
+            break;
+        case SHORT:
+            if (declSpecs.isShort)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_SHORT_DUPL);
+            else
+                declSpecs.isShort = true;
+            break;
+        case INT:
+            if (declSpecs.isInt)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_INT_DUPL);
+            else
+                declSpecs.isInt = true;
+            break;
+        case LONG:
+            if (declSpecs.isLong)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_LONG_DUPL);
+            else
+                declSpecs.isLong = true;
+            break;
+        case FLOAT:
+            if (declSpecs.isFloat)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_FLOAT_DUPL);
+            else
+                declSpecs.isFloat = true;
+            break;
+        case DOUBLE:
+            if (declSpecs.isDouble)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_DOUBLE_DUPL);
+            else
+                declSpecs.isDouble = true;
+            break;
+        case SIGNED:
+            if (declSpecs.isSigned)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_SIGNED_DUPL);
+            else if (declSpecs.isUnsigned)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_CONFL_SIGNED);
+            else
+                declSpecs.isSigned = true;
+            break;
+        case UNSIGNED:
+            if (declSpecs.isUnsigned)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_UNSIGNED_DUPL);
+            else if (declSpecs.isSigned)
+                addError(typeBaseSpecifier, ERR_CC_DECLSPEC_CONFL_SIGNED);
+            else
+                declSpecs.isUnsigned = true;
+            break;
+        default:
+            throw new errors::InternalCompilerException("unkown type specifier encountered");
+    }
+}
+
+
+
+void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpecifier)
+{
+    printAstName("StructUnionSpecifier");
+    structUnionSpecifier->allChildrenAccept(*this);
+}
+
+
+void SemanticCheckVisitor::visit(astnodes::EnumSpecifier * enumSpecifier)
+{
+    printAstName("EnumSpecifier");
+    enumSpecifier->allChildrenAccept(*this);
+}
+
 
 
 void SemanticCheckVisitor::visit(astnodes::TypeNameSpecifier * typeNameSpecifier)
@@ -536,12 +743,6 @@ void SemanticCheckVisitor::visit(astnodes::TypeNameSpecifier * typeNameSpecifier
     typeNameSpecifier->allChildrenAccept(*this);
 }
 
-
-void SemanticCheckVisitor::visit(astnodes::TypeBaseSpecifier * typeBaseSpecifier)
-{
-    printAstName("TypeBaseSpecifier");
-    typeBaseSpecifier->allChildrenAccept(*this);
-}
 
 
 void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
@@ -905,6 +1106,10 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     // analyse both sub-expressions
     binaryOperator->allChildrenAccept(*this);
     
+    // TODO both operand have to be converted from R to L value
+    //.TODO when they are converted, array type gets converted to pointer type
+    // TODO otherwise all those checks below won't work properly :(
+    
     valuetypes::ValueType* lhsVtype = binaryOperator->lhsExrp->valType;
     valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
     types::Type* lhsType = lhsVtype->type;
@@ -1077,87 +1282,87 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             }
             break;
             
-            
-            /* 3.3.9 Equality operators */
-            
-            case EQ_OP:
-            case NE_OP:
-                if((types::IsTypeHelper::isArithmeticType(lhsType))
-                    && types::IsTypeHelper::isArithmeticType(rhsType))
-                {
-                    // both are arithmetic types
-                    // promote:
-                    binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-                    binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-                } else if((types::IsTypeHelper::isPointerType(lhsType))
-                    && types::IsTypeHelper::isPointerType(rhsType))
-                {
-                    binaryOperator->lhsPtr = true;
-                    binaryOperator->rhsPtr = true;
-                    binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                    
-                    // TODO properly check for compatible types pointed to
-                    if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
-                    {
-                        addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
-                        binaryOperator->valType = getInvalidValType();
-                        return;
-                    }
-                    
-                    binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-                }
-                // TODO case for Null pointer constant
-                else
-                {
-                    addError(binaryOperator, ERR_CC_COMP_INVALID_TYPES);
-                    binaryOperator->valType = getInvalidValType();
-                    return;
-                }
-                break;
-            
-                
-            /* 3.3.10 Bitwise AND operator */
-            /* 3.3.11 Bitwise exclusive OR operator */
-            /* 3.3.12 Bitwise inclusive OR operator */
-            
-            case BIN_AND_OP:
-            case BIN_XOR_OP:
-            case BIN_OR_OP:
-                // check that the expression type is a integral type
-                if((!types::IsTypeHelper::isIntegralType(lhsType))
-                    || !types::IsTypeHelper::isIntegralType(rhsType))
-                {
-                    addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
-                    binaryOperator->valType = getInvalidValType();
-                    return;
-                }
-                
-                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-                binaryOperator->commonType = binaryOperator->valType->type;
-                break;
-                
-                
-                /* 3.3.13 Logical AND operator */
-                /* 3.3.14 Logical OR operator */
-                
-            case AND_OP:
-            case OR_OP:
-                
-                // check that the expression type is a integral type
-                if((!types::IsTypeHelper::isIntegralType(lhsType))
-                    || !types::IsTypeHelper::isIntegralType(rhsType))
-                {
-                    addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
-                    binaryOperator->valType = getInvalidValType();
-                    return;
-                }
-
+        
+        /* 3.3.9 Equality operators */
+        
+        case EQ_OP:
+        case NE_OP:
+            if((types::IsTypeHelper::isArithmeticType(lhsType))
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                // both are arithmetic types
+                // promote:
                 binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-                break;
+            } else if((types::IsTypeHelper::isPointerType(lhsType))
+                && types::IsTypeHelper::isPointerType(rhsType))
+            {
+                binaryOperator->lhsPtr = true;
+                binaryOperator->rhsPtr = true;
+                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
                 
-            default:
-                throw new errors::InternalCompilerException("unknown binary operator encountered");
+                // TODO properly check for compatible types pointed to
+                if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
+                {
+                    addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
+                    binaryOperator->valType = getInvalidValType();
+                    return;
+                }
+                
+                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
+            }
+            // TODO case for Null pointer constant
+            else
+            {
+                addError(binaryOperator, ERR_CC_COMP_INVALID_TYPES);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            break;
+        
+            
+        /* 3.3.10 Bitwise AND operator */
+        /* 3.3.11 Bitwise exclusive OR operator */
+        /* 3.3.12 Bitwise inclusive OR operator */
+        
+        case BIN_AND_OP:
+        case BIN_XOR_OP:
+        case BIN_OR_OP:
+            // check that the expression type is a integral type
+            if((!types::IsTypeHelper::isIntegralType(lhsType))
+                || !types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+            
+            binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
+            binaryOperator->commonType = binaryOperator->valType->type;
+            break;
+            
+            
+            /* 3.3.13 Logical AND operator */
+            /* 3.3.14 Logical OR operator */
+            
+        case AND_OP:
+        case OR_OP:
+            
+            // check that the expression type is a integral type
+            if((!types::IsTypeHelper::isIntegralType(lhsType))
+                || !types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
+                binaryOperator->valType = getInvalidValType();
+                return;
+            }
+
+            binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+            binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
+            break;
+            
+        default:
+            throw new errors::InternalCompilerException("unknown binary operator encountered");
     }
 }
 
@@ -1348,23 +1553,6 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 
 
-
-
-
-
-
-void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpecifier)
-{
-    printAstName("StructUnionSpecifier");
-    structUnionSpecifier->allChildrenAccept(*this);
-}
-
-
-void SemanticCheckVisitor::visit(astnodes::EnumSpecifier * enumSpecifier)
-{
-    printAstName("EnumSpecifier");
-    enumSpecifier->allChildrenAccept(*this);
-}
 
 
 void SemanticCheckVisitor::visit(astnodes::Enumerator * enumerator)
