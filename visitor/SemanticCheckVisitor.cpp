@@ -452,15 +452,89 @@ void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 
 
 
-/******************************/
-/*   Declarators !!           */
-/******************************/
+
+/*######################################*/
+/*        3.5 DECLARATIONS              */
+/*######################################*/
 
 
 
 // TODO TODO FIXME TODO TODO FIXME
 // implement declarators ;)
 // first now implementing expressions
+
+void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
+{
+    
+    // first get the type from the type specifier
+    resetDeclSpecs();
+    // visit all type specifiers
+    for (std::vector<astnodes::TypeSpecifier*>::iterator i = declaration->declSpecifiers->typeSpecifiers.begin(); i != declaration->declSpecifiers->typeSpecifiers.end(); ++i)
+    {
+        (*i)->accept(*this);
+    }
+    // now get the type
+    types::Type* declType = declSpecsToType(declaration);
+    // is it a valid type?
+    if (types::IsTypeHelper::isInvalidType(declType))
+        // errors have already been generated in this case, just ignore this declaration
+        return;
+    
+    // now check for type qualifiers
+    for (std::vector<astnodes::TypeQualifier*>::iterator i = declaration->declSpecifiers->typeQualifiers.begin(); i != declaration->declSpecifiers->typeQualifiers.end(); ++i)
+    {
+        switch ((*i)->token)
+        {
+            case CONST:
+                declType->isConst = true;
+                break;
+            case VOLATILE:
+                declType->isVolatile = true;
+                break;
+            default:
+                throw new errors::InternalCompilerException("unknown type qualifier encountered");
+        }
+    }
+    
+    // next check for the storage specifiers
+    if (declaration->declSpecifiers->storageSpecifiers.size() > 1)
+    {
+        addError(declaration->declSpecifiers->storageSpecifiers.front(), ERR_CC_STORSPEC_CONFL);
+        return;
+    } else if (declaration->declSpecifiers->storageSpecifiers.size() == 1)
+    {
+        switch(declaration->declSpecifiers->storageSpecifiers.front()->token)
+        {
+            case TYPEDEF:
+                declaration->storageSpecifier = astnodes::STORAGE_TYPEDEF;
+                break;
+            case EXTERN:
+                declaration->storageSpecifier = astnodes::STORAGE_EXTERN;
+                break;
+            case STATIC:
+                declaration->storageSpecifier = astnodes::STORAGE_STATIC;
+                break;
+            case AUTO:
+                declaration->storageSpecifier = astnodes::STORAGE_AUTO;
+                break;
+            case REGISTER:
+                declaration->storageSpecifier = astnodes::STORAGE_REGISTER;
+                break;
+            default:
+                throw new errors::InternalCompilerException("unknown storage specifier encountered");
+        }
+    }
+    else
+    {
+        // empty storage specifiers
+        declaration->storageSpecifier = astnodes::STORAGE_DEFAULT;
+    }
+    
+    // now visit all the declarators
+    // TODO
+}
+
+
 
 void SemanticCheckVisitor::visit(astnodes::Declarator * declarator)
 {
@@ -503,11 +577,6 @@ void SemanticCheckVisitor::visit(astnodes::TypeName * typeName)
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
-{
-    printAstName("Declaration");
-    declaration->allChildrenAccept(*this);
-}
 
 
 void SemanticCheckVisitor::visit(astnodes::Pointer * pointer)
@@ -517,14 +586,26 @@ void SemanticCheckVisitor::visit(astnodes::Pointer * pointer)
 }
 
 
-void SemanticCheckVisitor::visit(astnodes::TypeQualifier * typeQualifier)
+
+
+
+
+
+/**********************************/
+/* 3.5.1 Storage-class specifiers */
+/**********************************/
+
+void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
 {
-    printAstName("TypeQualifier");
-    typeQualifier->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("a storage specifier should not be visited");
 }
 
 
 
+
+/******************************/
+/*  3.5.2 Type specifiers     */
+/******************************/
 
 
 void SemanticCheckVisitor::resetDeclSpecs()
@@ -744,13 +825,14 @@ void SemanticCheckVisitor::visit(astnodes::TypeNameSpecifier * typeNameSpecifier
 }
 
 
+/******************************/
+/*  3.5.3 Type qualifiers     */
+/******************************/
 
-void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
+void SemanticCheckVisitor::visit(astnodes::TypeQualifier * typeQualifier)
 {
-    printAstName("StorageSpecifier");
-    storageSpecifier->allChildrenAccept(*this);
+    throw new errors::InternalCompilerException("a type qualifier should not be visited");
 }
-
 
 
 

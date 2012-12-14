@@ -24,7 +24,10 @@ namespace dtcc
 {
     namespace astnodes
     {
+        
 
+        enum StorSpec_t {STORAGE_DEFAULT, STORAGE_TYPEDEF, STORAGE_EXTERN, STORAGE_STATIC, STORAGE_AUTO, STORAGE_REGISTER};
+        
         ///
         /// @class      Declaration
         /// @brief      The Declaration AST node.
@@ -48,6 +51,8 @@ namespace dtcc
             DeclarationSpecifiers * declSpecifiers;
             Declarators * declarators;
             Declarator * singleDeclarator;
+            
+            enum StorSpec_t storageSpecifier;
 
             
         public:

@@ -73,3 +73,6 @@ ERR_CC_DECLSPEC_SIGNED_DUPL                          cc-declspec-signed-dupl    
 ERR_CC_DECLSPEC_UNSIGNED_DUPL                        cc-declspec-unsigned-dupl                "duplicate base type 'unsigned' in type specifiers"
 ERR_CC_DECLSPEC_CONFL_SIGNED                         cc-declspec-confl-signed                 "type specifiers define a conflicting signedness, both: 'unsigned' and 'signed' appear"
 ERR_CC_DECLSPEC_CONFL                                cc-declspec-confl                        "type specifiers conflict and do not define a unique type"
+
+ERR_CC_STORSPEC_CONFL                                cc-storspec-confl                        "storage specifiers conflict, there cannot be more than one storage specifier"
+
