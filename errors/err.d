@@ -76,3 +76,8 @@ ERR_CC_DECLSPEC_CONFL                                cc-declspec-confl          
 
 ERR_CC_STORSPEC_CONFL                                cc-storspec-confl                        "storage specifiers conflict, there cannot be more than one storage specifier"
 
+ERR_CC_REDECL                                        cc-redecl                                "redeclaration of `%s`"
+ERR_CC_ARRAY_SIZE_NOT_CONST                          cc-array-size-not-const                  "storage size of array is not a constant"
+ERR_CC_ARRAY_SIZE_NOT_POS                            cc-array-size-not-pos                    "size of array is not a positive integral"
+ERR_CC_ARRAY_SIZE_MISSING                            cc-array-size-missing                    "array size missing"
+ERR_CC_ARRAY_INCOMPL_TYPE                            cc-array-incompl-type                    "array type has incomplete element type"

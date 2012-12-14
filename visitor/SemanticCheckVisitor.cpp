@@ -41,6 +41,9 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
     this->m_funcLabels = std::map<std::string, astnodes::LabelStatement*>();
     this->m_invalidValType = new valuetypes::RValue(new types::InvalidType());
+    this->m_declTypeStack = std::deque<types::Type*>();
+    this->m_declNameStack = std::deque<std::string>();
+    this->m_declIsStored = std::deque<bool>();
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -531,7 +534,96 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
     }
     
     // now visit all the declarators
-    // TODO
+    // TODO set the decltype as current decl type
+    // TODO then recurse down into the declarators 
+    // TODO recursively adding to the type
+    // TODO until a identifier is met, which then gets set as final type
+    // TODO then let this declaration handle the putting into the correct
+    // TODO part of the symbol tables based on the storage specifiers
+    if (!declaration->isParamDecl)
+    {
+        for (astnodes::Declarators::iterator i = declaration->declarators->begin(); i != declaration->declarators->end(); ++i)
+        {
+            // put the declaration type on the stack
+            this->m_declTypeStack.push_back(declType);
+            
+            // push whether the declaration needs to be stored (i.e. an array can consist of unknown length or not)
+            switch(declaration->storageSpecifier)
+            {
+                case astnodes::STORAGE_TYPEDEF:
+                case astnodes::STORAGE_EXTERN:
+                    m_declIsStored.push_back(false);
+                    break;
+                    
+                case astnodes::STORAGE_STATIC:
+                case astnodes::STORAGE_AUTO:
+                case astnodes::STORAGE_REGISTER:
+                case astnodes::STORAGE_DEFAULT:
+                    m_declIsStored.push_back(true);
+                    break;
+                    
+                default:
+                    throw new errors::InternalCompilerException("unknown storage specifier encountered");
+            }
+            
+            // call declarator recursively in order to get the actuay declaration type
+            (*i)->accept(*this);
+            
+            // get type and name of actual declarator
+            types::Type* actualDeclType = this->m_declTypeStack.back();
+            this->m_declTypeStack.pop_back();
+            std::string declName = this->m_declNameStack.back();
+            this->m_declNameStack.pop_back();
+            
+            if (types::IsTypeHelper::isInvalidType(actualDeclType))
+                // errors have already been generated in this case, just ignore this declaration
+                return;
+            
+            // TODO get initializer
+            
+            // TODO put it on the currect symbol table based storage modifiers
+            // TODO check that they don't already exist before o_O
+            switch(declaration->storageSpecifier)
+            {
+                case astnodes::STORAGE_TYPEDEF:
+                    // put in typedef table
+                    m_symbolTable->getCurrentScope().insertTag(declName, symboltable::TYPEDEF_TAG, declType);
+                    break;
+                case astnodes::STORAGE_EXTERN:
+                    // TODO
+                    break;
+                case astnodes::STORAGE_STATIC:
+                    // TODO put somehow as global static variable
+                    // TODO which has only local scope ..
+                    break;
+                    
+                case astnodes::STORAGE_AUTO:
+                    // this is the default storage for declarations:
+                case astnodes::STORAGE_REGISTER:
+                    // handle register just normally as well
+                    // just fucking ignore the request for register storage for now :P
+                    // TODO maybe handle it specially some time ;P
+                case astnodes::STORAGE_DEFAULT:
+                    // check if the symbol has been declared before
+                    if (m_symbolTable->getCurrentScope().containsSymbol(declName))
+                    {
+                        addError(declaration, ERR_CC_REDECL, declName);
+                        return;
+                    }
+                    
+                    if (m_symbolTable->isGlobalCurScope())
+                        // put onto global storage
+                        m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, declType, symboltable::GLOBAL);
+                    else
+                        // put onto local stack symbol table
+                        m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, declType, symboltable::LOCAL_STACK);
+                    break;
+                
+                default:
+                    throw new errors::InternalCompilerException("unknown storage specifier encountered");
+            }
+        }
+    }
 }
 
 
@@ -551,25 +643,123 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarat
 
 void SemanticCheckVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifierDeclarator)
 {
-    printAstName("NoIdentifierDeclarator");
+    // add pointers
     noIdentifierDeclarator->allChildrenAccept(*this);
+    // nothing else to do
 }
 
 
 void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDeclarator)
 {
-    printAstName("IdentifierDeclarator");
+    // add pointers
     identifierDeclarator->allChildrenAccept(*this);
+    // no change in the type, we've reached the bottom in the declarator recursion
+    // just push the namespace
+    this->m_declNameStack.push_back(identifierDeclarator->name);
 }
 
+void SemanticCheckVisitor::visit(astnodes::Pointer * pointer)
+{
+    // get base type
+    types::Type* baseType = this->m_declTypeStack.back();
+    this->m_declTypeStack.pop_back();
+    // construct pointer type with that base type
+    types::Type* result = new types::PointerType(baseType);
+    // now check for type qualifiers and add them to the pointer type
+    for (std::vector<astnodes::TypeQualifier*>::iterator i = pointer->typeQualifiers->begin(); i != pointer->typeQualifiers->end(); ++i)
+    {
+        switch ((*i)->token)
+        {
+            case CONST:
+                result->isConst = true;
+                break;
+            case VOLATILE:
+                result->isVolatile = true;
+                break;
+            default:
+                throw new errors::InternalCompilerException("unknown type qualifier encountered");
+        }
+    }
+    
+    // now push new type back on the stack
+    this->m_declTypeStack.push_back(result);
+}
 
 void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 {
-    printAstName("ArrayDeclarator");
-    arrayDeclarator->allChildrenAccept(*this);
+    // get base type
+    types::Type* baseType = this->m_declTypeStack.back();
+    this->m_declTypeStack.pop_back();
+    
+    types::Type* result = NULL;
+    
+    long size = -1;
+    if (arrayDeclarator->constExpr != NULL)
+    {
+        // first visit the expression with this visitor
+        arrayDeclarator->constExpr->accept(*this);
+        
+        // get size 
+        if (! valuetypes::IsValueTypeHelper::isCValue(arrayDeclarator->constExpr->valType))
+        {
+            addError(arrayDeclarator, ERR_CC_ARRAY_SIZE_NOT_CONST);
+            this->m_declTypeStack.push_back(new types::InvalidType());
+            return;
+        }
+        
+        ConstExprEvalVisitor ceval;
+        arrayDeclarator->constExpr->accept(ceval);
+        size = valuetypes::ConstHelper::getIntegralConst(arrayDeclarator->constExpr->valType);
+        
+        // TODO maybe support GNU C like arrays of size 0
+        if (size < 1)
+        {
+            addError(arrayDeclarator, ERR_CC_ARRAY_SIZE_NOT_POS);
+            this->m_declTypeStack.push_back(new types::InvalidType());
+            return;
+        }
+        
+        
+    }
+    else
+    {
+        if (m_declIsStored.back())
+        {
+            addError(arrayDeclarator, ERR_CC_ARRAY_SIZE_MISSING);
+            this->m_declTypeStack.push_back(new types::InvalidType());
+            return;
+        }
+        size = -1;
+    }
+    
+    if (!baseType->isComplete())
+    {
+        addError(arrayDeclarator, ERR_CC_ARRAY_INCOMPL_TYPE);
+        this->m_declTypeStack.push_back(new types::InvalidType());
+        return;
+    }
+    
+    uint16_t typeSize = baseType->getWordSize();
+    
+    result = new types::ArrayType(baseType, (int) size, typeSize);
+    this->m_declTypeStack.push_back(result);
+
+    // visit recursively
+    arrayDeclarator->baseDeclarator->accept(*this);
+    // and the initializers
+    if (arrayDeclarator->initializers != NULL)
+        for (astnodes::Expressions::iterator i = arrayDeclarator->initializers->begin(); i != arrayDeclarator->initializers->end(); ++i)
+            (*i)->accept(*this);
 }
 
 
+
+
+
+
+// the type name for cast and size of expression
+// TODO do something very similar to declaration
+// in order to get the type to return
 void SemanticCheckVisitor::visit(astnodes::TypeName * typeName)
 {
     printAstName("TypeName");
@@ -579,11 +769,6 @@ void SemanticCheckVisitor::visit(astnodes::TypeName * typeName)
 
 
 
-void SemanticCheckVisitor::visit(astnodes::Pointer * pointer)
-{
-    printAstName("Pointer");
-    pointer->allChildrenAccept(*this);
-}
 
 
 
@@ -931,7 +1116,7 @@ void SemanticCheckVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral
 
 void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
 {
-   stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length()));
+   stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length(), 1));
 }
 
 
@@ -1233,8 +1418,6 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         /* 3.3.6 Additive operators */
         
         case ADD_OP:
-            std::cout << "bin add with types " << lhsType->toString() << ", " << rhsType->toString() << std::endl;
-            std::cout << "are arithmetic? " << types::IsTypeHelper::isArithmeticType(lhsType) << ", " << types::IsTypeHelper::isArithmeticType(rhsType) << std::endl;
             if((types::IsTypeHelper::isArithmeticType(lhsType))
                 && types::IsTypeHelper::isArithmeticType(rhsType))
             {

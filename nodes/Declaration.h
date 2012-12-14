@@ -52,6 +52,7 @@ namespace dtcc
             Declarators * declarators;
             Declarator * singleDeclarator;
             
+            bool isParamDecl;
             enum StorSpec_t storageSpecifier;
 
             
@@ -61,14 +62,14 @@ namespace dtcc
             /// @param declSpecifiers TODO: FILLOUT
             /// @param declarators TODO: FILLOUT
             Declaration(DeclarationSpecifiers * declSpecifiers, Declarators * declarators) :
-                declSpecifiers(declSpecifiers), declarators(declarators), singleDeclarator(NULL) {}
+            declSpecifiers(declSpecifiers), declarators(declarators), singleDeclarator(NULL), isParamDecl(false) {}
             
             ///
             /// @brief      The constructor of the Declaration AST node.
             /// @param declSpecifiers TODO: FILLOUT
             /// @param declarator TODO: FILLOUT
             Declaration(DeclarationSpecifiers * declSpecifiers, Declarator * declarator) :
-            declSpecifiers(declSpecifiers), declarators(NULL), singleDeclarator(declarator) {}
+            declSpecifiers(declSpecifiers), declarators(NULL), singleDeclarator(declarator), isParamDecl(true) {}
             
             
             ///

@@ -489,7 +489,7 @@ constant_expression
 declaration
         : declaration_specifiers SEMICOLON
         {
-            $$ = new Declaration($1, (Declarator*) NULL);
+            $$ = new Declaration($1, new Declarators());
         }
         | declaration_specifiers init_declarator_list SEMICOLON
         {

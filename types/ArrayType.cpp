@@ -27,14 +27,13 @@ uint16_t ArrayType::getByteSize()
 {
     // return the word size
     // TODO in case of bigger types, return something else here
-    return (uint16_t) 1;
+    return (uint16_t) size * baseTypeSize;
 }
 
 // returns the word size of this type
 bool ArrayType::isComplete()
 {
-    // TODO in case of aggregate types, return the actual state here
-    return true;
+    return size > 0;
 }
 
 // function for the type visitors

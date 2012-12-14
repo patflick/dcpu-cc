@@ -49,8 +49,10 @@ void ArrayDeclarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
             (*i)->accept(visitor);
-    this->baseDeclarator->accept(visitor);
-    this->constExpr->accept(visitor);
+    if (this->baseDeclarator != NULL)
+        this->baseDeclarator->accept(visitor);
+    if (this->constExpr != NULL)
+        this->constExpr->accept(visitor);
     if (this->initializers != NULL)
         for (Expressions::iterator i = this->initializers->begin(); i != this->initializers->end(); ++i)
             (*i)->accept(visitor);

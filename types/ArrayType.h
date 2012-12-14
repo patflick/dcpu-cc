@@ -36,8 +36,8 @@ namespace dtcc
             
         public:
             Type* basetype;
-            unsigned int size;
-
+            int size;
+            int baseTypeSize;
             
         public:
             ///
@@ -46,7 +46,7 @@ namespace dtcc
             /// @param size TODO: FILLOUT
 
             ///
-            ArrayType(Type* basetype, unsigned int size) : basetype(basetype), size(size) {}
+            ArrayType(Type* basetype, int size, uint16_t baseTypeSize) : basetype(basetype), size(size), baseTypeSize(baseTypeSize)  {}
             
             ///
             /// @brief          Returns the size of the type in words.
