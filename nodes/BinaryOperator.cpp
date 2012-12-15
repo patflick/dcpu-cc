@@ -65,7 +65,6 @@ BinaryOperator::~BinaryOperator()
 {
     this->safe_delete(this->lhsExrp);
     this->safe_delete(this->rhsExpr);
-    this->safe_delete(this->commonType);
 }
 
 ///

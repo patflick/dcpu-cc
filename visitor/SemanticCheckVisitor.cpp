@@ -44,6 +44,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_declTypeStack = std::deque<types::Type*>();
     this->m_declNameStack = std::deque<std::string>();
     this->m_declIsStored = std::deque<bool>();
+    this->m_saveParams = std::deque<bool>();
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -175,8 +176,93 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // clear labels
     m_funcLabels.clear();
     
-    // TODO this is a tough one
-    functionDefinition->allChildrenAccept(*this);
+    // get type from declaration specifiers
+    types::Type* returnType = declSpecsToType(functionDefinition->declSpecifiers);
+    
+    // check that the type is either void or an object type, but not an array
+    if (types::IsTypeHelper::isArrayType(returnType) || (!types::IsTypeHelper::isObjectType(returnType) && ! types::IsTypeHelper::isVoid(returnType)))
+    {
+        addError(functionDefinition, ERR_CC_FUNC_RETURN_TYPE);
+    }
+    
+    // next check for the storage specifiers
+    if (functionDefinition->declSpecifiers->storageSpecifiers.size() > 1)
+    {
+        addError(functionDefinition->declSpecifiers->storageSpecifiers.front(), ERR_CC_STORSPEC_CONFL);
+        return;
+    } else if (functionDefinition->declSpecifiers->storageSpecifiers.size() == 1)
+    {
+        switch(functionDefinition->declSpecifiers->storageSpecifiers.front()->token)
+        {
+            case STATIC:
+            case EXTERN:
+                // TODO use it do decide on visibility
+                break;
+            case TYPEDEF:
+            case AUTO:
+            case REGISTER:
+                addError(functionDefinition->declSpecifiers->storageSpecifiers.front(), ERR_CC_FUNC_RETURN_STORAGE);
+                return;
+                break;
+            default:
+                throw new errors::InternalCompilerException("unknown storage specifier encountered");
+        }
+    }
+    
+    
+    symboltable::SymbolTableScope* funScope = this->m_symbolTable->beginNewScope();
+    
+    // get all the parameters with their names into the scope
+    this->m_saveParams.push_back(true);
+    this->m_declTypeStack.push_back(returnType);
+    functionDefinition->declarator->accept(*this);
+    
+    types::Type* funType = this->m_declTypeStack.back();
+    
+    // check that it is actually a function type
+    if (! types::IsTypeHelper::isFunctionType(funType))
+    {
+        std::cout << "type is = " << funType->toString() << std::endl;
+        addError(functionDefinition, ERR_CC_FUNC_IS_NOT_A_FUNC_TYPE);
+        return;
+    }
+    
+    this->m_declTypeStack.pop_back();
+    this->m_saveParams.pop_back();
+    std::string name = this->m_declNameStack.back();
+    this->m_declNameStack.pop_back();
+    this->m_symbolTable->endScope();
+    
+
+    
+    symboltable::SymbolObject obj;
+    // search for functions only at global scope:
+    if(this->m_symbolTable->getGlobalScope().findSymbol(name, obj))
+    {
+        if (obj.declType == symboltable::FUNCTION_DEF)
+        {
+            addError(functionDefinition, ERR_CC_REDECL, name);
+            return;
+        }
+        else if (obj.declType != symboltable::FUNCTION_DECL)
+        {
+            addError(functionDefinition, ERR_CC_REDECL, name);
+            return;
+        }
+    }
+    
+    // insert function
+    this->m_symbolTable->getGlobalScope().insertSymbol(name, symboltable::FUNCTION_DEF, funType, symboltable::GLOBAL);
+    
+    // give the block its scope
+    functionDefinition->block->scope = funScope;
+    // analyse the declarations and statements in the block
+    functionDefinition->block->accept(*this);
+    
+    // the scope is closed by the block itself
+    // no need to do it here
+    
+    
     
     // TODO call goto label resolval visitor here:
     
@@ -468,36 +554,9 @@ void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 
 void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
 {
-    
-    // first get the type from the type specifier
-    resetDeclSpecs();
-    // visit all type specifiers
-    for (std::vector<astnodes::TypeSpecifier*>::iterator i = declaration->declSpecifiers->typeSpecifiers.begin(); i != declaration->declSpecifiers->typeSpecifiers.end(); ++i)
-    {
-        (*i)->accept(*this);
-    }
-    // now get the type
-    types::Type* declType = declSpecsToType(declaration);
-    // is it a valid type?
-    if (types::IsTypeHelper::isInvalidType(declType))
-        // errors have already been generated in this case, just ignore this declaration
-        return;
-    
-    // now check for type qualifiers
-    for (std::vector<astnodes::TypeQualifier*>::iterator i = declaration->declSpecifiers->typeQualifiers.begin(); i != declaration->declSpecifiers->typeQualifiers.end(); ++i)
-    {
-        switch ((*i)->token)
-        {
-            case CONST:
-                declType->isConst = true;
-                break;
-            case VOLATILE:
-                declType->isVolatile = true;
-                break;
-            default:
-                throw new errors::InternalCompilerException("unknown type qualifier encountered");
-        }
-    }
+
+    // get type from declaration specifiers
+    types::Type* declType = declSpecsToType(declaration->declSpecifiers);
     
     // next check for the storage specifiers
     if (declaration->declSpecifiers->storageSpecifiers.size() > 1)
@@ -534,12 +593,6 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
     }
     
     // now visit all the declarators
-    // TODO set the decltype as current decl type
-    // TODO then recurse down into the declarators 
-    // TODO recursively adding to the type
-    // TODO until a identifier is met, which then gets set as final type
-    // TODO then let this declaration handle the putting into the correct
-    // TODO part of the symbol tables based on the storage specifiers
     if (!declaration->isParamDecl)
     {
         for (astnodes::Declarators::iterator i = declaration->declarators->begin(); i != declaration->declarators->end(); ++i)
@@ -567,6 +620,7 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
             }
             
             // call declarator recursively in order to get the actuay declaration type
+            this->m_saveParams.push_back(false);
             (*i)->accept(*this);
             
             // get type and name of actual declarator
@@ -574,6 +628,7 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
             this->m_declTypeStack.pop_back();
             std::string declName = this->m_declNameStack.back();
             this->m_declNameStack.pop_back();
+            this->m_saveParams.pop_back();
             
             if (types::IsTypeHelper::isInvalidType(actualDeclType))
                 // errors have already been generated in this case, just ignore this declaration
@@ -581,73 +636,184 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
             
             // TODO get initializer
             
-            // TODO put it on the currect symbol table based storage modifiers
-            // TODO check that they don't already exist before o_O
-            switch(declaration->storageSpecifier)
+            if (types::IsTypeHelper::isFunctionType(actualDeclType))   
             {
-                case astnodes::STORAGE_TYPEDEF:
-                    // put in typedef table
-                    m_symbolTable->getCurrentScope().insertTag(declName, symboltable::TYPEDEF_TAG, declType);
-                    break;
-                case astnodes::STORAGE_EXTERN:
-                    // TODO
-                    break;
-                case astnodes::STORAGE_STATIC:
-                    // TODO put somehow as global static variable
-                    // TODO which has only local scope ..
-                    break;
-                    
-                case astnodes::STORAGE_AUTO:
-                    // this is the default storage for declarations:
-                case astnodes::STORAGE_REGISTER:
-                    // handle register just normally as well
-                    // just fucking ignore the request for register storage for now :P
-                    // TODO maybe handle it specially some time ;P
-                case astnodes::STORAGE_DEFAULT:
-                    // check if the symbol has been declared before
-                    if (m_symbolTable->getCurrentScope().containsSymbol(declName))
-                    {
-                        addError(declaration, ERR_CC_REDECL, declName);
+                // put encountered function into symbol table
+                symboltable::SymbolObject obj;
+                switch(declaration->storageSpecifier)
+                {
+                    case astnodes::STORAGE_TYPEDEF:
+                    case astnodes::STORAGE_REGISTER:
+                    case astnodes::STORAGE_AUTO:
+                        // this is a function declaration
+                        addError(declaration, ERR_CC_FUNC_RETURN_STORAGE);
                         return;
-                    }
-                    
-                    if (m_symbolTable->isGlobalCurScope())
-                        // put onto global storage
-                        m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, declType, symboltable::GLOBAL);
-                    else
-                        // put onto local stack symbol table
-                        m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, declType, symboltable::LOCAL_STACK);
-                    break;
-                
-                default:
-                    throw new errors::InternalCompilerException("unknown storage specifier encountered");
+                        break;
+                        
+                    case astnodes::STORAGE_STATIC:
+                        // TODO do something special with static
+                    case astnodes::STORAGE_EXTERN:
+                    case astnodes::STORAGE_DEFAULT:
+                        // search for functions only at global scope:
+                        if(this->m_symbolTable->getCurrentScope().findSymbol(declName, obj))
+                        {
+                            if (obj.declType == symboltable::FUNCTION_DEF)
+                            {
+                                addError(declaration, ERR_CC_REDECL, declName);
+                                return;
+                            }
+                            else if (obj.declType != symboltable::FUNCTION_DECL)
+                            {
+                                addError(declaration, ERR_CC_REDECL, declName);
+                                return;
+                            }
+                        }
+                        
+                        // insert function
+                        this->m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::FUNCTION_DECL, actualDeclType, symboltable::GLOBAL);
+                        break;
+                    default:
+                        throw new errors::InternalCompilerException("unknown storage specifier encountered");
+                }
             }
+            else
+            {
+                // put encountered symbol into symbol table
+                switch(declaration->storageSpecifier)
+                {
+                    case astnodes::STORAGE_TYPEDEF:
+                        
+                        if (m_symbolTable->getCurrentScope().containsTag(declName))
+                        {
+                            addError(declaration, ERR_CC_REDECL, declName);
+                            return;
+                        }
+                        // put in typedef table
+                        m_symbolTable->getCurrentScope().insertTag(declName, symboltable::TYPEDEF_TAG, actualDeclType);
+                        break;
+                    case astnodes::STORAGE_EXTERN:
+                        // TODO
+                        break;
+                    case astnodes::STORAGE_STATIC:
+                        // TODO put somehow as global static variable
+                        // TODO which has only local scope ..
+                        break;
+                        
+                    case astnodes::STORAGE_AUTO:
+                        // this is the default storage for declarations:
+                    case astnodes::STORAGE_REGISTER:
+                        // handle register just normally as well
+                        // just fucking ignore the request for register storage for now :P
+                        // TODO maybe handle it specially some time ;P
+                    case astnodes::STORAGE_DEFAULT:
+                        // check if the symbol has been declared before
+                        if (m_symbolTable->getCurrentScope().containsSymbol(declName))
+                        {
+                            addError(declaration, ERR_CC_REDECL, declName);
+                            return;
+                        }
+                        
+                        if (m_symbolTable->isGlobalCurScope())
+                            // put onto global storage
+                            m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, actualDeclType, symboltable::GLOBAL);
+                        else
+                            // put onto local stack symbol table
+                            m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, actualDeclType, symboltable::LOCAL_STACK);
+                        break;
+                        
+                    
+                    default:
+                        throw new errors::InternalCompilerException("unknown storage specifier encountered");
+                }
+            }
+        }
+    }
+    else
+    {
+
+        // check that the function parameter declaration doesn't use any 
+        // storage specifiers besides `register`
+        switch(declaration->storageSpecifier)
+        {
+            case astnodes::STORAGE_TYPEDEF:
+            case astnodes::STORAGE_EXTERN:
+            case astnodes::STORAGE_STATIC:
+            case astnodes::STORAGE_AUTO:
+                addError(declaration, ERR_CC_FUNC_PARAM_STORAGE);
+                return;
+            case astnodes::STORAGE_REGISTER:
+            case astnodes::STORAGE_DEFAULT:
+               // everything is fine
+                break;
+                
+            default:
+                throw new errors::InternalCompilerException("unknown storage specifier encountered");
+        }
+        
+        // put the declaration type on the stack
+        this->m_declTypeStack.push_back(declType);
+        this->m_declIsStored.push_back(false);
+        this->m_saveParams.push_back(false);
+        
+        // call declarator recursively in order to get the actuay declaration type
+        declaration->singleDeclarator->accept(*this);
+        
+        // get type and name of actual declarator
+        types::Type* actualDeclType = this->m_declTypeStack.back();
+        this->m_declTypeStack.pop_back();
+        std::string declName = this->m_declNameStack.back();
+        this->m_declNameStack.pop_back();
+        this->m_saveParams.pop_back();
+        
+        if (types::IsTypeHelper::isInvalidType(actualDeclType))
+            // errors have already been generated in this case, just ignore this declaration
+            return;
+        
+        // set the associated type
+        declaration->type = actualDeclType;
+        
+        // if this is a parameter, there must be another declarator somewhere which set this
+        if (this->m_saveParams.back() && !types::IsTypeHelper::isVoid(actualDeclType))
+        {
+            if (declName == std::string(""))
+            {
+                addError(declaration, ERR_CC_FUNC_PARAM_NO_NAME, declName);
+                return;
+            }
+            
+            if (m_symbolTable->getCurrentScope().containsTag(declName))
+            {
+                addError(declaration, ERR_CC_REDECL, declName);
+                return;
+            }
+            
+            // save as parameter in current scope
+            m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, declType, symboltable::PARAMETER_STACK);
         }
     }
 }
 
 
 
+
+/******************************/
+/*     3.5.4 Declarators      */
+/******************************/
+
 void SemanticCheckVisitor::visit(astnodes::Declarator * declarator)
 {
     throw new errors::InternalCompilerException("Declarator Node is only abstract and cannot be visited");
 }
-
-
-void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarator)
-{
-    printAstName("FunctionDeclarator");
-    functionDeclarator->allChildrenAccept(*this);
-}
-
 
 void SemanticCheckVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifierDeclarator)
 {
     // add pointers
     noIdentifierDeclarator->allChildrenAccept(*this);
     // nothing else to do
+    // push an empty name to the stack, so that
+    // nothing of importance is popped of
+    this->m_declNameStack.push_back(std::string(""));
 }
-
 
 void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDeclarator)
 {
@@ -657,6 +823,9 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
     // just push the namespace
     this->m_declNameStack.push_back(identifierDeclarator->name);
 }
+
+
+/* 3.5.4.1 Pointer declarators */
 
 void SemanticCheckVisitor::visit(astnodes::Pointer * pointer)
 {
@@ -685,8 +854,16 @@ void SemanticCheckVisitor::visit(astnodes::Pointer * pointer)
     this->m_declTypeStack.push_back(result);
 }
 
+
+/* 3.5.4.2 Array declarators */
+
 void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 {
+    // first add pointers to the type 
+    if (arrayDeclarator->pointers != NULL)
+        for (astnodes::Pointers::iterator i = arrayDeclarator->pointers->begin(); i != arrayDeclarator->pointers->end(); ++i)
+            (*i)->acceptPostRecursive(*this);
+    
     // get base type
     types::Type* baseType = this->m_declTypeStack.back();
     this->m_declTypeStack.pop_back();
@@ -718,8 +895,6 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
             this->m_declTypeStack.push_back(new types::InvalidType());
             return;
         }
-        
-        
     }
     else
     {
@@ -743,12 +918,107 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
     
     result = new types::ArrayType(baseType, (int) size, typeSize);
     this->m_declTypeStack.push_back(result);
-
+    
     // visit recursively
     arrayDeclarator->baseDeclarator->accept(*this);
+    
     // and the initializers
     if (arrayDeclarator->initializers != NULL)
         for (astnodes::Expressions::iterator i = arrayDeclarator->initializers->begin(); i != arrayDeclarator->initializers->end(); ++i)
+            (*i)->accept(*this);
+}
+
+
+/* 3.5.4.3 Function declarators */
+
+void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarator)
+{
+    // first add pointers to the type 
+    if (functionDeclarator->pointers != NULL)
+        for (astnodes::Pointers::iterator i = functionDeclarator->pointers->begin(); i != functionDeclarator->pointers->end(); ++i)
+            (*i)->acceptPostRecursive(*this);
+    
+    // get return type
+    types::Type* returnType = this->m_declTypeStack.back();
+    this->m_declTypeStack.pop_back();
+    
+    // check that return type is not a function
+    if (types::IsTypeHelper::isFunctionType(returnType))
+    {
+        addError(functionDeclarator, ERR_CC_FUNCDECL_RETURN_FUNCT);
+        this->m_declTypeStack.push_back(new types::InvalidType());
+        return;
+    }
+    
+    // check that return type is not an array
+    if (types::IsTypeHelper::isArrayType(returnType))
+    {
+        addError(functionDeclarator, ERR_CC_FUNCDECL_RETURN_ARRAY);
+        this->m_declTypeStack.push_back(new types::InvalidType());
+        return;
+    }
+    
+    symboltable::SymbolTableScope* scope = NULL;
+    if (!this->m_saveParams.back())
+    {
+        symboltable::SymbolTableScope* scope = m_symbolTable->beginNewScope();
+    }
+    
+    // visit all declarators in the parameter list
+    for (std::vector<astnodes::Declaration*>::iterator i = functionDeclarator->parameterList->declarations.begin(); i != functionDeclarator->parameterList->declarations.end(); ++i)
+    {
+        (*i)->accept(*this);
+    }
+    
+    
+    if (!this->m_saveParams.back())
+    {
+        m_symbolTable->endScope();
+        delete scope;
+        scope = NULL;
+    }
+    
+    // get the type list
+    types::ParameterTypeList* paramTypes = new types::ParameterTypeList();
+    
+
+    for (std::vector<astnodes::Declaration*>::iterator i = functionDeclarator->parameterList->declarations.begin(); i != functionDeclarator->parameterList->declarations.end(); ++i)
+    {
+        // check that it is a valid type
+        if (types::IsTypeHelper::isInvalidType((*i)->type))
+        {
+            // in this case error message has already been output
+            this->m_declTypeStack.push_back(new types::InvalidType());
+            return;
+        }
+        
+        // add to param list
+        paramTypes->push_back((*i)->type);
+    }
+    
+    // check if this is a paramter list like:  foo(void)
+    if (paramTypes->size() == 1
+        && types::IsTypeHelper::isVoid(paramTypes->back()))
+    {
+        // only one void paramter -> same as empty parameter list
+        paramTypes->clear();
+    }
+    
+    // get var args 
+    bool varargs = functionDeclarator->parameterList->varArgs;
+    
+    // now we have everything to construct the function type
+    types::Type* funtype = new types::FunctionType(returnType, paramTypes, varargs);
+    
+    // push type
+    this->m_declTypeStack.push_back(funtype);
+    
+    // visit recursively
+    functionDeclarator->baseDeclarator->accept(*this);
+    
+    // and the initializers (if any)
+    if (functionDeclarator->initializers != NULL)
+        for (astnodes::Expressions::iterator i = functionDeclarator->initializers->begin(); i != functionDeclarator->initializers->end(); ++i)
             (*i)->accept(*this);
 }
 
@@ -757,7 +1027,16 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 
 
 
-// the type name for cast and size of expression
+
+
+
+
+
+/**********************************/
+/*       3.5.5 Type names         */
+/**********************************/
+
+// the type for cast and size of expression
 // TODO do something very similar to declaration
 // in order to get the type to return
 void SemanticCheckVisitor::visit(astnodes::TypeName * typeName)
@@ -793,6 +1072,44 @@ void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
 /******************************/
 
 
+types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::DeclarationSpecifiers* declSpecs)
+{
+    
+    // first get the type from the type specifier
+    resetDeclSpecs();
+    // visit all type specifiers
+    for (std::vector<astnodes::TypeSpecifier*>::iterator i = declSpecs->typeSpecifiers.begin(); i != declSpecs->typeSpecifiers.end(); ++i)
+    {
+        (*i)->accept(*this);
+    }
+    // now get the type
+    types::Type* declType = typeSpecsToType(declSpecs->typeSpecifiers.front());
+    // is it a valid type?
+    if (types::IsTypeHelper::isInvalidType(declType))
+        // errors have already been generated in this case, just ignore this declaration
+        return new types::InvalidType();
+    
+    // now check for type qualifiers
+    for (std::vector<astnodes::TypeQualifier*>::iterator i = declSpecs->typeQualifiers.begin(); i != declSpecs->typeQualifiers.end(); ++i)
+    {
+        switch ((*i)->token)
+        {
+            case CONST:
+                declType->isConst = true;
+                break;
+            case VOLATILE:
+                declType->isVolatile = true;
+                break;
+            default:
+                throw new errors::InternalCompilerException("unknown type qualifier encountered");
+        }
+    }
+    
+    return declType;
+}
+
+
+
 void SemanticCheckVisitor::resetDeclSpecs()
 {
     declSpecs.isAdvType = false;
@@ -808,7 +1125,7 @@ void SemanticCheckVisitor::resetDeclSpecs()
     declSpecs.isDouble = false;
 }
 
-types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::Declaration* decl)
+types::Type* SemanticCheckVisitor::typeSpecsToType(astnodes::Node* decl)
 {
     types::Type* result = NULL;
     
@@ -886,11 +1203,16 @@ types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::Declaration* decl)
         declSpecs.isUnsigned = false;
         declSpecs.isInt = false;
     }
-    else
+    else if (declSpecs.isInt)
     {
         result = new types::SignedInt();
         declSpecs.isSigned = false;
         declSpecs.isInt = false;
+    }
+    else
+    {
+        addError(decl, ERR_CC_DECLSPEC_NO_TYPE);
+        return new types::InvalidType();
     }
     
     // if any of the bools are still set, we've got a conflict
@@ -1171,21 +1493,41 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
     
     // check LHS type
     types::Type* lhsType = methodCall->lhsExpr->valType->type;
-    if(!types::IsTypeHelper::isPointerType(lhsType))
+    
+    types::FunctionType* funType = NULL;
+    
+    if (! valuetypes::IsValueTypeHelper::isFunctionDesignator(methodCall->lhsExpr->valType))
     {
-        addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
-        methodCall->valType = getInvalidValType();
-        return;
+        if (!types::IsTypeHelper::isFunctionType(lhsType)){
+            if(!types::IsTypeHelper::isPointerType(lhsType))
+            {
+                // FIXME: remove me
+                std::cout << "type= " << lhsType->toString() << std::endl;
+                addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
+                methodCall->valType = getInvalidValType();
+                return;
+            }
+            if (!types::IsTypeHelper::isFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
+            {
+                // FIXME: remove me
+                std::cout << "ugh type= " << lhsType->toString() << std::endl;
+                addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
+                methodCall->valType = getInvalidValType();
+                return;
+            }
+            funType = types::IsTypeHelper::getFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType);
+        }
+        else
+        {
+            funType = types::IsTypeHelper::getFunctionType(lhsType);
+        }
     }
-    if (!types::IsTypeHelper::isFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
+    else
     {
-        addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
-        methodCall->valType = getInvalidValType();
-        return;
+        funType = types::IsTypeHelper::getFunctionType(methodCall->lhsExpr->valType->type);
     }
     
     // now we are sure it is a pointer to a function, get the functiontype
-    types::FunctionType* funType = types::IsTypeHelper::getFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType);
     methodCall->valType = new valuetypes::RValue(funType->returnType);
     
     // check for same size (or in case of variable arguments (...) for the call having

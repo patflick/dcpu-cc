@@ -85,10 +85,12 @@ namespace dtcc
                 bool isDouble;
             } declSpecs;
             void resetDeclSpecs();
-            types::Type* declSpecsToType(astnodes::Declaration* decl);
+            types::Type* typeSpecsToType(dtcc::astnodes::Node* decl);
+            types::Type* declSpecsToType(astnodes::DeclarationSpecifiers* declSpecs);
             std::deque<types::Type*> m_declTypeStack;
             std::deque<std::string> m_declNameStack;
             std::deque<bool> m_declIsStored;
+            std::deque<bool> m_saveParams;
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);

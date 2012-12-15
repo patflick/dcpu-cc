@@ -20,6 +20,8 @@
 #include "Declarators.h"
 #include <cstdlib>
 
+#include <types/Type.h>
+
 namespace dtcc
 {
     namespace astnodes
@@ -55,6 +57,7 @@ namespace dtcc
             bool isParamDecl;
             enum StorSpec_t storageSpecifier;
 
+            types::Type* type;
             
         public:
             ///

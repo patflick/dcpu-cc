@@ -73,6 +73,7 @@ ERR_CC_DECLSPEC_SIGNED_DUPL                          cc-declspec-signed-dupl    
 ERR_CC_DECLSPEC_UNSIGNED_DUPL                        cc-declspec-unsigned-dupl                "duplicate base type 'unsigned' in type specifiers"
 ERR_CC_DECLSPEC_CONFL_SIGNED                         cc-declspec-confl-signed                 "type specifiers define a conflicting signedness, both: 'unsigned' and 'signed' appear"
 ERR_CC_DECLSPEC_CONFL                                cc-declspec-confl                        "type specifiers conflict and do not define a unique type"
+ERR_CC_DECLSPEC_NO_TYPE                              cc-declspec-no-type                      "no valid type was specified in the type specifiers"
 
 ERR_CC_STORSPEC_CONFL                                cc-storspec-confl                        "storage specifiers conflict, there cannot be more than one storage specifier"
 
@@ -81,3 +82,12 @@ ERR_CC_ARRAY_SIZE_NOT_CONST                          cc-array-size-not-const    
 ERR_CC_ARRAY_SIZE_NOT_POS                            cc-array-size-not-pos                    "size of array is not a positive integral"
 ERR_CC_ARRAY_SIZE_MISSING                            cc-array-size-missing                    "array size missing"
 ERR_CC_ARRAY_INCOMPL_TYPE                            cc-array-incompl-type                    "array type has incomplete element type"
+
+ERR_CC_FUNCDECL_RETURN_ARRAY                         cc-funcdecl-return-array                 "function cannot return an array"
+ERR_CC_FUNCDECL_RETURN_FUNCT                         cc-funcdecl-return-funct                 "function cannot return a function"
+ERR_CC_FUNC_PARAM_STORAGE                            cc-func-param-storage                    "invalid storage specifier in function parameter"
+ERR_CC_FUNC_PARAM_NO_NAME                            cc-func-param-no-name                    "function parameters must have a name in a function definition"
+ERR_CC_FUNC_RETURN_STORAGE                           cc-func-return-storage                   "invalid storage specifier in function definition"
+ERR_CC_FUNC_RETURN_TYPE                              cc-func-return-types                     "invalid return type"
+ERR_CC_FUNC_IS_NOT_A_FUNC_TYPE                       cc-func-is-not-a-func-type               "function is not a function type"
+

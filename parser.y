@@ -812,7 +812,7 @@ direct_declarator
         */
         | direct_declarator CURVED_OPEN CURVED_CLOSE
         {
-            $$ = new FunctionDeclarator($1, NULL);
+            $$ = new FunctionDeclarator($1, new ParameterDeclarations());
         }
         ;
 
