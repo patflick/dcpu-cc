@@ -90,4 +90,8 @@ ERR_CC_FUNC_PARAM_NO_NAME                            cc-func-param-no-name      
 ERR_CC_FUNC_RETURN_STORAGE                           cc-func-return-storage                   "invalid storage specifier in function definition"
 ERR_CC_FUNC_RETURN_TYPE                              cc-func-return-types                     "invalid return type"
 ERR_CC_FUNC_IS_NOT_A_FUNC_TYPE                       cc-func-is-not-a-func-type               "function is not a function type"
+ERR_CC_TOO_MANY_INITS                                cc-too-many-inits                        "too many initializers for declaration of `%s`."
+
+
+
 

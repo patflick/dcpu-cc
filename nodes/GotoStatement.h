@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Statement.h"
+#include "LabelStatement.h"
 #include <string>
 
 namespace dtcc
@@ -45,6 +46,7 @@ namespace dtcc
         public:
             std::string& identifier;
 
+            LabelStatement* lbl;
             
         public:
             ///
@@ -52,7 +54,7 @@ namespace dtcc
             /// @param identifier TODO: FILLOUT
 
             ///
-            GotoStatement(std::string& identifier) : identifier(identifier) {}
+            GotoStatement(std::string& identifier) : identifier(identifier), lbl(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

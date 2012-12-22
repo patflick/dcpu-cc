@@ -49,7 +49,11 @@ namespace dtcc
             DeclarationSpecifiers * declSpecifiers;
             Declarator * declarator;
             BlockStatement * block;
-
+            
+            // values assigned during semantic analysis
+            std::string name;
+            uint16_t stackSize;
+            uint16_t paramSize;
             
         public:
             ///

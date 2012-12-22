@@ -222,7 +222,6 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // check that it is actually a function type
     if (! types::IsTypeHelper::isFunctionType(funType))
     {
-        std::cout << "type is = " << funType->toString() << std::endl;
         addError(functionDefinition, ERR_CC_FUNC_IS_NOT_A_FUNC_TYPE);
         return;
     }
@@ -263,6 +262,12 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // no need to do it here
     
     
+    // set the name of the function
+    functionDefinition->name = name;
+    
+    // set the parameter and locals size
+    functionDefinition->stackSize = funScope->getLocalStackSize();
+    functionDefinition->paramSize = funScope->getParameterStackSize();
     
     // TODO call goto label resolval visitor here:
     
@@ -325,6 +330,7 @@ void SemanticCheckVisitor::visit(astnodes::ReturnStatement * returnStatement)
     returnStatement->allChildrenAccept(*this);
     // then check if it is compatible with the function return value
     // TODO TODO FIXME
+    // TODO  get the label to the end of the function to jump to
 }
 
 
@@ -455,7 +461,7 @@ void SemanticCheckVisitor::visit(astnodes::IfStatement * ifStatement)
 
 void SemanticCheckVisitor::visit(astnodes::ExpressionStatement * expressionStatement)
 {
-    // just path through
+    // just pass through
     expressionStatement->allChildrenAccept(*this);
 }
 
@@ -554,7 +560,6 @@ void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 
 void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
 {
-
     // get type from declaration specifiers
     types::Type* declType = declSpecsToType(declaration->declSpecifiers);
     
@@ -634,7 +639,6 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
                 // errors have already been generated in this case, just ignore this declaration
                 return;
             
-            // TODO get initializer
             
             if (types::IsTypeHelper::isFunctionType(actualDeclType))   
             {
@@ -818,10 +822,35 @@ void SemanticCheckVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifier
 void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDeclarator)
 {
     // add pointers
-    identifierDeclarator->allChildrenAccept(*this);
+    if (identifierDeclarator->pointers != NULL)
+        for (astnodes::Pointers::iterator i = identifierDeclarator->pointers->begin(); i != identifierDeclarator->pointers->end(); ++i)
+            (*i)->accept(*this);
     // no change in the type, we've reached the bottom in the declarator recursion
     // just push the namespace
     this->m_declNameStack.push_back(identifierDeclarator->name);
+    
+    // TODO get initializer
+    if (identifierDeclarator->initializers != NULL)
+    {
+        // check that there is at most 1 initializer
+        if (identifierDeclarator->initializers->size() > 1)
+        {
+            addError(identifierDeclarator, ERR_CC_TOO_MANY_INITS, identifierDeclarator->name);
+            return;
+        }
+        
+        if (identifierDeclarator->initializers->size() == 1)
+        {
+            // visit the expression
+            identifierDeclarator->initializers->front()->accept(*this);
+            
+            // now check for compatible types
+            // TODO
+        }
+    }
+    
+
+    
 }
 
 
@@ -926,6 +955,14 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
     if (arrayDeclarator->initializers != NULL)
         for (astnodes::Expressions::iterator i = arrayDeclarator->initializers->begin(); i != arrayDeclarator->initializers->end(); ++i)
             (*i)->accept(*this);
+        
+    // TODO check for compatibility of init types
+    for (astnodes::Expressions::iterator init = identifierDeclarator->initializers->begin(); init != identifierDeclarator->initializers->end(); ++init)
+    {
+        
+        // check that the type is compatible
+        // TODO
+    }
 }
 
 
@@ -1018,8 +1055,23 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarat
     
     // and the initializers (if any)
     if (functionDeclarator->initializers != NULL)
-        for (astnodes::Expressions::iterator i = functionDeclarator->initializers->begin(); i != functionDeclarator->initializers->end(); ++i)
-            (*i)->accept(*this);
+    {
+        // check that there is at most 1 initializer
+        if (functionDeclarator->initializers->size() > 1)
+        {
+            addError(functionDeclarator, ERR_CC_TOO_MANY_INITS, this->m_declNameStack.back());
+            return;
+        }
+        
+        if (functionDeclarator->initializers->size() == 1)
+        {
+            // visit the expression
+            functionDeclarator->initializers->front()->accept(*this);
+            
+            // now check for compatible types
+            // TODO
+        }
+    }
 }
 
 
@@ -1501,16 +1553,12 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
         if (!types::IsTypeHelper::isFunctionType(lhsType)){
             if(!types::IsTypeHelper::isPointerType(lhsType))
             {
-                // FIXME: remove me
-                std::cout << "type= " << lhsType->toString() << std::endl;
                 addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
                 methodCall->valType = getInvalidValType();
                 return;
             }
             if (!types::IsTypeHelper::isFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
             {
-                // FIXME: remove me
-                std::cout << "ugh type= " << lhsType->toString() << std::endl;
                 addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
                 methodCall->valType = getInvalidValType();
                 return;
