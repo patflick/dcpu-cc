@@ -957,7 +957,7 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
             (*i)->accept(*this);
         
     // TODO check for compatibility of init types
-    for (astnodes::Expressions::iterator init = identifierDeclarator->initializers->begin(); init != identifierDeclarator->initializers->end(); ++init)
+    for (astnodes::Expressions::iterator init = arrayDeclarator->initializers->begin(); init != arrayDeclarator->initializers->end(); ++init)
     {
         
         // check that the type is compatible

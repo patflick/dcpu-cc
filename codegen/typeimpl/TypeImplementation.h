@@ -31,6 +31,8 @@ namespace dtcc
             virtual std::deque<std::string> printConstant(long value) = 0;
             
             
+            /// implements addition: B = B + A
+            virtual std::string add(ValuePosition* posB, ValuePosition* posA) = 0;
         };
 
 

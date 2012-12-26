@@ -543,31 +543,46 @@ void DirectCodeGenVisitor::visit(astnodes::TypeQualifier * typeQualifier)
 
 void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
 {
-    if (!this->m_symbolTable->containsRec(identifier->name))
-    {
-        addError(identifier, ERR_CC_VARIABLE_NOT_IN_SCOPE, identifier->name);
-        identifier->valType = getInvalidValType();
-        // don't handle anything below
-        return;
-    }
+    // huge TODO
+    // get typeposition (which should be added by the semantic check visitor)
+    // and add that as expression result
     
-    // TODO enum types are constants!! 
+    // this will be depending on type either:
+    // => Labels:
+    // -  cfunc_somefunc :  global label as adress to function
+    // -  cglob_somename :  some global variable
+    // -  cstat_somename : some static variable saved at global scope
+    // => Stack relative addresses:
+    // -  FP+offset for parameters
+    // -  FP-offset for locals
     
-    types::Type* varType = this->m_symbolTable->getTypeOfVariable(identifier->name);
-    if (varType == NULL)
-    {
-        // this must be a function then
-        types::FunctionType* funcType = this->m_symbolTable->getFunction(identifier->name);
-        if (funcType == NULL)
-        {
-            throw new errors::InternalCompilerException("Neither a variable nor a function was found by the name '" + identifier->name + "'.");
-        }
-        identifier->valType = new valuetypes::FunctionDesignator(funcType);
-    }
-    else
-    {
-        identifier->valType = new valuetypes::LValue(varType);
-    }
+    // if we consider structs we can also have:
+    // Label+offset as value position (this will not fit in an atomic instruction
+    // unless the linker supports expressions)
+    
+    // so we have two cases (so far?!?):
+    // 1. Labels:
+    //    ValuePosition is atomic addressable and atomic deref
+    // 2. Stack relative addresses
+    //    ValuePosition is not atomic addressable, but atomic deref
+    // 3. Labels + offset
+    //    ValuePosition is not atomic addressable, and only atomic deref
+    //                  if linker supports expressions (not yet the case)
+    
+    
+    // in the first case it can addressed without any registers used
+    // deref can always happen without register use
+    // getting the address only works with an additional register
+    // thus the ValuePosition needs to be able to request a free register
+    
+    // 
+    
+    
+    // this is a terminal expression
+    // how will i make this work exactly??
+    
+    // Ideas:
+    //  - terminal 
 }
 
 

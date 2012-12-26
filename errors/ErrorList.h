@@ -1,15 +1,13 @@
-/**
+///
+/// @addtogroup LibDCPU-CI-Lang-C/Errors
+/// @{
+///
 
-    File:           ErrorList.h
-
-    Project:        DCPU-16 Tools
-    Component:      LibDCPU-ci-lang
-
-    Authors:        Patrick Flick
-
-    Description:    Declares the ErrorList class.
-
-**/
+///
+/// @file       ErrorList.h
+/// @brief      Declaration of the ErrorList class.
+/// @author     Patrick Flick
+///
 
 #ifndef __DCPU_LIBDCC_ERRORLIST_H
 #define __DCPU_LIBDCC_ERRORLIST_H
@@ -68,3 +66,7 @@ namespace dtcc
 }
 
 #endif
+
+///
+/// @}
+///

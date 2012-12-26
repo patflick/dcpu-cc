@@ -68,3 +68,7 @@ namespace dtcc
 } // namespace dtcc
 
 #endif
+
+///
+/// @}
+///
