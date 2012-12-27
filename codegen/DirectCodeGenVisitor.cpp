@@ -54,6 +54,50 @@ std::string DirectCodeGenVisitor::getFileAndLineState(astnodes::Node* node)
 }
 
 
+/* register management */
+
+void DirectCodeGenVisitor::initFreeRegisters()
+{
+    for (ValPosRegister r = REG_A; r <= REG_Z; r++)
+    {
+        if (r == REG_FRAME_POINTER)
+            continue;
+        m_registersUsed[r] = false;
+    }
+    
+    m_registersUsed[REG_FRAME_POINTER] = true;
+}
+
+ValPosRegister DirectCodeGenVisitor::getFreeRegister()
+{
+    for (ValPosRegister r = REG_A; r <= REG_Z; r++)
+    {
+        if (!m_registersUsed[r])
+        {
+            m_registersUsed[r] = true;
+            return r;
+        }
+    }
+    
+    // register spilling should happen elsewhere
+    // TODO implement register spilling
+    throw new errors::InternalCompilerException("no free register available - FIXME implement register spilling");
+}
+
+void DirectCodeGenVisitor::maybeReleaseRegister(ValuePosition* vp)
+{
+    if (vp->usesRegister())
+        this->releaseRegister(vp->getRegister());
+}
+
+void DirectCodeGenVisitor::releaseRegister(ValPosRegister regist)
+{
+    m_registersUsed[regist] = false;
+}
+
+
+
+
 // Generates a random, unique label for use in code.
 astnodes::LabelStatement* DirectCodeGenVisitor::getRandomLabel(std::string prefix)
 {
@@ -779,6 +823,50 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
 
 
 
+ValuePosition* DirectCodeGenVisitor::atomizeOperand(ValuePosition* operandVP)
+{
+    if (operandVP->getWordSize() == 1)
+    {
+        if (!operandVP->isAtomicOperand())
+        {
+            ValPosRegister newReg = this->getFreeRegister();
+            ValuePosition* newVP = operandVP->valToRegister(asm_current, newReg);
+            maybeReleaseRegister(operandVP);
+            operandVP = newVP;
+        }
+    }
+    else if (operandVP->getWordSize() > 1)
+    {
+        if (!operandVP->canAtomicDerefOffset())
+        {
+            ValPosRegister newReg = this->getFreeRegister();
+            ValuePosition* newVP = operandVP->valToRegister(asm_current, newReg);
+            maybeReleaseRegister(operandVP);
+            operandVP = newVP;
+        }
+    }
+    return operandVP;
+}
+
+
+ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP)
+{
+    if (operandVP->getWordSize() == 1)
+    {
+        if (operandVP->canAtomicDeref())
+            operandVP = operandVP->atomicDeref();
+        else
+        {
+            ValPosRegister newReg = this->getFreeRegister();
+            ValuePosition* newVP = operandVP->valToRegister(asm_current, newReg);
+            newVP = newVP->atomicDeref();
+            maybeReleaseRegister(operandVP);
+            operandVP = newVP;
+        }
+    }
+    return operandVP;
+}
+
 
 /******************************/
 /*  3.3.2 Postfix expressions */
@@ -788,35 +876,49 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
 
 void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOperator)
 {
-    // analyse both sub expressions
-    arrayAccessOperator->allChildrenAccept(*this);
+    // first compile lhs expression (i.e. the array)
+    arrayAccessOperator->lhsExpr->accept(*this);
     
-    // check LHS type
-    types::Type* lhsType = arrayAccessOperator->lhsExpr->valType->type;
+    ValuePosition* lhsVP = arrayAccessOperator->lhsExpr->valPos;
     
-    if(!types::IsTypeHelper::isPointerType(lhsType))
-    {
-        addError(arrayAccessOperator, ERR_CC_ARRAY_ACCESS_NO_POINTER);
-        arrayAccessOperator->valType = getInvalidValType();
-        return;
-    }
-    if (!types::IsTypeHelper::isObjectType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
-    {
-        addError(arrayAccessOperator, ERR_CC_DEREF_INCOMPLETE_TYPE);
-        arrayAccessOperator->valType = getInvalidValType();
-        return;
-    }
+    // get new register for lhs adress to be modified
+    ValPosRegister newReg = this->getFreeRegister();
+    ValuePosition* newLhsVP = NULL;
     
-    // check RHS type
-    types::Type* rhsType = arrayAccessOperator->rhsExpr->valType->type;
-    if(!types::IsTypeHelper::isIntegralType(rhsType))
+    // deref lhs if necessary
+    if (arrayAccessOperator->lhsLtoR)
+        lhsVP = derefOperand(lhsVP);
+    else
     {
-        addError(arrayAccessOperator, ERR_CC_ARRAY_SUB_NOT_INT);
-        arrayAccessOperator->valType = getInvalidValType();
-        return;
+        newLhsVP = lhsVP->valToRegister(asm_current, newReg);
+        maybeReleaseRegister(lhsVP);
+        lhsVP = newLhsVP;
     }
     
-    arrayAccessOperator->valType = new valuetypes::LValue(types::IsTypeHelper::getPointerType(lhsType)->baseType);
+    
+    // compile offset
+    arrayAccessOperator->rhsExpr->accept(*this);
+    
+    ValuePosition* rhsVP = arrayAccessOperator->rhsExpr->valPos;
+    
+    if (arrayAccessOperator->rhsLtoR)
+    {
+        rhsVP = derefOperand(rhsVP);
+    }
+    
+    rhsVP = atomizeOperand(rhsVP);
+
+    types::Type* ptrType = new types::UnsignedInt();
+    ptrType->accept(getTypeImpl);
+    TypeImplementation* typeImpl = getTypeImpl.getTypeImplementation();
+    
+    // multiply by pointer size
+    typeImpl->mul(asm_current, rhsVP, ValuePosition::createAtomicConstPos(arrayAccessOperator->pointerSize));
+    // add to address
+    typeImpl->add(asm_current, lhsVP, rhsVP);
+    
+    // return this value (which is a LValue)
+    arrayAccessOperator->valPos = lhsVP;
 }
 
 
@@ -824,63 +926,8 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
 
 void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
 {
-    // analyse lhs and all arguments
-    methodCall->allChildrenAccept(*this);
-    
-    // check LHS type
-    types::Type* lhsType = methodCall->lhsExpr->valType->type;
-    
-    types::FunctionType* funType = NULL;
-    
-    if (! valuetypes::IsValueTypeHelper::isFunctionDesignator(methodCall->lhsExpr->valType))
-    {
-        if (!types::IsTypeHelper::isFunctionType(lhsType)){
-            if(!types::IsTypeHelper::isPointerType(lhsType))
-            {
-                addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
-                methodCall->valType = getInvalidValType();
-                return;
-            }
-            if (!types::IsTypeHelper::isFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType))
-            {
-                addError(methodCall, ERR_CC_CALLED_OBJ_NOT_FUNC);
-                methodCall->valType = getInvalidValType();
-                return;
-            }
-            funType = types::IsTypeHelper::getFunctionType(types::IsTypeHelper::getPointerType(lhsType)->baseType);
-        }
-        else
-        {
-            funType = types::IsTypeHelper::getFunctionType(lhsType);
-        }
-    }
-    else
-    {
-        funType = types::IsTypeHelper::getFunctionType(methodCall->lhsExpr->valType->type);
-    }
-    
-    // now we are sure it is a pointer to a function, get the functiontype
-    methodCall->valType = new valuetypes::RValue(funType->returnType);
-    
-    // check for same size (or in case of variable arguments (...) for the call having
-    // at least as many arguments as there are parameters in the function type.
-    if ((funType->isVarArgs && methodCall->rhsExprs->size() < funType->paramTypes->size())
-        || (!funType->isVarArgs && methodCall->rhsExprs->size() != funType->paramTypes->size()))
-    {
-        addError(methodCall, ERR_CC_CALLED_FUNC_NUM_PARAMS);
-        return;
-    }
-    
-    for (unsigned int i = 0; i < methodCall->rhsExprs->size(); i++)
-    {
-        valuetypes::ValueType* from = (*methodCall->rhsExprs)[i]->valType;
-        types::Type* to = (*funType->paramTypes)[i];
-        // make sure all the parameter types match
-        // TODO check that they are assignable (see assignment operator)
-        // TODO FIXME TODO FIXME
-    }
-    
-    // TODO what to do if return type is bigger than 1 word??
+    // TODO TODO
+    printAstName("MethodCall");
 }
 
 

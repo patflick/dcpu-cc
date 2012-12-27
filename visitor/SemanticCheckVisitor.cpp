@@ -1510,6 +1510,20 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     // check LHS type
     types::Type* lhsType = arrayAccessOperator->lhsExpr->valType->type;
     
+    if (types::IsTypeHelper::isArrayType(lhsType))
+    {
+        // convert array to pointer type
+        lhsType = types::IsTypeHelper::pointerFromArrayType(lhsType);
+    }
+    else
+    {
+        // get LtoR state
+        if (valuetypes::IsValueTypeHelper::isLValue(arrayAccessOperator->lhsExpr->valType))
+        {
+            arrayAccessOperator->lhsLtoR = true;
+        }
+    }
+    
     if(!types::IsTypeHelper::isPointerType(lhsType))
     {
         addError(arrayAccessOperator, ERR_CC_ARRAY_ACCESS_NO_POINTER);
@@ -1523,8 +1537,17 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
         return;
     }
     
+    arrayAccessOperator->pointerSize = types::IsTypeHelper::getPointerType(lhsType)->baseType->getWordSize();
+    
     // check RHS type
     types::Type* rhsType = arrayAccessOperator->rhsExpr->valType->type;
+    
+    // get LtoR state
+    if (valuetypes::IsValueTypeHelper::isLValue(arrayAccessOperator->rhsExpr->valType))
+    {
+        arrayAccessOperator->rhsLtoR = true;
+    }
+    
     if(!types::IsTypeHelper::isIntegralType(rhsType))
     {
         addError(arrayAccessOperator, ERR_CC_ARRAY_SUB_NOT_INT);

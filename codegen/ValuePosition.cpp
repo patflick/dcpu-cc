@@ -32,6 +32,12 @@ ValuePosition* ValuePosition::createAtomicConstPos(std::string val)
     return pos;
 }
 
+ValuePosition* ValuePosition::createAtomicConstPos(uint16_t val)
+{
+    std::stringstream strstr;
+    strstr << "0x" << std::hex << val;
+    return createAtomicConstPos(strstr.str());
+}
 
 std::string registerToString(ValPosRegister regist)
 {
@@ -56,6 +62,23 @@ std::string registerToString(ValPosRegister regist)
     }
 }
 
+bool ValuePosition::usesRegister()
+{
+    if (this->posType == REG || this->posType == REG_REL)
+        return true;
+    else
+        return false;
+}
+
+ValPosRegister ValuePosition::getRegister()
+{
+    if (this->usesRegister())
+        return this->regist;
+    else
+        return -1;
+}
+
+
 bool ValuePosition::canAtomicDeref()
 {
     // TODO make this depend on the assembler and linker used
@@ -64,6 +87,17 @@ bool ValuePosition::canAtomicDeref()
     else
         return true;
 }
+
+ValuePosition* ValuePosition::isAtomicOperand()
+{
+    if (!this->isDeref && (this->posType == LABEL_REL || this->posType == REG_REL || this->posType == STACK_REL))
+        return false;
+    else if (this->isDeref && this->posType == LABEL_REL)
+        return false;
+    else
+        return true;
+}
+
 
 bool ValuePosition::canAtomicDerefOffset()
 {
@@ -102,9 +136,21 @@ ValuePosition* ValuePosition::atomicDerefOffset(int offset)
     return newVP;
 }
 
-ValuePosition* ValuePosition::getAtomicDeref(AsmBlock* ass, ValPosRegister regist)
+ValuePosition* ValuePosition::adrToRegister(AsmBlock* ass, ValPosRegister regist)
 {
-    ass << "SET " << this->registerToString(regist) << ", " << this->toString() << std::endl;
+    ass << "SET " << this->registerToString(regist) << ", " << this->baseToString() << std::endl;
+    
+    // add offset if needed
+    switch (this->posType)
+    {
+        case LABEL_REL:
+        case FP_REL:
+        case STACK_REL:
+            ass << "ADD " << this->registerToString(regist) << ", 0x" << std::hex << this->offset << std::endl;
+            break;
+        default:
+            break;
+    }
     
     ValuePosition* newVP = new ValuePosition(*this);
     newVP->posType = REG;
@@ -113,34 +159,56 @@ ValuePosition* ValuePosition::getAtomicDeref(AsmBlock* ass, ValPosRegister regis
     return newVP;
 }
 
-std::string ValuePosition::toAtomicOperand()
+ValuePosition* ValuePosition::valToRegister(AsmBlock* ass, ValPosRegister regist)
+{
+    ValuePosition* newVP = this->adrToRegister(ass, regist);
+    if (this->isDeref)
+    {
+        ass << "SET " << this->registerToString(regist) << ", [" << this->registerToString(regist) << "]" << std::endl;
+    }
+    return newVP;
+}
+
+std::string ValuePosition::baseToString()
 {
     std::stringstream base;
     switch (this->posType)
     {
         case LABEL:
+        case LABEL_REL:
             base << this->labelName;
             break;
-        case LABEL_REL:
-            base << this->labelName << " + " << this->offset;
-            break;
         case FP_REL:
-            base << this->registerToString(REG_FRAME_POINTER) << " + " << this->offset;
+            base << this->registerToString(REG_FRAME_POINTER);
             break;
         case REG:
             base << this->registerToString(this->regist);
-            break;
-        case REG_REL:
-            base << this->registerToString(this->regist) << " + " << this->offset;
+            base << this->registerToString(this->regist);
             break;
         case STACK:
+        case STACK_REL:
             base << "SP";
             break;
-        case STACK_REL:
-            base << "SP + " << this->offset;
-            break;
         case CONST_LITERAL:
-            base << std::hex << this->constValue;
+            base << "0x" << std::hex << this->constValue;
+            break;
+    }
+    return base.str();
+}
+
+std::string ValuePosition::toAtomicOperand()
+{
+    std::stringstream base;
+    base << this->baseToString();
+    switch (this->posType)
+    {
+        case LABEL_REL:
+        case FP_REL:
+        case STACK_REL:
+            base << " + " << this->offset;
+            break;
+        default:
+            break;
     }
     
     if (this->isDeref)

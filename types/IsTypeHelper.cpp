@@ -360,6 +360,19 @@ PointerType* IsTypeHelper::getPointerType(Type* type)
         return NULL;
 }
 
+PointerType* IsTypeHelper::pointerFromArrayType(Type* type)
+{
+    if (IsTypeHelper::isArrayType(type))
+    {
+        ArrayType* arType = (ArrayType*) type;
+        PointerType* ptrType = new PointerType(arType->basetype);
+        ptrType->isConst = true;
+        return ptrType;
+    }
+    else
+        return NULL;
+}
+
 FunctionType* IsTypeHelper::getFunctionType(Type* type)
 {
     if (IsTypeHelper::isFunctionType(type))

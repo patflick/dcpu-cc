@@ -50,6 +50,17 @@ namespace dtcc
             
             Assembler assembler;
             
+            // free registers management
+            std::map<int, bool> m_registersUsed;
+            void initFreeRegisters();
+            ValPosRegister getFreeRegister();
+            void maybeReleaseRegister(ValuePosition* vp);
+            void releaseRegister(ValPosRegister regist);
+            
+            // value positions
+            ValuePosition* atomizeOperand(ValuePosition* operand);
+            ValuePosition* derefOperand(ValuePosition* operand);
+            
             /* automatic/random label management */
             // TODO this is still a duplicate from SemanticCheck Visitor
             // TODO put this in some unified helper class

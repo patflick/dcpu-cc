@@ -70,15 +70,24 @@ namespace dtcc
             bool canAtomicDeref();
             bool canAtomicDerefOffset();
             
+            ValuePosition* isAtomicOperand();
+            
             ValuePosition* atomicDeref();
             ValuePosition* atomicDerefOffset(int offset);
             
-            ValuePosition* getAtomicDeref(AsmBlock* ass, ValPosRegister regist);
+            ValuePosition* adrToRegister(AsmBlock* ass, ValPosRegister regist);
+            
+            ValuePosition* valToRegister(AsmBlock* ass, ValPosRegister regist);
             
             std::string toAtomicOperand();
+            std::string baseToString();
             
             static ValuePosition* createLabelPos(std::string label);
             static ValuePosition* createAtomicConstPos(std::string val);
+            static ValuePosition* createAtomicConstPos(uint16_t val);
+            
+            bool usesRegister();
+            ValPosRegister getRegister();
             
             
             ///
