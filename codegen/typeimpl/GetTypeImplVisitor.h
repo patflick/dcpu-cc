@@ -7,6 +7,8 @@
 #include <types/alltypes.h>
 #include <types/TypeVisitor.h>
 #include "TypeImplementation.h"
+#include "SignedInt16.h"
+#include "UnsignedInt16.h"
 
 namespace dtcc
 {
@@ -16,12 +18,15 @@ namespace dtcc
         class GetTypeImplVisitor : types::TypeVisitor
         {
         private:
+            SignedInt16* sint16;
+            UnsignedInt16* uint16;
+            
             TypeImplementation* typeImpl;
             
         public:
             
             /// @brief Constructor for the GetTypeImplVisitor class.
-            GetTypeImplVisitor() : typeImpl(NULL) {}
+            GetTypeImplVisitor() : typeImpl(NULL), sint16(new SignedInt16()), uint16(new UnsignedInt16()) {}
             
             /// @brief      Returns the resolved type implementation.
             /// @returns    The resolved type implementation as pointer to
@@ -30,6 +35,8 @@ namespace dtcc
             virtual TypeImplementation* getTypeImplementation();
             
         public:
+            
+            
             ///
             /// @brief      Visit function of the visitor pattern.
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern

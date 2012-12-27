@@ -17,7 +17,7 @@
 // include needed nodes
 #include "Node.h"
 #include <valuetypes/ValueType.h>
-
+#include <codegen/ValuePosition.h>
 
 
 namespace dtcc
@@ -36,11 +36,15 @@ namespace dtcc
             /// Each expression has a value type associated with it
             valuetypes::ValueType* valType;
             
+            /// Each expression returns a value in a position given by this
+            /// instance of the ValuePosition class.
+            codegen::ValuePosition* valPos;
+            
         public:
             ///
             /// @brief      The constructor of the Expression AST node.
             ///
-            Expression() : valType(NULL) {}
+            Expression() : valType(NULL), valPos(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

@@ -22,12 +22,14 @@
 #include <valuetypes/PromotionHelper.h>
 #include <valuetypes/ConstHelper.h>
 
+#include "ValuePosition.h"
+
 // only include the int tokens
 #define YYSTYPE int
 #include <parser.hpp>
 
 using namespace dtcc;
-using namespace dtcc::visitor;
+using namespace dtcc::codegen;
 
 
 /* constructor */
@@ -49,6 +51,37 @@ std::string DirectCodeGenVisitor::getFileAndLineState(astnodes::Node* node)
     std::stringstream str;
     str << ".ULINE " << node->line << " \"" << node->file << "\"";
     return str.str();
+}
+
+
+// Generates a random, unique label for use in code.
+astnodes::LabelStatement* DirectCodeGenVisitor::getRandomLabel(std::string prefix)
+{
+    std::string result = "";
+    
+    while ((result == "") || (this->m_AutomaticLabels.find(result) != this->m_AutomaticLabels.end()))
+        result = prefix + "_" + DirectCodeGenVisitor::getRandomString(10);
+    
+    return new astnodes::LabelStatement(result, new astnodes::EmptyStatement());
+}
+
+// Generates a random character.
+char DirectCodeGenVisitor::getRandomCharacter()
+{
+    unsigned char c;
+    
+    while (!std::isalnum(c = static_cast<unsigned char>(rand() % 256))) ;
+    
+    return c;
+}
+
+// Generates a random string.
+std::string DirectCodeGenVisitor::getRandomString(std::string::size_type sz)
+{
+    std::string s;
+    s.reserve(sz);
+    std::generate_n(std::back_inserter(s), sz, DirectCodeGenVisitor::getRandomCharacter);
+    return s;
 }
 
 
@@ -588,51 +621,94 @@ void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
 
 /* constants */
 
+ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
+{
+    if (vals.size() > 1)
+    {
+        std::string label = getRandomLabel("constant_");
+        asm_Constants << label << ":" << std::endl;
+        asm_Constants << "    DAT ";
+        for (std::deque<std::string>::iterator it = vals.begin(); it != vals.end(); ++it)
+        {
+            if (it != vals.begin())
+            {
+                asm_Constants << ", ";
+            }
+            asm_Constants << *it;
+        }
+        asm_Constants << std::endl;
+        
+        // return a label valuepos
+        return ValuePosition::createLabelPos(label);
+    }
+    else if (vals.size() == 1)
+    {
+        // return an atomic constant literal valuepos
+        return ValuePosition::createAtomicConstPos(vals.front());
+    }
+    else
+    {
+        throw new errors::InternalCompilerException("literal value list of length 0 encountered");
+    }
+}
+
+
+
 void DirectCodeGenVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
 {
-    characterLiteral->valType = new valuetypes::CValue(new types::UnsignedChar());
+    characterLiteral->valType->type->accept(getTypeImpl);
+    std::deque<std::string> ch;
+    ch.push_back(characterLiteral->str[0]);
+    characterLiteral->valPos = handleLiteral(ch);
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
 {
-    signedIntLiteral->valType = new valuetypes::CValue(new types::SignedInt());
+    signedIntLiteral->valType->type->accept(getTypeImpl);
+    signedIntLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(signedIntLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral)
 {
-    unsignedIntLiteral->valType = new valuetypes::CValue(new types::UnsignedInt());
+    unsignedIntLiteral->valType->type->accept(getTypeImpl);
+    unsignedIntLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(unsignedIntLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::SignedLongLiteral * signedLongLiteral)
 {
-    signedLongLiteral->valType = new valuetypes::CValue(new types::SignedLong());
+    signedLongLiteral->valType->type->accept(getTypeImpl);
+    signedLongLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(signedLongLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral)
 {
-    unsignedLongLiteral->valType = new valuetypes::CValue(new types::UnsignedLong());
+    unsignedLongLiteral->valType->type->accept(getTypeImpl);
+    unsignedLongLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(unsignedLongLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::FloatLiteral * floatLiteral)
 {
-    floatLiteral->valType = new valuetypes::CValue(new types::Float());
+    floatLiteral->valType->type->accept(getTypeImpl);
+    floatLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(floatLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::DoubleLiteral * doubleLiteral)
 {
-    doubleLiteral->valType = new valuetypes::CValue(new types::Double());
+    doubleLiteral->valType->type->accept(getTypeImpl);
+    doubleLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(doubleLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral)
 {
-    longDoubleLiteral->valType = new valuetypes::CValue(new types::LongDouble());
+    longDoubleLiteral->valType->type->accept(getTypeImpl);
+    longDoubleLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(longDoubleLiteral->literalValue));
 }
 
 
@@ -640,7 +716,65 @@ void DirectCodeGenVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral
 
 void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
 {
-   stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length(), 1));
+    // get string
+    std::string s = stringLiteral->str;
+    std::stringstream outputstr;
+    outputstr << "\"";
+    // replace escape characters
+    for (std::string::const_iterator i = s.begin(), end = s.end(); i != end; ++i)
+    {
+        unsigned char c = *i;
+        switch (c)
+        {
+            case '"':
+                outputstr << "\\\"";
+                break;
+            case '\'':
+                outputstr << "\\\'";
+                break;
+            case '\\':
+                outputstr << "\\\\";
+                break;
+            case '\t':
+                outputstr << "\\t";
+                break;
+            case '\r':
+                outputstr << "\\r";
+                break;
+            case '\n':
+                outputstr << "\\n";
+                break;
+            case '\v':
+                outputstr << "\\v";
+                break;
+            case '\f':
+                outputstr << "\\f";
+                break;
+            case '\b':
+                outputstr << "\\b";
+                break;
+            case '\a':
+                outputstr << "\\a";
+                break;
+            case '\0':
+                outputstr << "\\0";
+                break;
+            case '\?':
+                outputstr << "\\\?";
+                break;
+            default :
+                outputstr << c;
+        }
+    }
+    outputstr << "\"";
+    
+    // add string constant to global string constants
+    std::string label = getRandomLabel("string_const_");
+    asm_stringConstants << label << ":" << std::endl;
+    asm_stringConstants << "    DAT " << outputstr.str() << ", 0x0" << std::endl;
+    
+    // set a label ValuePosition
+    stringLiteral->valPos = ValuePosition::createLabelPos(label);
 }
 
 

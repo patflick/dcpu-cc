@@ -10,6 +10,8 @@
 ///
 
 #include "GetTypeImplVisitor.h"
+#include "SignedInt16.h"
+#include "UnsignedInt16.h"
 #include <errors/InternalCompilerException.h>
 
 using namespace dtcc::codegen;
@@ -22,109 +24,122 @@ bool GetTypeImplVisitor::visit(Type * type)
 
 bool GetTypeImplVisitor::visit(Float * floatType)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(Double * doubleType)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(LongDouble * longDouble)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(SignedChar * signedChar)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(UnsignedChar * unsignedChar)
 {
-    return false;
+    this->typeImpl = this->uint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(SignedShort * signedShort)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(UnsignedShort * unsignedShort)
 {
-    return false;
+    this->typeImpl = this->uint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(SignedInt * signedInt)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(UnsignedInt * unsignedInt)
 {
-    return false;
+    this->typeImpl = this->uint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(SignedLong * signedLong)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(UnsignedLong * unsignedLong)
 {
-    return false;
+    this->typeImpl = this->uint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(EnumType * enumType)
 {
-    return false;
+    this->typeImpl = this->sint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(PointerType * pointerType)
 {
-    return false;
+    this->typeImpl = this->uint16;
+    return true;
 }
 
 
 bool GetTypeImplVisitor::visit(FunctionType * functionType)
 {
-    return false;
+    throw new errors::InternalCompilerException("Type is not a base type: " + functionType->toString());
 }
 
 
 bool GetTypeImplVisitor::visit(ArrayType * arrayType)
 {
-    return false;
+    throw new errors::InternalCompilerException("Type is not a base type: " + arrayType->toString());
 }
 
 
 bool GetTypeImplVisitor::visit(StructUnionType * structUnionType)
 {
-    return false;
+    throw new errors::InternalCompilerException("Type is not a base type: " + structUnionType->toString());
 }
 
 
 bool GetTypeImplVisitor::visit(Void * voidType)
 {
-    return false;
+    throw new errors::InternalCompilerException("Type is not a base type: " + voidType->toString());
 }
 
 
 bool GetTypeImplVisitor::visit(InvalidType * invalidType)
 {
-    return false;
+    throw new errors::InternalCompilerException("Type is not a base type: " + invalidType->toString());
 }
 
 ///

@@ -23,31 +23,47 @@
 #include <string>
 #include "Assembler.h"
 
+#include "typeimpl/GetTypeImplVisitor.h"
+
 namespace dtcc
 {
-    namespace visitor
+    namespace codegen
     {
         
         ///
         /// @class      DirectCodeGenVisitor
         /// @brief      Visitor for semantic check and type resolution.
         ///
-        class DirectCodeGenVisitor : public Visitor
+        class DirectCodeGenVisitor : public visitor::Visitor
         {
         private:
 
             std::stringstream asm_globalSpace;
             std::stringstream asm_globalInit;
+            std::stringstream asm_Constants;
+            std::stringstream asm_stringConstants;
             std::deque<std::string> asm_functions;
             
             std::deque<std::stringstream> asm_current;
             
+            GetTypeImplVisitor getTypeImpl;
+            
             Assembler assembler;
+            
+            /* automatic/random label management */
+            // TODO this is still a duplicate from SemanticCheck Visitor
+            // TODO put this in some unified helper class
+            std::set<std::string> m_AutomaticLabels;
+            astnodes::LabelStatement* getRandomLabel(std::string prefix);
+            static char getRandomCharacter();
+            static std::string getRandomString(std::string::size_type sz);
             
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);
             std::string getFileAndLineState(astnodes::Node* node);
+            
+            ValuePosition* handleLiteral(TypeImplementation* typeImpl);
             
             bool isDebug;
             
@@ -473,6 +489,7 @@ namespace dtcc
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param builtInVaStart    The node to visit this visitor
             virtual void visit(astnodes::BuiltInVaStart * builtInVaStart);
+    
             
         };
         

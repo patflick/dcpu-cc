@@ -16,6 +16,23 @@ using namespace dtcc;
 using namespace dtcc::codegen;
 
 
+ValuePosition* ValuePosition::createLabelPos(std::string label)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = LABEL;
+    pos->labelName = label;
+    return pos;
+}
+
+ValuePosition* ValuePosition::createAtomicConstPos(std::string val)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = CONST_LITERAL;
+    pos->constValue = val;
+    return pos;
+}
+
+
 std::string registerToString(ValPosRegister regist)
 {
     switch (regist)

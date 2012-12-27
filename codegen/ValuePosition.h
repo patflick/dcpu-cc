@@ -46,7 +46,7 @@ namespace dtcc
             bool isAdr;
             bool isTemp;
             int offset;
-            uint16_t constValue;
+            std::string constValue;
             std::string labelName;
             
             std::string registerToString(ValPosRegister regist);
@@ -76,6 +76,9 @@ namespace dtcc
             ValuePosition* getAtomicDeref(AsmBlock* ass, ValPosRegister regist);
             
             std::string toAtomicOperand();
+            
+            static ValuePosition* createLabelPos(std::string label);
+            static ValuePosition* createAtomicConstPos(std::string val);
             
             
             ///
