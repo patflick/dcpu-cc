@@ -850,7 +850,7 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
             break;
             
         case NOT_OP:
-            // check that the expression type is a arithmetic type
+            // check that the expression type is a scalar type
             if(!types::IsTypeHelper::isScalarType(unaryOperator->expr->valType->type))
             {
                 addError(unaryOperator, ERR_CC_UNARY_NOT_SCALAR);

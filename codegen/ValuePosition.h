@@ -13,15 +13,22 @@
 #define __DCPU_CC_CODEGEN_VALUEPOSITION_H
 
 #include <stdint.h>
+#include <string>
 
+#define REG_FRAME_POINTER REG_Y
 
 
 namespace dtcc
 {
     namespace codegen
     {
+        // TODO remove this temporary typedef
+        typedef std::stringstream AsmBlock;
+        // TODO remove this temporary typedef
+        typedef uint16_t typesize_t;
         
-        enum ValPos {};
+        enum ValPosType {LABEL, LABEL_REL, FP_REL, REG, REG_REL, STACK, STACK_REL, CONST_LITERAL};
+        enum ValPosRegister {REG_A, REG_B, REG_C, REG_I, REG_J, REG_X, REG_Y, REG_Z};
         
         ///
         /// @class      ValuePosition
@@ -30,9 +37,23 @@ namespace dtcc
         class ValuePosition
         {
             
-        public:
-
+        private:
+            ValPosType posType;
+            ValPosRegister regist;
             
+            typesize_t size;
+            bool isDeref;
+            bool isAdr;
+            bool isTemp;
+            int offset;
+            uint16_t constValue;
+            std::string labelName;
+            
+            std::string registerToString(ValPosRegister regist);
+            
+        public:
+            
+                
         public:
             ///
             /// @brief      The constructor of the ValuePosition class.
@@ -43,9 +64,19 @@ namespace dtcc
             /// @brief          Returns the size of the value in words.
             /// @return         The size of the value.
             ///
-            virtual uint16_t getWordSize() = 0;
+            virtual uint16_t getWordSize();
 
 
+            bool canAtomicDeref();
+            bool canAtomicDerefOffset();
+            
+            ValuePosition* atomicDeref();
+            ValuePosition* atomicDerefOffset(int offset);
+            
+            ValuePosition* getAtomicDeref(AsmBlock* ass, ValPosRegister regist);
+            
+            std::string toAtomicOperand();
+            
             
             ///
             /// @brief      The destructor of the ValuePosition class.
