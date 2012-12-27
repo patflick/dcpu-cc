@@ -83,10 +83,13 @@ namespace dtcc
             std::string baseToString();
             
             static ValuePosition* createLabelPos(std::string label);
+            static ValuePosition* createStackPos(int size);
             static ValuePosition* createAtomicConstPos(std::string val);
             static ValuePosition* createAtomicConstPos(uint16_t val);
             
             bool usesRegister();
+            bool isStackPos();
+            
             ValPosRegister getRegister();
             
             

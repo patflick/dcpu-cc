@@ -45,6 +45,8 @@ namespace dtcc
         public:
             int optoken;
             Expression * expr;
+            
+            unsigned int pointerSize;
 
             
         public:
@@ -54,7 +56,7 @@ namespace dtcc
             /// @param expr TODO: FILLOUT
 
             ///
-            PreIncDec(int optoken, Expression * expr) : optoken(optoken), expr(expr) {}
+            PreIncDec(int optoken, Expression * expr) : optoken(optoken), expr(expr), pointerSize(1) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

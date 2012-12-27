@@ -32,6 +32,15 @@ namespace dtcc
             virtual std::deque<std::string> printConstant(long value) = 0;
             
             
+            /* increase/decrease ops */
+            
+            /// implements increase: B++
+            virtual void inc(AsmBlock* ass, ValuePosition* posB, int by) = 0;
+            
+            /// implements decrease: B--
+            virtual void dec(AsmBlock* ass, ValuePosition* posB, int by) = 0;
+            
+            
             /* arithmetic binary operations */
             
             /// implements addition: B = B + A

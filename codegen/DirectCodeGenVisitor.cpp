@@ -867,6 +867,106 @@ ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP)
     return operandVP;
 }
 
+ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
+{
+    if (valPos->getWordSize() == 1)
+    {
+        asm_current << "SET PUSH, " << valPos->toAtomicOperand() << std::endl;
+    } else if (valPos < MIN_SIZE_LOOP_COPY)
+    {
+        for (int i = valPos->getWordSize() - 1; i >= 0; i--)
+        {
+            if (i > 0)
+                asm_current << "SET PUSH, " << valPos->atomicDerefOffset(i)->toAtomicOperand() << std::endl;
+            else
+                asm_current << "SET PUSH, " << valPos->atomicDeref()->toAtomicOperand() << std::endl;
+        }
+    }
+    else if (valPos->getWordSize() >= MIN_SIZE_LOOP_COPY)
+    {
+        asm_current << "SUB SP, " << valPos->getWordSize() << std::endl;
+        
+        int stackoffset = 0;
+        // save I and J
+        if (m_registersUsed[REG_I])
+        {
+            asm_current << "SET PUSH, I" << std::endl;
+            stackoffset++;
+        }
+        if (m_registersUsed[REG_J])
+        {
+            asm_current << "SET PUSH, J" << std::endl;
+            stackoffset++;
+        }
+        
+        std::string loopLabel = getRandomLabel("copy_loop_");
+        std::string loopEndLabel = getRandomLabel("copy_loop_");
+        
+        // set up registers and stack pointer 
+        // TODO i have the feeling this could be done more efficient :(
+        asm_current << "SET I, " << valPos->toAtomicOperand() << std::endl;
+        asm_current << "ADD I, " << valPos->getWordSize()-1 << std::endl;
+        asm_current << "SET J, SP" << std::endl;
+        asm_current << "ADD J, " << valPos->getWordSize() + stackoffset - 1 << std::endl;
+        asm_current << "ADD SP, " << stackoffset << std::endl;
+        
+        // compile the copy loop
+        asm_current << loopLabel << ":" << std::endl;
+        asm_current << "    STD [I], [J]" << std::endl;
+        asm_current << "    IFL J, SP" << std::endl;
+        asm_current << "        SET PC, " << loopEndLabel << std::endl;
+        asm_current << "    SET PC, " << loopLabel << std::endl;
+        asm_current << loopEndLabel << ":" << std::endl;
+        
+        // restore SP
+        asm_current << "SUB SP, " << stackoffset << std::endl;
+        
+        
+        // restore I and J
+        if (m_registersUsed[REG_I])
+            asm_current << "SET I, POP" << std::endl;
+        if (m_registersUsed[REG_J])
+            asm_current << "SET J, POP" << std::endl;
+    }
+    
+    return ValuePosition::createStackPos(valPos->getWordSize());
+}
+
+ValuePosition* DirectCodeGenVisitor::getTmpCopy(ValuePosition* from)
+{
+    if (from->getWordSize() == 1)
+    {
+        // try to get a register copy
+        if (from->isAtomicOperand())
+        {
+            ValPosRegister newReg = this->getFreeRegister();
+            ValuePosition* newVP = from->valToRegister(asm_current, newReg);
+            maybeReleaseRegister(from);
+            return newVP;
+        }
+        else
+        {
+            return atomizeOperand(from);
+        }
+    }
+    else if (from->getWordSize() > 1)
+    {
+        // if this is already on the stack, it is a temporary
+        // and does not need replacement
+        if (!from->isStackPos())
+        {
+            return this->pushToStack(from);
+        }
+    }
+}
+
+
+TypeImplementation* DirectCodeGenVisitor::getTypeImplementation(types::Type* type)
+{
+    type->accept(getTypeImpl);
+    return getTypeImpl.getTypeImplementation();
+}
+
 
 /******************************/
 /*  3.3.2 Postfix expressions */
@@ -908,9 +1008,7 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     
     rhsVP = atomizeOperand(rhsVP);
 
-    types::Type* ptrType = new types::UnsignedInt();
-    ptrType->accept(getTypeImpl);
-    TypeImplementation* typeImpl = getTypeImpl.getTypeImplementation();
+    TypeImplementation* typeImpl = this->getTypeImplementation(new types::UnsignedInt());
     
     // multiply by pointer size
     typeImpl->mul(asm_current, rhsVP, ValuePosition::createAtomicConstPos(arrayAccessOperator->pointerSize));
@@ -946,23 +1044,31 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
 
 void DirectCodeGenVisitor::visit(astnodes::PostIncDec * postIncDec)
 {
-    // fist analyse the inner expression
-    postIncDec->allChildrenAccept(*this);
+    // first analyse the inner expression
+    postIncDec->expr->accept(*this);
     
-    // check that the expression type is a scalar type
-    if(!types::IsTypeHelper::isScalarType(postIncDec->expr->valType->type))
+    ValuePosition* valPos = postIncDec->expr->valPos;
+    
+    valPos = atomizeOperand(valPos);
+    ValuePosition* derefValPos = derefOperand(valPos);
+    
+    ValuePosition* derefCpy = getTmpCopy(derefValPos);
+    
+    TypeImplementation* typeImpl = this->getTypeImplementation(postIncDec->valType->type);
+    
+    switch (postIncDec->optoken)
     {
-        addError(postIncDec, ERR_CC_EXPECTED_SCALAR_INCDEC);
+        case INC_OP:
+            typeImpl->inc(asm_current, derefValPos, postIncDec->pointerSize);
+            break;
+        case DEC_OP:
+            typeImpl->inc(asm_current, derefValPos, postIncDec->pointerSize);
+            break;
+        default:
+            throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
     }
     
-    // check that the expression type is a scalar type
-    if(!valuetypes::IsValueTypeHelper::isModifiableLValue(postIncDec->expr->valType))
-    {
-        addError(postIncDec, ERR_CC_INCDEC_NO_MOD_LVALUE);
-    }
-    
-    // same value type
-    postIncDec->valType = postIncDec->expr->valType;
+    postIncDec->valPos = derefCpy;
 }
 
 
@@ -975,23 +1081,29 @@ void DirectCodeGenVisitor::visit(astnodes::PostIncDec * postIncDec)
 
 void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
 {
-    // fist analyse the inner expression
-    preIncDec->allChildrenAccept(*this);
+    // first analyse the inner expression
+    preIncDec->expr->accept(*this);
     
-    // check that the expression type is a scalar type
-    if(!types::IsTypeHelper::isScalarType(preIncDec->expr->valType->type))
+    ValuePosition* valPos = preIncDec->expr->valPos;
+    
+    valPos = atomizeOperand(valPos);
+    ValuePosition* derefValPos = derefOperand(valPos);
+    
+    TypeImplementation* typeImpl = this->getTypeImplementation(preIncDec->valType->type);
+    
+    switch (preIncDec->optoken)
     {
-        addError(preIncDec, ERR_CC_EXPECTED_SCALAR_INCDEC);
+        case INC_OP:
+            typeImpl->inc(asm_current, derefValPos, preIncDec->pointerSize);
+            break;
+        case DEC_OP:
+            typeImpl->inc(asm_current, derefValPos, preIncDec->pointerSize);
+            break;
+        default:
+            throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
     }
     
-    // check that the expression type is a scalar type
-    if(!valuetypes::IsValueTypeHelper::isModifiableLValue(preIncDec->expr->valType))
-    {
-        addError(preIncDec, ERR_CC_INCDEC_NO_MOD_LVALUE);
-    }
-    
-    // same value type
-    preIncDec->valType = preIncDec->expr->valType;
+    preIncDec->valPos = derefValPos;
 }
 
 /* 3.3.3.2 Address and indirection operators */

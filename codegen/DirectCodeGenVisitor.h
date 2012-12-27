@@ -12,6 +12,10 @@
 #ifndef __DCPU_CC_VISITOR_DIRECT_CODEGEN_VISITOR_H
 #define __DCPU_CC_VISITOR_DIRECT_CODEGEN_VISITOR_H
 
+/// when an object has at least this size, when copying a loop and the
+/// STI operation is used.
+#define MIN_SIZE_LOOP_COPY 10
+
 // include all AST nodes
 #include <nodes/allnodes.h>
 #include <visitor/Visitor.h>
@@ -60,6 +64,9 @@ namespace dtcc
             // value positions
             ValuePosition* atomizeOperand(ValuePosition* operand);
             ValuePosition* derefOperand(ValuePosition* operand);
+            TypeImplementation* getTypeImplementation(types::Type* type);
+            ValuePosition* pushToStack(ValuePosition* valPos);
+            ValuePosition* getTmpCopy(ValuePosition* from);
             
             /* automatic/random label management */
             // TODO this is still a duplicate from SemanticCheck Visitor

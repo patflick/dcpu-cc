@@ -21,6 +21,7 @@ ValuePosition* ValuePosition::createLabelPos(std::string label)
     ValuePosition* pos = new ValuePosition();
     pos->posType = LABEL;
     pos->labelName = label;
+    pos->size = 1;
     return pos;
 }
 
@@ -29,6 +30,7 @@ ValuePosition* ValuePosition::createAtomicConstPos(std::string val)
     ValuePosition* pos = new ValuePosition();
     pos->posType = CONST_LITERAL;
     pos->constValue = val;
+    pos->size = 1;
     return pos;
 }
 
@@ -37,6 +39,22 @@ ValuePosition* ValuePosition::createAtomicConstPos(uint16_t val)
     std::stringstream strstr;
     strstr << "0x" << std::hex << val;
     return createAtomicConstPos(strstr.str());
+}
+
+ValuePosition* ValuePosition::createStackPos(int size)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = STACK;
+    pos->size = size;
+    return pos;
+}
+
+bool isStackPos()
+{
+    if (this->posType == STACK || this->posType == STACK_REL)
+        return true;
+    else
+        return false;
 }
 
 std::string registerToString(ValPosRegister regist)

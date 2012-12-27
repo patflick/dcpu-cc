@@ -1647,6 +1647,12 @@ void SemanticCheckVisitor::visit(astnodes::PostIncDec * postIncDec)
         addError(postIncDec, ERR_CC_EXPECTED_SCALAR_INCDEC);
     }
     
+    // if this is a pointer operation, set the size of the pointer
+    if (types::IsTypeHelper::isPointerType(postIncDec->expr->valType->type))
+    {
+        postIncDec->pointerSize = types::IsTypeHelper::getPointerBaseSize(postIncDec->expr->valType->type);
+    }
+    
     // check that the expression type is a scalar type
     if(!valuetypes::IsValueTypeHelper::isModifiableLValue(postIncDec->expr->valType))
     {
@@ -1654,7 +1660,7 @@ void SemanticCheckVisitor::visit(astnodes::PostIncDec * postIncDec)
     }
     
     // same value type
-    postIncDec->valType = postIncDec->expr->valType;
+    postIncDec->valType = valuetypes::IsValueTypeHelper::toRValue(postIncDec->expr->valType);
 }
 
 
@@ -1676,6 +1682,12 @@ void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
         addError(preIncDec, ERR_CC_EXPECTED_SCALAR_INCDEC);
     }
     
+    // if this is a pointer operation, set the size of the pointer
+    if (types::IsTypeHelper::isPointerType(preIncDec->expr->valType->type))
+    {
+        preIncDec->pointerSize = types::IsTypeHelper::getPointerBaseSize(preIncDec->expr->valType->type);
+    }
+    
     // check that the expression type is a scalar type
     if(!valuetypes::IsValueTypeHelper::isModifiableLValue(preIncDec->expr->valType))
     {
@@ -1683,7 +1695,7 @@ void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
     }
     
     // same value type
-    preIncDec->valType = preIncDec->expr->valType;
+    preIncDec->valType = valuetypes::IsValueTypeHelper::toRValue(preIncDec->expr->valType);
 }
 
 /* 3.3.3.2 Address and indirection operators */

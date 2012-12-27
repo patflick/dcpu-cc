@@ -35,6 +35,20 @@ std::deque<std::string> printConstant(long value)
 }
 
 
+            
+/// implements increase: B++
+void Int16::inc(AsmBlock* ass, ValuePosition* posB, int by)
+{
+    ass << "ADD " << posB->toAtomicOperand() << ", 0x" << std::hex << 0xffff & by << std::endl;
+}
+
+/// implements decrease: B--
+void Int16::dec(AsmBlock* ass, ValuePosition* posB, int by)
+{
+    ass << "SUB " << posB->toAtomicOperand() << ", 0x" << std::hex << 0xffff & by << std::endl;
+}
+
+
 /* arithmetic binary operations */
 
 /// implements addition: B = B + A
