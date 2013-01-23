@@ -934,6 +934,51 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
 }
 
 
+/*
+ * TODO
+ * everything that references a LValue (i.e. assignment, inc/dec) needs:
+ * - in case of size == 1:
+ *  ->  needs to be atomically dereffable (if it isn't use temp register), then get value (the LValue)
+ *      for the assignment of the new value
+ *  -> and then return a temp copy (in most cases) or the derefed valuepos
+ * 
+ * - in case of size > 1:
+ *   -> needs atomically offset dereffable (if it isn't, use temp register) in order
+ *      to assign or inc/dec.
+ *   -> needs to create temp copy for returning of value (in case of post inc/dec before doing the inc/dec).
+ * 
+ * 
+ * LValue -> RValue deref:
+ *  - in case of size == 1:
+ *      -> if atomically deref:
+ *              => do atomically deref
+ *      -> else
+ *              if valpos is not atomicOperand or valpos is not modifyable
+ *                  valpos = get temp copy (which is always an atomic operand)
+
+ *              (use temporary register)
+ *              valToRegister(TMP_X, valpos)
+ *              SET valpos, [TMP_X]
+ * - in case of size > 1:
+ *      => do nothing!
+ * 
+ * RValue modifications:
+ *  1) LHS is not modifyable:
+ *      get temp copy(of size `size`)
+ *  2) RHS or LHS not atomic
+ *      case of size == 1:
+ *          not atomic:
+ *              LHS => get temp copy
+ *              RHS => use TMP_L with valToRegister
+ *          return LHS valpos, either old or new temp
+ *      case of size > 1:
+ *          not atomically deref offset:
+ *              get value into temp register (which is the address).
+ *              this is always atomically deref offset (i.e. [TMP+offset]
+ *              but return old LHS/RHS valpos (not the one that uses the temporary register)
+ * 
+ */
+
 
 ValuePosition* DirectCodeGenVisitor::atomizeOperand(ValuePosition* operandVP)
 {
