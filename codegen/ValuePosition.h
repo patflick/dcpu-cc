@@ -16,6 +16,10 @@
 #include <string>
 
 #define REG_FRAME_POINTER REG_Y
+// two (left and right) temporary registers that
+// are never allocated for intermediary results
+#define REG_TMP_L REG_I
+#define REG_TMP_R REG_J
 
 
 namespace dtcc
@@ -75,20 +79,24 @@ namespace dtcc
             ValuePosition* atomicDeref();
             ValuePosition* atomicDerefOffset(int offset);
             
-            ValuePosition* adrToRegister(AsmBlock* ass, ValPosRegister regist);
+            ValuePosition* adrToRegister(AsmBlock& ass, ValPosRegister regist);
             
-            ValuePosition* valToRegister(AsmBlock* ass, ValPosRegister regist);
+            ValuePosition* valToRegister(AsmBlock& ass, ValPosRegister regist);
             
             std::string toAtomicOperand();
             std::string baseToString();
             
             static ValuePosition* createLabelPos(std::string label);
+            static ValuePosition* createRegisterPos(ValPosRegister regist);
+            static ValuePosition* createFPrelativeWord(int offset);
             static ValuePosition* createStackPos(int size);
             static ValuePosition* createAtomicConstPos(std::string val);
             static ValuePosition* createAtomicConstPos(uint16_t val);
             
             bool usesRegister();
             bool isStackPos();
+            bool isTempStack();
+            int getOffset();
             
             ValPosRegister getRegister();
             

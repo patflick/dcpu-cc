@@ -35,79 +35,92 @@ namespace dtcc
             /* increase/decrease ops */
             
             /// implements increase: B++
-            virtual void inc(AsmBlock* ass, ValuePosition* posB, int by) = 0;
+            virtual void inc(AsmBlock& ass, ValuePosition* posB, int by) = 0;
             
             /// implements decrease: B--
-            virtual void dec(AsmBlock* ass, ValuePosition* posB, int by) = 0;
+            virtual void dec(AsmBlock& ass, ValuePosition* posB, int by) = 0;
+            
+            
+            /* unary operations */
+            
+            /// implements arithmetic inverse: B = -B
+            virtual void ainv(AsmBlock& ass, ValuePosition* posB) = 0;
+            
+            /// implements binary inverse (not): B = ~B
+            virtual void binv(AsmBlock& ass, ValuePosition* posB) = 0;
+            
+            /// implements logical inverse (not): C = ~B
+            virtual void linv(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB) = 0;
+            
             
             
             /* arithmetic binary operations */
             
             /// implements addition: B = B + A
-            virtual void add(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void add(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements subtraction: B = B - A
-            virtual void sub(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void sub(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements multiplication: B = B * A
-            virtual void mul(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void mul(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements division: B = B / A
-            virtual void div(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void div(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements modulo: B = B % A
-            virtual void mod(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void mod(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             
             /* shift ops */
             
             /// implements left shift: B = B << A
-            virtual void shl(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void shl(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements right shift: B = B >> A
-            virtual void shr(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void shr(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             
             /* relational ops */
             
             /// implements equality check: C = (B == A)
-            virtual void seq(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void seq(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements not equal check: C = (B != A)
-            virtual void sne(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void sne(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements less to check: C = (B < A)
-            virtual void slt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void slt(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements less or equal to check: C = (B <= A)
-            virtual void sle(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void sle(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements greater to check: C = (B > A)
-            virtual void sgt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void sgt(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements greater or equal to check: C = (B >= A)
-            virtual void sge(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void sge(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             
             /* binary ops */
             
             /// implements binary and: B = B & A
-            virtual void band(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void band(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements binary or: B = B | A
-            virtual void bor(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements binary xor: B = B ^ A
-            virtual void bor(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA) = 0;
             
             
             /* logical ops */
             
             /// implements logical and: C = B && A
-            virtual void land(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void land(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
             
             /// implements logical or: C = B || A
-            virtual void lor(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
+            virtual void lor(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA) = 0;
         };
 
 

@@ -48,7 +48,7 @@ namespace dtcc
             std::stringstream asm_stringConstants;
             std::deque<std::string> asm_functions;
             
-            std::deque<std::stringstream> asm_current;
+            std::stringstream asm_current;
             
             GetTypeImplVisitor getTypeImpl;
             
@@ -58,10 +58,18 @@ namespace dtcc
             std::map<int, bool> m_registersUsed;
             void initFreeRegisters();
             ValPosRegister getFreeRegister();
-            void maybeReleaseRegister(ValuePosition* vp);
             void releaseRegister(ValPosRegister regist);
             
             // value positions
+            std::vector<bool> m_tempStackAlloc;
+            std::map<int, int> m_tempStackObjects;
+            int m_currentFunctionTempStackOffset;
+            int m_tempStackMax;
+            void maybeFreeTemporary(ValuePosition* vp);
+            bool isFreeRegisterAvailable();
+            void freeTempStack(int pos);
+            int getTempStack(int size);
+            
             ValuePosition* atomizeOperand(ValuePosition* operand);
             ValuePosition* derefOperand(ValuePosition* operand);
             TypeImplementation* getTypeImplementation(types::Type* type);

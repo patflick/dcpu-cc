@@ -34,6 +34,26 @@ ValuePosition* ValuePosition::createAtomicConstPos(std::string val)
     return pos;
 }
 
+ValuePosition* ValuePosition::createRegisterPos(ValPosRegister regist)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = REG;
+    pos->regist = regist;
+    pos->size = 1;
+    return pos;
+}
+
+ValuePosition* ValuePosition::createTempStackWord(int offset)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = FP_REL;
+    pos->offset = offset;
+    pos->isDeref = true;
+    pos->isTemp = true;
+    pos->size = 1;
+    return pos;
+}
+
 ValuePosition* ValuePosition::createAtomicConstPos(uint16_t val)
 {
     std::stringstream strstr;
@@ -78,6 +98,20 @@ std::string registerToString(ValPosRegister regist)
         case REG_Z:
             return std::string("Z");
     }
+}
+
+
+bool ValuePosition::isTempStack()
+{
+    if (this->posType == FP_REL && this->isTemp)
+        return true;
+    else
+        return false;
+}
+
+int ValuePosition::getOffset()
+{
+    return this->offset;
 }
 
 bool ValuePosition::usesRegister()
@@ -154,7 +188,7 @@ ValuePosition* ValuePosition::atomicDerefOffset(int offset)
     return newVP;
 }
 
-ValuePosition* ValuePosition::adrToRegister(AsmBlock* ass, ValPosRegister regist)
+ValuePosition* ValuePosition::adrToRegister(AsmBlock& ass, ValPosRegister regist)
 {
     ass << "SET " << this->registerToString(regist) << ", " << this->baseToString() << std::endl;
     
@@ -177,7 +211,7 @@ ValuePosition* ValuePosition::adrToRegister(AsmBlock* ass, ValPosRegister regist
     return newVP;
 }
 
-ValuePosition* ValuePosition::valToRegister(AsmBlock* ass, ValPosRegister regist)
+ValuePosition* ValuePosition::valToRegister(AsmBlock& ass, ValPosRegister regist)
 {
     ValuePosition* newVP = this->adrToRegister(ass, regist);
     if (this->isDeref)

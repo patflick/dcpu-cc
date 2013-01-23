@@ -35,30 +35,61 @@ std::deque<std::string> printConstant(long value)
 }
 
 
-            
+/* increase/decrease ops */
+
+
 /// implements increase: B++
-void Int16::inc(AsmBlock* ass, ValuePosition* posB, int by)
+void Int16::inc(AsmBlock& ass, ValuePosition* posB, int by)
 {
     ass << "ADD " << posB->toAtomicOperand() << ", 0x" << std::hex << 0xffff & by << std::endl;
 }
 
 /// implements decrease: B--
-void Int16::dec(AsmBlock* ass, ValuePosition* posB, int by)
+void Int16::dec(AsmBlock& ass, ValuePosition* posB, int by)
 {
     ass << "SUB " << posB->toAtomicOperand() << ", 0x" << std::hex << 0xffff & by << std::endl;
 }
 
 
+
+/* unary operations */
+
+/// implements arithmetic inverse: B = -B
+void Int16::ainv(AsmBlock& ass, ValuePosition* posB)
+{
+    ass << "SET PUSH ," << posB->toAtomicOperand() << std::endl;
+    ass << "SET " << posB->toAtomicOperand() << ", 0x0" << std::endl;
+    ass << "SUB " << posB->toAtomicOperand() << ", POP" << std::endl;
+}
+
+/// implements binary inverse (not): B = ~B
+void Int16::binv(AsmBlock& ass, ValuePosition* posB)
+{
+    ass << "SET PUSH ," << posB->toAtomicOperand() << std::endl;
+    ass << "SET " << posB->toAtomicOperand() << ", 0xffff" << std::endl;
+    ass << "XOR " << posB->toAtomicOperand() << ", POP" << std::endl;
+}
+
+/// implements logical inverse (not): C = ~B
+void Int16::linv(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB)
+{
+    ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
+    ass << "IFE " << posB->toAtomicOperand() << ", 0x0" << std::endl;
+    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+}
+
+
+
 /* arithmetic binary operations */
 
 /// implements addition: B = B + A
-void Int16::add(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::add(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "ADD " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
 
 /// implements subtraction: B = B - A
-void Int16::sub(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::sub(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SUB " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
@@ -67,14 +98,14 @@ void Int16::sub(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
 /* shift ops */
 
 /// implements left shift: B = B << A
-void Int16::shl(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::shl(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SHL " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
 
 
 /// implements right shift: B = B >> A
-void Int16::shr(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::shr(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SHR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
@@ -84,7 +115,7 @@ void Int16::shr(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
 /* relational ops */
 
 /// implements equality check: C = (B == A)
-void Int16::seq(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void Int16::seq(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
     ass << "IFE " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
@@ -93,7 +124,7 @@ void Int16::seq(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePo
 
 
 /// implements not equal check: C = (B != A)
-void Int16::sne(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void Int16::sne(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
     ass << "IFN " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
@@ -104,21 +135,21 @@ void Int16::sne(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePo
 /* binary ops */
 
 /// implements binary and: B = B & A
-void Int16::band(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::band(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "AND " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
 
 
 /// implements binary or: B = B | A
-void Int16::bor(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "BOR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
 
 
 /// implements binary xor: B = B ^ A
-void Int16::bor(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "XOR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
@@ -128,7 +159,7 @@ void Int16::bor(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
 /* logical ops */
 
 /// implements logical and: C = B && A
-void Int16::land(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void Int16::land(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
     ass << "IFN " << posB->toAtomicOperand() << ", 0x0" << std::endl;
@@ -138,7 +169,7 @@ void Int16::land(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValueP
 
 
 /// implements logical or: C = B || A
-void Int16::lor(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void Int16::lor(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
     ass << "IFE " << posB->toAtomicOperand() << ", 0x0" << std::endl;

@@ -21,19 +21,19 @@ using namespace dtcc::codegen;
 /* arithmetic binary operations */
 
 /// implements multiplication: B = B * A
-void UnsignedInt16::mul(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::mul(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "MUL " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
 
 /// implements division: B = B / A
-void UnsignedInt16::div(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::div(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "DIV " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
 
 /// implements modulo: B = B % A
-void UnsignedInt16::mod(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::mod(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "MOD " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
@@ -42,7 +42,7 @@ void UnsignedInt16::mod(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA)
 /* relational ops */
 
 /// implements less to check: C = (B < A)
-void UnsignedInt16::slt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::slt(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
     ass << "IFL " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
@@ -50,7 +50,7 @@ void UnsignedInt16::slt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB,
 }
 
 /// implements less or equal to check: C = (B <= A)
-void UnsignedInt16::sle(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::sle(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
     ass << "IFG " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
@@ -58,7 +58,7 @@ void UnsignedInt16::sle(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB,
 }
 
 /// implements greater to check: C = (B > A)
-void UnsignedInt16::sgt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::sgt(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
     ass << "IFG " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
@@ -67,7 +67,7 @@ void UnsignedInt16::sgt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB,
 
 
 /// implements greater or equal to check: C = (B >= A)
-void UnsignedInt16::sge(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
+void UnsignedInt16::sge(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
     ass << "IFL " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;

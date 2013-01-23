@@ -1709,6 +1709,9 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     // analyse inner expression first:
     unaryOperator->allChildrenAccept(*this);
     
+    if (valuetypes::IsValueTypeHelper::isLValue(unaryOperator->expr->valType))
+        unaryOperator->LtoR = true;
+    
     switch(unaryOperator->optoken)
     {
         case ADD_OP:

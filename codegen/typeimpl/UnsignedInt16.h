@@ -38,28 +38,28 @@ namespace dtcc
             /* arithmetic binary operations */
             
             /// implements multiplication: B = B * A
-            virtual void mul(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA);
+            virtual void mul(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements division: B = B / A
-            virtual void div(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA);
+            virtual void div(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements modulo: B = B % A
-            virtual void mod(AsmBlock* ass, ValuePosition* posB, ValuePosition* posA);
+            virtual void mod(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             
             /* relational ops */
             
             /// implements less to check: C = (B < A)
-            virtual void slt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
+            virtual void slt(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
             
             /// implements less or equal to check: C = (B <= A)
-            virtual void sle(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
+            virtual void sle(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
             
             /// implements greater to check: C = (B > A)
-            virtual void sgt(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
+            virtual void sgt(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
             
             /// implements greater or equal to check: C = (B >= A)
-            virtual void sge(AsmBlock* ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
+            virtual void sge(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
             
         };
 

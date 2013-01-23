@@ -60,12 +60,12 @@ void DirectCodeGenVisitor::initFreeRegisters()
 {
     for (ValPosRegister r = REG_A; r <= REG_Z; r++)
     {
-        if (r == REG_FRAME_POINTER)
-            continue;
         m_registersUsed[r] = false;
     }
     
     m_registersUsed[REG_FRAME_POINTER] = true;
+    m_registersUsed[REG_TMP_L] = true;
+    m_registersUsed[REG_TMP_R] = true;
 }
 
 ValPosRegister DirectCodeGenVisitor::getFreeRegister()
@@ -81,14 +81,115 @@ ValPosRegister DirectCodeGenVisitor::getFreeRegister()
     
     // register spilling should happen elsewhere
     // TODO implement register spilling
-    throw new errors::InternalCompilerException("no free register available - FIXME implement register spilling");
+    throw new errors::InternalCompilerException("no free register available");
 }
 
-void DirectCodeGenVisitor::maybeReleaseRegister(ValuePosition* vp)
+bool DirectCodeGenVisitor::isFreeRegisterAvailable()
+{
+    for (ValPosRegister r = REG_A; r <= REG_Z; r++)
+    {
+        if (!m_registersUsed[r])
+            return true;
+    }
+    return false;
+}
+
+void DirectCodeGenVisitor::freeTempStack(int pos)
+{
+    if (m_tempStackObjects.find(pos) != m_tempStackObjects.end())
+    {
+        int size = m_tempStackObjects[pos];
+        for (int i = pos; i < pos+size; i++)
+        {
+            m_tempStackAlloc[i] = false;
+        }
+        while (m_tempStackAlloc.size() > 0 && m_tempStackAlloc.back() == false)
+        {
+            m_tempStackAlloc.pop_back();
+        }
+    }
+}
+
+int DirectCodeGenVisitor::getTempStack(int size)
+{
+    // find a hole in the bit array of size `size`
+    // or append that many bits
+    // returns offset from temp stack (not including the local stack offset from FP)
+    int pos;
+    bool found;
+    for (std::vector<bool>::iterator it = m_tempStackAlloc.begin(); it != m_tempStackAlloc.end(); ++it)
+    {
+        if (!*it)
+        {
+            // check if the hole is big enough
+            std::vector<bool>::iterator it2;
+            for (it2 = it+1; it2 != m_tempStackAlloc.end() && it2 - it < size; ++it2)
+            {
+                if (*it2)
+                {
+                    // word is allocated
+                    break;
+                }
+            }
+            if (it2-it == size)
+            {
+                // hole found
+                for (std::vector<bool>::iterator it3 = it; it3 != it2 ; ++it3)
+                {
+                    // allocate all words
+                    *it3 = true;
+                }
+                pos = it - m_tempStackAlloc.begin();
+                m_tempStackObjects[pos] = size;
+                return pos;
+            }
+            else
+                it = it2;
+        }
+    }
+    
+    // nothing found, need to allocate more space at the end
+    for (int i = 0; i < size; i++)
+        m_tempStackAlloc.push_back(true);
+    
+    // update size
+    m_tempStackMax = std::max(m_tempStackMax, m_tempStackAlloc.size());
+    
+    pos = m_tempStackAlloc.size() - size;
+    m_tempStackObjects[pos] = size;
+    return pos;
+}
+
+// returns either a register (if there are still some available)
+// or a [FP-offset] type position (local temp stack)
+ValuePosition* DirectCodeGenVisitor::getTempWordPos()
+{
+    if (isFreeRegisterAvailable())
+    {
+        ValPosRegister reg = getFreeRegister();
+        return ValuePosition::createRegisterPos(reg);
+    }
+    else
+    {
+        // get word on temporary stack
+        int pos = getTempStack(1);
+        return ValuePosition::createFPrelativeWord(-m_currentFunctionTempStackOffset-pos-1);
+    }
+}
+
+void DirectCodeGenVisitor::maybeFreeTemporary(ValuePosition* vp)
 {
     if (vp->usesRegister())
+    {
         this->releaseRegister(vp->getRegister());
+    }
+    else if (vp->isTempStack())
+    {
+        int pos = - (vp->getOffset() + m_currentFunctionTempStackOffset + 1);
+        freeTempStack(pos);
+    }
 }
+
 
 void DirectCodeGenVisitor::releaseRegister(ValPosRegister regist)
 {
@@ -168,18 +269,29 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     asmStr <<  "    DAT " << functionDefinition->paramSize << std::endl;
     asmStr <<  ":cfunc_" << functionDefinition->name << "_actual" << std::endl;
     
-    // Allocate locals.
-    asmStr <<  "    SUB SP, " << functionDefinition->stackSize << std::endl;
+    
+    // clear and set temp stack info
+    m_currentFunctionTempStackOffset = functionDefinition->stackSize+2;
+    m_tempStackAlloc.clear();
+    m_tempStackObjects.clear();
+    m_tempStackMax = 0;
+            
+    // clear output:
+    asm_current.str(std::string());
     
     // Now compile the block.
-    asm_current = asmStr;
     functionDefinition->block->accept(*this);
+    
+    // Allocate locals and temporaries
+    asmStr <<  "    SUB SP, " << functionDefinition->stackSize + m_tempStackMax << std::endl;
+    
+    asmStr << asm_current.str();
     
     // an end of function label, a return; jumps here after saving the result
     asmStr <<  ":cfunc_" << functionDefinition->name << "_end" << std::endl;
     
-    // Free locals.
-    asmStr <<  "    ADD SP, " << functionDefinition->stackSize << std::endl;
+    // Free locals and temporaries
+    asmStr <<  "    ADD SP, " << functionDefinition->stackSize + m_tempStackMax << std::endl;
     
     // Return from this function.
     asmStr <<  "    SET A, 0xFFFF" << std::endl;
@@ -825,14 +937,14 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
 
 ValuePosition* DirectCodeGenVisitor::atomizeOperand(ValuePosition* operandVP)
 {
+    ValuePosition* newVP = operandVP;
     if (operandVP->getWordSize() == 1)
     {
         if (!operandVP->isAtomicOperand())
         {
             ValPosRegister newReg = this->getFreeRegister();
-            ValuePosition* newVP = operandVP->valToRegister(asm_current, newReg);
+            newVP = operandVP->valToRegister(asm_current, newReg);
             maybeReleaseRegister(operandVP);
-            operandVP = newVP;
         }
     }
     else if (operandVP->getWordSize() > 1)
@@ -840,12 +952,11 @@ ValuePosition* DirectCodeGenVisitor::atomizeOperand(ValuePosition* operandVP)
         if (!operandVP->canAtomicDerefOffset())
         {
             ValPosRegister newReg = this->getFreeRegister();
-            ValuePosition* newVP = operandVP->valToRegister(asm_current, newReg);
+            newVP = operandVP->valToRegister(asm_current, newReg);
             maybeReleaseRegister(operandVP);
-            operandVP = newVP;
         }
     }
-    return operandVP;
+    return newVP;
 }
 
 
@@ -946,6 +1057,7 @@ ValuePosition* DirectCodeGenVisitor::getTmpCopy(ValuePosition* from)
         }
         else
         {
+            // atomize will return a new register
             return atomizeOperand(from);
         }
     }
@@ -958,6 +1070,11 @@ ValuePosition* DirectCodeGenVisitor::getTmpCopy(ValuePosition* from)
             return this->pushToStack(from);
         }
     }
+}
+
+ValuePosition* DirectCodeGenVisitor::getTmp(int size)
+{
+    
 }
 
 
@@ -1062,11 +1179,13 @@ void DirectCodeGenVisitor::visit(astnodes::PostIncDec * postIncDec)
             typeImpl->inc(asm_current, derefValPos, postIncDec->pointerSize);
             break;
         case DEC_OP:
-            typeImpl->inc(asm_current, derefValPos, postIncDec->pointerSize);
+            typeImpl->dec(asm_current, derefValPos, postIncDec->pointerSize);
             break;
         default:
             throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
     }
+    
+    // TODO delete derefValPos
     
     postIncDec->valPos = derefCpy;
 }
@@ -1097,7 +1216,7 @@ void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
             typeImpl->inc(asm_current, derefValPos, preIncDec->pointerSize);
             break;
         case DEC_OP:
-            typeImpl->inc(asm_current, derefValPos, preIncDec->pointerSize);
+            typeImpl->dec(asm_current, derefValPos, preIncDec->pointerSize);
             break;
         default:
             throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
@@ -1115,42 +1234,37 @@ void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
 void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
 {
     // analyse inner expression first:
-    unaryOperator->allChildrenAccept(*this);
+    unaryOperator->expr->accept(*this);
+    
+    ValuePosition* valPos = unaryOperator->expr->valPos;
+    
+    TypeImplementation* typeImpl = this->getTypeImplementation(unaryOperator->expr->valType->type);
+    
+    if (unaryOperator->LtoR)
+    {
+        valPos = derefOperand(valPos);
+    }
+    
+    valPos = atomizeOperand(valPos);
     
     switch(unaryOperator->optoken)
     {
         case ADD_OP:
+            unaryOperator->valPos = valPos;
+            break;
         case SUB_OP:
-            // check that the expression type is a arithmetic type
-            if(!types::IsTypeHelper::isArithmeticType(unaryOperator->expr->valType->type))
-            {
-                addError(unaryOperator, ERR_CC_UNARY_PLUS_MINUS_ARITH);
-                unaryOperator->valType = getInvalidValType();
-                return;
-            }
-            unaryOperator->valType = valuetypes::PromotionHelper::promote(unaryOperator->expr->valType);
+            // get arithmetic inverse of type
+            typeImpl->ainv(asm_current, valPos);
             break;
             
         case BIN_INV_OP:
-            // check that the expression type is a arithmetic type
-            if(!types::IsTypeHelper::isIntegralType(unaryOperator->expr->valType->type))
-            {
-                addError(unaryOperator, ERR_CC_UNARY_INV_INTEGRAL);
-                unaryOperator->valType = getInvalidValType();
-                return;
-            }
-            unaryOperator->valType = valuetypes::PromotionHelper::promote(unaryOperator->expr->valType);
+            typeImpl->binv(asm_current, valPos);
             break;
             
         case NOT_OP:
-            // check that the expression type is a scalar type
-            if(!types::IsTypeHelper::isScalarType(unaryOperator->expr->valType->type))
-            {
-                addError(unaryOperator, ERR_CC_UNARY_NOT_SCALAR);
-                unaryOperator->valType = getInvalidValType();
-                return;
-            }
-            unaryOperator->valType = new valuetypes::RValue(new types::SignedInt());
+            // get new register, delete old
+            ValPosRegister regist = getFreeRegister();
+            //ValuePosition* valPos = 
             break;
         default:
             throw new errors::InternalCompilerException("Unknown unary operator encountered");
