@@ -102,7 +102,7 @@ namespace dtcc
 
 
 // include type visitor afterwards
-#ifndef __DCPU_CC_AST_NODES_ALLNODES_H
+#ifndef __DCPU_CC_TYPES_ALLTYPES_H
 #include "TypeVisitor.h"
 #endif
 

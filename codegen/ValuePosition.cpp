@@ -16,6 +16,33 @@ using namespace dtcc;
 using namespace dtcc::codegen;
 
 
+
+ValuePosition::ValuePosition() : 
+posType(REG), size(0), isDeref(false), isAdr(false),
+isTemp(false), offset(0), constValue(std::string("")), labelName(std::string(""))
+{
+
+}
+
+ValuePosition::ValuePosition(ValuePosition& vp) : 
+posType(vp.posType), size(vp.size), isDeref(vp.isDeref), isAdr(vp.isAdr),
+isTemp(vp.isTemp), offset(vp.offset), constValue(vp.constValue), labelName(vp.labelName)
+{
+    
+}
+
+ValuePosition::~ValuePosition()
+{
+
+}
+
+uint16_t ValuePosition::getWordSize()
+{
+    return this->size;
+}
+
+
+
 ValuePosition* ValuePosition::createLabelPos(std::string label)
 {
     ValuePosition* pos = new ValuePosition();
@@ -80,7 +107,7 @@ ValuePosition* ValuePosition::createStackPos(int size)
     return pos;
 }
 
-bool isStackPos()
+bool ValuePosition::isStackPos()
 {
     if (this->posType == STACK || this->posType == STACK_REL)
         return true;
@@ -88,7 +115,7 @@ bool isStackPos()
         return false;
 }
 
-std::string registerToString(ValPosRegister regist)
+std::string ValuePosition::registerToString(ValPosRegister regist)
 {
     switch (regist)
     {
@@ -143,7 +170,7 @@ ValPosRegister ValuePosition::getRegister()
     if (this->usesRegister())
         return this->regist;
     else
-        return -1;
+        throw new errors::InternalCompilerException("trying to get register of non-register ValuePosition");
 }
 
 
@@ -156,7 +183,7 @@ bool ValuePosition::canAtomicDeref()
         return true;
 }
 
-ValuePosition* ValuePosition::isAtomicOperand()
+bool ValuePosition::isAtomicOperand()
 {
     if (!this->isDeref && (this->posType == LABEL_REL || this->posType == REG_REL || this->posType == STACK_REL))
         return false;
@@ -287,11 +314,6 @@ std::string ValuePosition::toAtomicOperand()
 
 
 
-// implements the destructor
-ValuePosition::~ValuePosition()
-{
-
-}
 
 ///
 /// @}

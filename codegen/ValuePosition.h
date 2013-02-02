@@ -55,26 +55,26 @@ namespace dtcc
             
             std::string registerToString(ValPosRegister regist);
             
-        public:
-            
                 
         public:
             ///
             /// @brief      The constructor of the ValuePosition class.
             ///
-            ValuePosition()  {}
+            ValuePosition(); //: posType(REG), size(0), isDeref(false), isAdr(false), isTemp(false), offset(0) {}
+            
+            ValuePosition(ValuePosition& vp);// : posType(vp.posType), regist(vp.regist) {}
             
             ///
             /// @brief          Returns the size of the value in words.
             /// @return         The size of the value.
             ///
-            virtual uint16_t getWordSize();
+            uint16_t getWordSize();
 
 
             bool canAtomicDeref();
             bool canAtomicDerefOffset();
             
-            ValuePosition* isAtomicOperand();
+            bool isAtomicOperand();
             
             ValuePosition* atomicDeref();
             ValuePosition* atomicDerefOffset(int offset);
@@ -106,7 +106,7 @@ namespace dtcc
             ///
             /// @brief      The destructor of the ValuePosition class.
             ///
-            virtual ~ValuePosition();
+            ~ValuePosition();
         };
 
     } // namespace codegen

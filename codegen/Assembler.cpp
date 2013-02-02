@@ -15,7 +15,9 @@
 #include <exception>
 #include <stdexcept>
 #include "Assembler.h"
-#include "CompilerException.h"
+#include <errors/InternalCompilerException.h>
+
+using namespace dtcc;
 
 // We haven't initially loaded anything.
 bool Assembler::m_HasLoaded = false;
@@ -40,7 +42,7 @@ const Assembler* Assembler::getAssembler(std::string name)
     std::map<std::string, const Assembler*>::iterator i = Assembler::m_Assemblers.find(name);
 
     if (i == Assembler::m_Assemblers.end())
-        throw new CompilerException(0, "<internal>", "Requested assembler information not found (invalid assembler type).");
+        throw new errors::InternalCompilerException("Requested assembler information not found (invalid assembler type).");
     else
         return i->second;
 }

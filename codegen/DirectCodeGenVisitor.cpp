@@ -33,10 +33,10 @@ using namespace dtcc::codegen;
 
 
 /* constructor */
-
-DirectCodeGenVisitor::DirectCodeGenVisitor()
+// TODO make the assembler a constructor parameter
+DirectCodeGenVisitor::DirectCodeGenVisitor() : assembler(*Assembler::getAssembler("toolchain"))
 {
-    this->asm_functions = std::deque<std::stringstream>();
+    this->asm_functions = std::deque<std::string>();
     this->isDebug = true;
 }
 
@@ -58,11 +58,11 @@ std::string DirectCodeGenVisitor::getFileAndLineState(astnodes::Node* node)
 
 void DirectCodeGenVisitor::initFreeRegisters()
 {
-    for (ValPosRegister r = REG_A; r <= REG_Z; r++)
+    for (int r = REG_A; r <= REG_Z; r++)
     {
         m_registersUsed[r] = false;
     }
-    
+
     m_registersUsed[REG_FRAME_POINTER] = true;
     m_registersUsed[REG_TMP_L] = true;
     m_registersUsed[REG_TMP_R] = true;
@@ -70,12 +70,12 @@ void DirectCodeGenVisitor::initFreeRegisters()
 
 ValPosRegister DirectCodeGenVisitor::getFreeRegister()
 {
-    for (ValPosRegister r = REG_A; r <= REG_Z; r++)
+    for (int r = REG_A; r <= REG_Z; r++)
     {
         if (!m_registersUsed[r])
         {
             m_registersUsed[r] = true;
-            return r;
+            return (ValPosRegister)r;
         }
     }
     
@@ -86,7 +86,7 @@ ValPosRegister DirectCodeGenVisitor::getFreeRegister()
 
 bool DirectCodeGenVisitor::isFreeRegisterAvailable()
 {
-    for (ValPosRegister r = REG_A; r <= REG_Z; r++)
+    for (int r = REG_A; r <= REG_Z; r++)
     {
         if (!m_registersUsed[r])
             return true;
@@ -153,7 +153,7 @@ int DirectCodeGenVisitor::getTempStack(int size)
         m_tempStackAlloc.push_back(true);
     
     // update size
-    m_tempStackMax = std::max(m_tempStackMax, m_tempStackAlloc.size());
+    m_tempStackMax = std::max(m_tempStackMax, (int)m_tempStackAlloc.size());
     
     pos = m_tempStackAlloc.size() - size;
     m_tempStackObjects[pos] = size;
@@ -228,6 +228,14 @@ std::string DirectCodeGenVisitor::getRandomString(std::string::size_type sz)
     std::generate_n(std::back_inserter(s), sz, DirectCodeGenVisitor::getRandomCharacter);
     return s;
 }
+
+
+TypeImplementation* DirectCodeGenVisitor::getTypeImplementation(types::Type* type)
+{
+    type->accept(getTypeImpl);
+    return getTypeImpl.getTypeImplementation();
+}
+
 
 
 /******************************/
@@ -781,7 +789,7 @@ ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
 {
     if (vals.size() > 1)
     {
-        std::string label = getRandomLabel("constant_");
+        std::string label = getRandomLabel("constant_")->label;
         asm_Constants << label << ":" << std::endl;
         asm_Constants << "    DAT ";
         for (std::deque<std::string>::iterator it = vals.begin(); it != vals.end(); ++it)
@@ -812,59 +820,61 @@ ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
 
 void DirectCodeGenVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
 {
-    characterLiteral->valType->type->accept(getTypeImpl);
+    std::stringstream ss;
+    // TODO FIXME escape the string as done for the string (one shared escape function)
+    ss << "'" << characterLiteral->str[0] << "'";
     std::deque<std::string> ch;
-    ch.push_back(characterLiteral->str[0]);
+    ch.push_back(ss.str());
     characterLiteral->valPos = handleLiteral(ch);
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
 {
-    signedIntLiteral->valType->type->accept(getTypeImpl);
-    signedIntLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(signedIntLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(signedIntLiteral->valType->type);
+    signedIntLiteral->valPos = handleLiteral(typeImpl->printConstant(signedIntLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::UnsignedIntLiteral * unsignedIntLiteral)
 {
-    unsignedIntLiteral->valType->type->accept(getTypeImpl);
-    unsignedIntLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(unsignedIntLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(unsignedIntLiteral->valType->type);
+    unsignedIntLiteral->valPos = handleLiteral(typeImpl->printConstant(unsignedIntLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::SignedLongLiteral * signedLongLiteral)
 {
-    signedLongLiteral->valType->type->accept(getTypeImpl);
-    signedLongLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(signedLongLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(signedLongLiteral->valType->type);
+    signedLongLiteral->valPos = handleLiteral(typeImpl->printConstant(signedLongLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::UnsignedLongLiteral * unsignedLongLiteral)
 {
-    unsignedLongLiteral->valType->type->accept(getTypeImpl);
-    unsignedLongLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(unsignedLongLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(unsignedLongLiteral->valType->type);
+    unsignedLongLiteral->valPos = handleLiteral(typeImpl->printConstant(unsignedLongLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::FloatLiteral * floatLiteral)
 {
-    floatLiteral->valType->type->accept(getTypeImpl);
-    floatLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(floatLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(floatLiteral->valType->type);
+    floatLiteral->valPos = handleLiteral(typeImpl->printConstant(floatLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::DoubleLiteral * doubleLiteral)
 {
-    doubleLiteral->valType->type->accept(getTypeImpl);
-    doubleLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(doubleLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(doubleLiteral->valType->type);
+    doubleLiteral->valPos = handleLiteral(typeImpl->printConstant(doubleLiteral->literalValue));
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral)
 {
-    longDoubleLiteral->valType->type->accept(getTypeImpl);
-    longDoubleLiteral->valPos = handleLiteral(getTypeImpl.getTypeImplementation()->printConstant(longDoubleLiteral->literalValue));
+    TypeImplementation* typeImpl = getTypeImplementation(longDoubleLiteral->valType->type);
+    longDoubleLiteral->valPos = handleLiteral(typeImpl->printConstant(longDoubleLiteral->literalValue));
 }
 
 
@@ -925,7 +935,7 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
     outputstr << "\"";
     
     // add string constant to global string constants
-    std::string label = getRandomLabel("string_const_");
+    std::string label = getRandomLabel("string_const_")->label;
     asm_stringConstants << label << ":" << std::endl;
     asm_stringConstants << "    DAT " << outputstr.str() << ", 0x0" << std::endl;
     
@@ -1127,8 +1137,8 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
             stackoffset++;
         }
         
-        std::string loopLabel = getRandomLabel("copy_loop_");
-        std::string loopEndLabel = getRandomLabel("copy_loop_");
+        std::string loopLabel = getRandomLabel("copy_loop_")->label;
+        std::string loopEndLabel = getRandomLabel("copy_loop_")->label;
         
         // set up registers and stack pointer 
         // TODO i have the feeling this could be done more efficient :(
@@ -1210,15 +1220,8 @@ ValuePosition* DirectCodeGenVisitor::getTmp(int size)
     {
         // get temp on temporary stack
         int pos = getTempStack(size);
-        return ValuePosition::createTempStack(-m_currentFunctionTempStackOffset-pos-1);
+        return ValuePosition::createTempStack(-m_currentFunctionTempStackOffset-pos-1, size);
     }
-}
-
-
-TypeImplementation* DirectCodeGenVisitor::getTypeImplementation(types::Type* type)
-{
-    type->accept(getTypeImpl);
-    return getTypeImpl.getTypeImplementation();
 }
 
 
@@ -1249,7 +1252,7 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     else
     {
         // in this case, the value position is the array address.
-        ValuePosition* tmpReg = lhsVP->valToRegister(REG_TMP_L);
+        ValuePosition* tmpReg = lhsVP->valToRegister(asm_current, REG_TMP_L);
         ValuePosition* newLhsVP = getTmpCopy(tmpReg);
         maybeFreeTemporary(lhsVP);
         lhsVP = newLhsVP;
@@ -1418,6 +1421,7 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     {
         valPos = derefOperand(valPos, REG_TMP_L);
     }
+    ValuePosition* newTmp = NULL;
     
     switch(unaryOperator->optoken)
     {
@@ -1437,7 +1441,7 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
             
         case NOT_OP:
             // get new register, delete old
-            ValuePosition* newTmp = getTmp(1);
+            newTmp = getTmp(1);
             valPos = makeAtomicReadable(valPos);
             typeImpl->linv(asm_current, newTmp, valPos);
             maybeFreeTemporary(valPos);

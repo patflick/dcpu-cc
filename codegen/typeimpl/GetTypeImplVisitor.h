@@ -1,8 +1,8 @@
 
 
 
-#ifndef __DCPU_CC_TYPES_TYPEVISITOR_H
-#define __DCPU_CC_TYPES_TYPEVISITOR_H
+#ifndef __DCPU_CC_CODEGEN_GETIMPL_TYPEVISITOR_H
+#define __DCPU_CC_CODEGEN_GETIMPL_TYPEVISITOR_H
 #include <stdio.h>
 #include <types/alltypes.h>
 #include <types/TypeVisitor.h>
@@ -14,8 +14,8 @@ namespace dtcc
 {
     namespace codegen
     {
-        
-        class GetTypeImplVisitor : types::TypeVisitor
+        using namespace types;
+        class GetTypeImplVisitor : public dtcc::types::TypeVisitor
         {
         private:
             SignedInt16* sint16;

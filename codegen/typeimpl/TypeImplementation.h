@@ -13,6 +13,7 @@
 #define __DCPU_CC_CODEGEN_TYPEIMPL_TYPEIMPLEMENTATION_H
 
 #include "../ValuePosition.h"
+#include <deque>
 
 namespace dtcc
 {
@@ -22,17 +23,13 @@ namespace dtcc
         /// @brief      Defines the interface for base type implementations.
         class TypeImplementation
         {
-        private:
-
-            TypeImplementation() { };
             
         public:
-            
             virtual std::deque<std::string> printConstant(double value) = 0;
             virtual std::deque<std::string> printConstant(long value) = 0;
             
             /// returns the size of the type
-            virtual void getWordSize() = 0;
+            virtual unsigned int getWordSize() = 0;
             
             
             /* increase/decrease ops */

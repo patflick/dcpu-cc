@@ -34,7 +34,7 @@ std::deque<std::string> Int16::printConstant(long value)
     return result;
 }
 
-void Int16::getWordSize()
+unsigned int Int16::getWordSize()
 {
     return 1;
 }
@@ -46,13 +46,13 @@ void Int16::getWordSize()
 /// implements increase: B++
 void Int16::inc(AsmBlock& ass, ValuePosition* posB, int by)
 {
-    ass << "ADD " << posB->toAtomicOperand() << ", 0x" << std::hex << 0xffff & by << std::endl;
+    ass << "ADD " << posB->toAtomicOperand() << ", 0x" << std::hex << (0xffff & by) << std::endl;
 }
 
 /// implements decrease: B--
 void Int16::dec(AsmBlock& ass, ValuePosition* posB, int by)
 {
-    ass << "SUB " << posB->toAtomicOperand() << ", 0x" << std::hex << 0xffff & by << std::endl;
+    ass << "SUB " << posB->toAtomicOperand() << ", 0x" << std::hex << (0xffff & by) << std::endl;
 }
 
 

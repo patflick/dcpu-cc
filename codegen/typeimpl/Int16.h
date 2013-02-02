@@ -13,6 +13,7 @@
 #define __DCPU_CC_CODEGEN_TYPEIMPL_INT16_H
 
 #include "TypeImplementation.h"
+#include <deque>
 
 namespace dtcc
 {
@@ -25,12 +26,8 @@ namespace dtcc
         ///             by extending from this class.
         ///             This class should never be initiated and only
         ///             be used to extend from.
-        class Int16 : TypeImplementation
+        class Int16 : public TypeImplementation
         {
-        private:
-            
-            // private constructor prevents construction of this class.
-            Int16() { };
             
         public:
             
@@ -39,7 +36,7 @@ namespace dtcc
                         
             
             /// returns the size of the type
-            virtual void getWordSize();
+            virtual unsigned int getWordSize();
             
             /* increase/decrease ops */
             

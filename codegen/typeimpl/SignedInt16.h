@@ -23,7 +23,7 @@ namespace dtcc
         ///             This implements the operations on 16 bit integers
         ///             that depend on the sign. This class implements
         ///             signed variants of those operations.
-        class SignedInt16 : Int16
+        class SignedInt16 : public Int16
         {
         private:
             

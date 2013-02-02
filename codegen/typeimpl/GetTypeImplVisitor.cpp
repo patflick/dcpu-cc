@@ -21,6 +21,11 @@ bool GetTypeImplVisitor::visit(Type * type)
     throw new errors::InternalCompilerException("Invalid type instance encountered: " + type->toString());
 }
 
+TypeImplementation* GetTypeImplVisitor::getTypeImplementation()
+{
+    return this->typeImpl;
+}
+
 
 bool GetTypeImplVisitor::visit(Float * floatType)
 {

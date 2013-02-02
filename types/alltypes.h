@@ -9,8 +9,8 @@
 /// @author     Patrick Flick
 ///
 
-#ifndef __DCPU_CC_AST_TYPES_ALLTYPES_H
-#define __DCPU_CC_AST_TYPES_ALLTYPES_H
+#ifndef __DCPU_CC_TYPES_ALLTYPES_H
+#define __DCPU_CC_TYPES_ALLTYPES_H
 
 /*
  * Simply includes all types

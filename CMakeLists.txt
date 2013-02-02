@@ -38,6 +38,7 @@ add_subdirectory(nodes)
 add_subdirectory(visitor)
 add_subdirectory(types)
 add_subdirectory(errors)
+add_subdirectory(codegen)
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
@@ -76,4 +77,6 @@ add_executable(dtcc2tests
     ${typesSrc}
     ${symboltableHrd}
     ${symboltableSrc}
+    ${CODEGEN_HEADER}
+    ${CODEGEN_SOURCE}
 )

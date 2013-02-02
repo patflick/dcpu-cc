@@ -25,6 +25,7 @@
 #include <deque>
 #include <set>
 #include <string>
+#include <sstream>
 #include "Assembler.h"
 
 #include "typeimpl/GetTypeImplVisitor.h"
@@ -52,7 +53,7 @@ namespace dtcc
             
             GetTypeImplVisitor getTypeImpl;
             
-            Assembler assembler;
+            const Assembler assembler;
             
             // free registers management
             std::map<int, bool> m_registersUsed;
@@ -97,7 +98,7 @@ namespace dtcc
             void printAstName(const char * name);
             std::string getFileAndLineState(astnodes::Node* node);
             
-            ValuePosition* handleLiteral(TypeImplementation* typeImpl);
+            ValuePosition* handleLiteral(std::deque<std::string> vals);
             
             bool isDebug;
             
