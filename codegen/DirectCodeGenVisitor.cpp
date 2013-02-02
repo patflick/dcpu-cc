@@ -980,31 +980,6 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
  */
 
 
-ValuePosition* DirectCodeGenVisitor::atomizeOperand(ValuePosition* operandVP)
-{
-    ValuePosition* newVP = operandVP;
-    if (operandVP->getWordSize() == 1)
-    {
-        if (!operandVP->isAtomicOperand())
-        {
-            ValPosRegister newReg = this->getFreeRegister();
-            newVP = operandVP->valToRegister(asm_current, newReg);
-            maybeReleaseRegister(operandVP);
-        }
-    }
-    else if (operandVP->getWordSize() > 1)
-    {
-        if (!operandVP->canAtomicDerefOffset())
-        {
-            ValPosRegister newReg = this->getFreeRegister();
-            newVP = operandVP->valToRegister(asm_current, newReg);
-            maybeReleaseRegister(operandVP);
-        }
-    }
-    return newVP;
-}
-
-
 ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operandVP)
 {
     return makeAtomicModifyable(operandVP, REG_TMP_L);
@@ -1260,39 +1235,47 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     
     ValuePosition* lhsVP = arrayAccessOperator->lhsExpr->valPos;
     
-    // get new register for lhs adress to be modified
-    ValPosRegister newReg = this->getFreeRegister();
-    ValuePosition* newLhsVP = NULL;
-    
-    // deref lhs if necessary
-    if (arrayAccessOperator->lhsLtoR)
-        lhsVP = derefOperand(lhsVP);
-    else
-    {
-        newLhsVP = lhsVP->valToRegister(asm_current, newReg);
-        maybeReleaseRegister(lhsVP);
-        lhsVP = newLhsVP;
-    }
-    
-    
     // compile offset
     arrayAccessOperator->rhsExpr->accept(*this);
     
     ValuePosition* rhsVP = arrayAccessOperator->rhsExpr->valPos;
     
-    if (arrayAccessOperator->rhsLtoR)
-    {
-        rhsVP = derefOperand(rhsVP);
-    }
-    
-    rhsVP = atomizeOperand(rhsVP);
-
+    // get type implementation
     TypeImplementation* typeImpl = this->getTypeImplementation(new types::UnsignedInt());
     
-    // multiply by pointer size
-    typeImpl->mul(asm_current, rhsVP, ValuePosition::createAtomicConstPos(arrayAccessOperator->pointerSize));
-    // add to address
-    typeImpl->add(asm_current, lhsVP, rhsVP);
+    // deref lhs if necessary
+    if (arrayAccessOperator->lhsLtoR)
+        lhsVP = derefOperand(lhsVP, REG_TMP_L);
+    else
+    {
+        // in this case, the value position is the array address.
+        ValuePosition* tmpReg = lhsVP->valToRegister(REG_TMP_L);
+        ValuePosition* newLhsVP = getTmpCopy(tmpReg);
+        maybeFreeTemporary(lhsVP);
+        lhsVP = newLhsVP;
+    }
+    
+    /* deref RHS if necessary */
+    if (arrayAccessOperator->rhsLtoR)
+    {
+        rhsVP = derefOperand(rhsVP, REG_TMP_R);
+    }
+    
+    if (arrayAccessOperator->pointerSize > 1)
+    {
+        rhsVP = makeAtomicModifyable(rhsVP, REG_TMP_R);
+        // multiply by pointer size
+        typeImpl->mul(asm_current, rhsVP, ValuePosition::createAtomicConstPos(arrayAccessOperator->pointerSize));
+        // add to address
+        typeImpl->add(asm_current, lhsVP, rhsVP);
+    }
+    else
+    {
+        // in this case no multiplication is necessary
+        rhsVP = makeAtomicReadable(rhsVP);
+        // add to address
+        typeImpl->add(asm_current, lhsVP, rhsVP);
+    }
     
     // return this value (which is a LValue)
     arrayAccessOperator->valPos = lhsVP;
@@ -1774,20 +1757,30 @@ void DirectCodeGenVisitor::visit(astnodes::ConditionalOperator * conditionalOper
 
 void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
 {
-    // first check lhs and rhs expression
+    // compile both sub-expressions
     assignmentOperator->allChildrenAccept(*this);
     
-    valuetypes::ValueType* lhsVtype = assignmentOperator->lhsExrp->valType;
-    valuetypes::ValueType* rhsVtype = assignmentOperator->rhsExpr->valType;
-    types::Type* lhsType = lhsVtype->type;
-    types::Type* rhsType = rhsVtype->type;
-   
+    ValuePosition* lhsValpos = assignmentOperator->lhsExrp->valPos;
+    ValuePosition* rhsValpos = assignmentOperator->rhsExpr->valPos;
     
-    // check that the lhs is a modifiable LValue
-    if(!valuetypes::IsValueTypeHelper::isModifiableLValue(assignmentOperator->lhsExrp->valType))
+    TypeImplementation* typeImpl = this->getTypeImplementation(assignmentOperator->commonType);
+    
+    /* LValue to RValue deref */
+    if (assignmentOperator->rhsLtoR)
     {
-        addError(assignmentOperator, ERR_CC_ASSIGN_NO_MOD_LVALUE);
+        rhsValpos = derefOperand(rhsValpos, REG_TMP_R);
     }
+    
+    ValuePosition* lhsOperandVP = makeAtomicDerefable(lhsValpos, REG_TMP_L);
+    bool createCopy = false;
+    if (lhsOperandVP != lhsValpos)
+        createCopy = true;
+    
+    if (lhsOperandVP->getWordSize() == 1)
+    {
+        lhsOperandVP = lhsOperandVP->atomicDeref();
+    }
+    
     
     switch (assignmentOperator->optoken)
     {
@@ -1795,33 +1788,7 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         /* 3.3.16.1 Simple assignment */
         
         case ASSIGN_EQUAL:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
-            {
-                // both are arithmetic types
-                // promote:
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-            }
-            else if((types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isPointerType(rhsType))
-            {
-                // TODO properly check for compatible types pointed to
-                assignmentOperator->ptrop = true;
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
-            }
-            else if((types::IsTypeHelper::isStructUnionType(lhsType))
-                && types::IsTypeHelper::isStructUnionType(rhsType))
-            {
-                // TODO properly check for compatible structs/unions
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
-            }
-            else
-            {
-                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
-                assignmentOperator->valType = getInvalidValType();
-                return;
-            }
+            copyValue(rhsValpos, lhsOperandVP);
             break;
             
             
@@ -1829,73 +1796,69 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             
         case ADD_ASSIGN:
         case SUB_ASSIGN:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
+            if (assignmentOperator->ptrop && assignmentOperator->pointerSize > 1)
             {
-                // both are arithmetic types
-                // promote:
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-            }
-            else if(((types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isIntegralType(rhsType)))
-                
-            {
-                // pointer op
-                assignmentOperator->ptrop = true;
-                assignmentOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
+                rhsValpos = makeAtomicModifyable(rhsValpos, REG_TMP_R);
+                typeImpl->mul(asm_current, rhsValpos, ValuePosition::createAtomicConstPos(assignmentOperator->pointerSize));
+                if (assignmentOperator->optoken == ADD_ASSIGN)
+                    typeImpl->add(asm_current, lhsOperandVP,rhsValpos);
+                else
+                    typeImpl->sub(asm_current, lhsOperandVP,rhsValpos);
             }
             else
             {
-                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
-                assignmentOperator->valType = getInvalidValType();
-                return;
+                rhsValpos = makeAtomicReadable(rhsValpos);
+                if (assignmentOperator->optoken == ADD_ASSIGN)
+                    typeImpl->add(asm_current, lhsOperandVP,rhsValpos);
+                else
+                    typeImpl->sub(asm_current, lhsOperandVP,rhsValpos);
             }
             break;
             
         case MUL_ASSIGN:
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->mul(asm_current, lhsOperandVP, rhsValpos);
+            break;
         case DIV_ASSIGN:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
-            {
-                // both are arithmetic types
-                // promote:
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-            }
-            else
-            {
-                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
-                assignmentOperator->valType = getInvalidValType();
-                return;
-            }
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->div(asm_current, lhsOperandVP, rhsValpos);
             break;
             
         case MOD_ASSIGN:
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->mod(asm_current, lhsOperandVP, rhsValpos);
+            break;
         case LEFT_ASSIGN:
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->shl(asm_current, lhsOperandVP, rhsValpos);
+            break;
         case RIGHT_ASSIGN:
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->shr(asm_current, lhsOperandVP, rhsValpos);
+            break;
         case AND_ASSIGN:
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->band(asm_current, lhsOperandVP, rhsValpos);
+            break;
         case XOR_ASSIGN:
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->bxor(asm_current, lhsOperandVP, rhsValpos);
+            break;
         case OR_ASSIGN:
-            if((types::IsTypeHelper::isIntegralType(lhsType))
-                && types::IsTypeHelper::isIntegralType(rhsType))
-            {
-                // both are arithmetic types
-                // promote:
-                assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-            }
-            else
-            {
-                addError(assignmentOperator, ERR_CC_ASSIGN_INVALID_TYPES);
-                assignmentOperator->valType = getInvalidValType();
-                return;
-            }
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            typeImpl->bor(asm_current, lhsOperandVP, rhsValpos);
             break;
         default:
             throw new errors::InternalCompilerException("unknown assignment operator encountered");
     }
+    
+    ValuePosition* resultValPos = lhsOperandVP;
+    if (createCopy)
+    {
+        resultValPos = getTmpCopy(lhsOperandVP);
+    }
+    
+    assignmentOperator->valPos = resultValPos;
 }
 
 
@@ -1906,28 +1869,11 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
 
 void DirectCodeGenVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 {
-    // analyse all children
+    // compile  all children
     chainExpressions->allChildrenAccept(*this);
     
-    // check if all values types are constant
-    bool isCValue = true;
-    if (chainExpressions->exprs != NULL && chainExpressions->exprs->size() > 0)
-    {
-        for (astnodes::Expressions::iterator i = chainExpressions->exprs->begin(); i != chainExpressions->exprs->end(); ++i)
-        {
-            if (!valuetypes::IsValueTypeHelper::isCValue((*i)->valType))
-                isCValue = false;
-        }
-        
-        if (isCValue)
-            chainExpressions->valType = new valuetypes::CValue(chainExpressions->exprs->back()->valType->type);
-        else
-            chainExpressions->valType = new valuetypes::RValue(chainExpressions->exprs->back()->valType->type);
-    }
-    else
-    {
-        throw new errors::InternalCompilerException("chain expressions without any expressions");
-    }
+    // return the result from the last expression
+    chainExpressions->valPos = chainExpressions->exprs->back()->valPos;
 }
 
 

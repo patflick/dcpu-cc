@@ -2122,6 +2122,22 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         addError(assignmentOperator, ERR_CC_ASSIGN_NO_MOD_LVALUE);
     }
     
+    /* check for LtoR conversion */
+    if (valuetypes::IsValueTypeHelper::isLValue(rhsVtype))
+    {
+        assignmentOperator->rhsLtoR = true;
+        if (types::IsTypeHelper::isArrayType(rhsType))
+        {
+            rhsType = types::IsTypeHelper::pointerFromArrayType(rhsType);
+        }
+    }
+    
+    /* convert array to pointer type */
+    if (types::IsTypeHelper::isArrayType(lhsType))
+    {
+        lhsType = types::IsTypeHelper::pointerFromArrayType(lhsType);
+    }
+    
     switch (assignmentOperator->optoken)
     {
         
