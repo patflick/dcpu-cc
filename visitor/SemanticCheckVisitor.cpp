@@ -1709,37 +1709,46 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     // analyse inner expression first:
     unaryOperator->allChildrenAccept(*this);
     
-    if (valuetypes::IsValueTypeHelper::isLValue(unaryOperator->expr->valType))
+    valuetypes::ValueType* vtype = unaryOperator->expr->valType;
+    types::Type* type = vtype->type;
+    
+    if (valuetypes::IsValueTypeHelper::isLValue(vtype))
+    {
         unaryOperator->LtoR = true;
+        if (types::IsTypeHelper::isArrayType(type))
+        {
+            type = types::IsTypeHelper::pointerFromArrayType(type);
+        }
+    }
     
     switch(unaryOperator->optoken)
     {
         case ADD_OP:
         case SUB_OP:
             // check that the expression type is a arithmetic type
-            if(!types::IsTypeHelper::isArithmeticType(unaryOperator->expr->valType->type))
+            if(!types::IsTypeHelper::isArithmeticType(type))
             {
                 addError(unaryOperator, ERR_CC_UNARY_PLUS_MINUS_ARITH);
                 unaryOperator->valType = getInvalidValType();
                 return;
             }
-            unaryOperator->valType = valuetypes::PromotionHelper::promote(unaryOperator->expr->valType);
+            unaryOperator->valType = valuetypes::PromotionHelper::promote(vtype);
             break;
             
         case BIN_INV_OP:
             // check that the expression type is a arithmetic type
-            if(!types::IsTypeHelper::isIntegralType(unaryOperator->expr->valType->type))
+            if(!types::IsTypeHelper::isIntegralType(type))
             {
                 addError(unaryOperator, ERR_CC_UNARY_INV_INTEGRAL);
                 unaryOperator->valType = getInvalidValType();
                 return;
             }
-            unaryOperator->valType = valuetypes::PromotionHelper::promote(unaryOperator->expr->valType);
+            unaryOperator->valType = valuetypes::PromotionHelper::promote(vtype);
             break;
             
         case NOT_OP:
             // check that the expression type is a arithmetic type
-            if(!types::IsTypeHelper::isScalarType(unaryOperator->expr->valType->type))
+            if(!types::IsTypeHelper::isScalarType(type))
             {
                 addError(unaryOperator, ERR_CC_UNARY_NOT_SCALAR);
                 unaryOperator->valType = getInvalidValType();
@@ -1801,14 +1810,28 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     // analyse both sub-expressions
     binaryOperator->allChildrenAccept(*this);
     
-    // TODO both operand have to be converted from R to L value
-    //.TODO when they are converted, array type gets converted to pointer type
-    // TODO otherwise all those checks below won't work properly :(
-    
     valuetypes::ValueType* lhsVtype = binaryOperator->lhsExrp->valType;
     valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
     types::Type* lhsType = lhsVtype->type;
     types::Type* rhsType = rhsVtype->type;
+    
+    /* check for LValue to RValue conversions */
+    if (valuetypes::IsValueTypeHelper::isLValue(lhsVtype))
+    {
+        binaryOperator->lhsLtoR = true;
+        if (types::IsTypeHelper::isArrayType(lhsType))
+        {
+            lhsType = types::IsTypeHelper::pointerFromArrayType(lhsType);
+        }
+    }
+    if (valuetypes::IsValueTypeHelper::isLValue(rhsVtype))
+    {
+        binaryOperator->rhsLtoR = true;
+        if (types::IsTypeHelper::isArrayType(rhsType))
+        {
+            rhsType = types::IsTypeHelper::pointerFromArrayType(rhsType);
+        }
+    }
     
     
     switch(binaryOperator->optoken)
@@ -1896,6 +1919,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 binaryOperator->lhsPtr = true;
                 binaryOperator->rhsPtr = true;
                 binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
+                binaryOperator->commonType = new types::UnsignedInt();
                 // TODO properly check for compatible types pointed to
                 if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
                 {
@@ -1909,7 +1933,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             {
                 binaryOperator->lhsPtr = true;
                 binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                binaryOperator->commonType = types::IntegralPromotion::promote(rhsType);
+                binaryOperator->commonType = new types::UnsignedInt();
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
             }
             else
@@ -1926,6 +1950,8 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         case LEFT_OP:
         case RIGHT_OP:
             // check that the expression type is a integral type
+            // TODO check that RHS is size 1 otherwise convert!!
+            // TODO (same for the pointer ops above)
             if((!types::IsTypeHelper::isIntegralType(lhsType))
                 || !types::IsTypeHelper::isIntegralType(rhsType))
             {
@@ -1965,6 +1991,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                     return;
                 }
                 
+                binaryOperator->commonType = new types::UnsignedInt();
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
             }
             else
@@ -2001,7 +2028,7 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                     binaryOperator->valType = getInvalidValType();
                     return;
                 }
-                
+                binaryOperator->commonType = new types::UnsignedInt();
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
             }
             // TODO case for Null pointer constant

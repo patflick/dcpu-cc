@@ -173,7 +173,7 @@ ValuePosition* DirectCodeGenVisitor::getTempWordPos()
     {
         // get word on temporary stack
         int pos = getTempStack(1);
-        return ValuePosition::createFPrelativeWord(-m_currentFunctionTempStackOffset-pos-1);
+        return ValuePosition::createTempStackWord(-m_currentFunctionTempStackOffset-pos-1);
     }
 }
 
@@ -1005,22 +1005,119 @@ ValuePosition* DirectCodeGenVisitor::atomizeOperand(ValuePosition* operandVP)
 }
 
 
-ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP)
+ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operandVP)
 {
+    return makeAtomicModifyable(operandVP, REG_TMP_L);
+}
+
+ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operandVP, ValPosRegister tmpReg)
+{
+    // for the lhs of operations (i.e. the one that is written)
+    ValuePosition* newVP = operandVP;
+    if (operandVP->getWordSize() == 1)
+    {
+        if (!operandVP->isAtomicOperand() || !operandVP->isModifyableTemp())
+        {
+            newVP = getTmpCopy(operandVP);
+        }
+    }
+    else
+    {
+        if (!operandVP->canAtomicDerefOffset() || !operandVP->isModifyableTemp())
+        {
+            if (!operandVP->canAtomicDerefOffset())
+            {
+                // get the address into the LHS temporary register
+                operandVP = operandVP->valToRegister(asm_current, tmpReg);
+            }
+            newVP = getTmpCopy(operandVP);
+        }
+    }
+    return newVP;
+}
+
+
+ValuePosition* DirectCodeGenVisitor::makeAtomicReadable(ValuePosition* operandVP)
+{
+    return makeAtomicReadable(operandVP, REG_TMP_R);
+}
+
+ValuePosition* DirectCodeGenVisitor::makeAtomicReadable(ValuePosition* operandVP, ValPosRegister tmpReg)
+{
+    // for operands that only need reading (and can thus use temp registers)
+    ValuePosition* newVP = operandVP;
+    if (operandVP->getWordSize() == 1)
+    {
+        if (!operandVP->isAtomicOperand())
+        {
+            newVP = operandVP->valToRegister(asm_current, tmpReg);
+        }
+    }
+    else
+    {
+        if (!operandVP->canAtomicDerefOffset())
+        {
+            // get the address into the LHS temporary register
+            newVP = operandVP->valToRegister(asm_current, tmpReg);
+        }
+    }
+    return newVP;
+}
+
+ValuePosition* DirectCodeGenVisitor::makeAtomicDerefable(ValuePosition* operandVP, ValPosRegister regist)
+{
+    ValuePosition* newVP = operandVP;
+    if (operandVP->getWordSize() == 1)
+    {
+        if (!operandVP->canAtomicDeref())
+        {
+            newVP = operandVP->valToRegister(asm_current, regist);
+        }
+    }
+    else
+    {
+        if (!operandVP->canAtomicDerefOffset())
+        {
+            newVP = operandVP->valToRegister(asm_current, regist);
+        }
+    }
+    return newVP;
+}
+
+
+ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP, ValPosRegister tmpRegist)
+{
+    /*
+     * LValue -> RValue deref:
+     *  - in case of size == 1:
+     *      -> if atomically deref:
+     *              => do atomically deref
+     *      -> else
+     *              if valpos is not atomicOperand or valpos is not modifyable
+     *                  valpos = get temp copy (which is always an atomic operand)
+     * 
+     *              (use temporary register)
+     *              valToRegister(TMP_X, valpos)
+     *              SET valpos, [TMP_X]
+     * - in case of size > 1:
+     *      => do nothing!
+     */
+    ValuePosition* newVP = operandVP;
     if (operandVP->getWordSize() == 1)
     {
         if (operandVP->canAtomicDeref())
-            operandVP = operandVP->atomicDeref();
+            newVP = operandVP->atomicDeref();
         else
         {
-            ValPosRegister newReg = this->getFreeRegister();
-            ValuePosition* newVP = operandVP->valToRegister(asm_current, newReg);
-            newVP = newVP->atomicDeref();
-            maybeReleaseRegister(operandVP);
-            operandVP = newVP;
+            if (!operandVP->isAtomicOperand() || !operandVP->isModifyableTemp())
+                newVP = getTmpCopy(operandVP);
+            
+            ValuePosition* tmpRegVP = newVP->valToRegister(asm_current, tmpRegist);
+            tmpRegVP = tmpRegVP->atomicDeref();
+            copyValue(tmpRegVP, newVP);
         }
     }
-    return operandVP;
+    return newVP;
 }
 
 ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
@@ -1028,7 +1125,7 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
     if (valPos->getWordSize() == 1)
     {
         asm_current << "SET PUSH, " << valPos->toAtomicOperand() << std::endl;
-    } else if (valPos < MIN_SIZE_LOOP_COPY)
+    } else if (valPos->getWordSize() < MIN_SIZE_LOOP_COPY)
     {
         for (int i = valPos->getWordSize() - 1; i >= 0; i--)
         {
@@ -1090,36 +1187,56 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
 
 ValuePosition* DirectCodeGenVisitor::getTmpCopy(ValuePosition* from)
 {
-    if (from->getWordSize() == 1)
+    ValuePosition* tmp = getTmp(from->getWordSize());
+    copyValue(from, tmp);
+    return tmp;
+}
+
+void DirectCodeGenVisitor::copyValue(ValuePosition* from, ValuePosition* to)
+{
+    if (from->getWordSize() != to->getWordSize())
     {
-        // try to get a register copy
-        if (from->isAtomicOperand())
+        throw new errors::InternalCompilerException("trying to copy values of different size");
+    }
+    
+    int size = from->getWordSize();
+    if (size == 1)
+    {
+        asm_current << "SET " << to->toAtomicOperand() << ", " << from->toAtomicOperand() << std::endl;
+    }
+    //else if (size < MIN_SIZE_LOOP_COPY)
+    else
+    {
+        for (int i = size - 1; i >= 0; i--)
         {
-            ValPosRegister newReg = this->getFreeRegister();
-            ValuePosition* newVP = from->valToRegister(asm_current, newReg);
-            maybeReleaseRegister(from);
-            return newVP;
-        }
-        else
-        {
-            // atomize will return a new register
-            return atomizeOperand(from);
+            if (i > 0)
+                asm_current << "SET " << to->atomicDerefOffset(i)->toAtomicOperand() << ", " << from->atomicDerefOffset(i)->toAtomicOperand() << std::endl;
+            else
+                asm_current << "SET " << to->atomicDeref()->toAtomicOperand() << ", " << from->atomicDeref()->toAtomicOperand() << std::endl;
         }
     }
-    else if (from->getWordSize() > 1)
+    /*
+    else
     {
-        // if this is already on the stack, it is a temporary
-        // and does not need replacement
-        if (!from->isStackPos())
-        {
-            return this->pushToStack(from);
-        }
+        // big copy, use a loop in asm to save code length
+        // TODO
+        // FIXME
     }
+    */
 }
 
 ValuePosition* DirectCodeGenVisitor::getTmp(int size)
 {
-    
+    if (size == 1)
+    {
+        return getTempWordPos();
+    }
+    else if (size > 1)
+    {
+        // get temp on temporary stack
+        int pos = getTempStack(size);
+        return ValuePosition::createTempStack(-m_currentFunctionTempStackOffset-pos-1);
+    }
 }
 
 
@@ -1206,31 +1323,49 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
 
 void DirectCodeGenVisitor::visit(astnodes::PostIncDec * postIncDec)
 {
+    /*
+    * everything that references a LValue (i.e. assignment, inc/dec) needs:
+    * - in case of size == 1:
+    *  ->  needs to be atomically dereffable (if it isn't use temp register), then get value (the LValue)
+    *      for the assignment of the new value
+    *  -> and then return a temp copy (in most cases) or the derefed valuepos
+    * 
+    * - in case of size > 1:
+    *   -> needs atomically offset dereffable (if it isn't, use temp register) in order
+    *      to assign or inc/dec.
+    *   -> needs to create temp copy for returning of value (in case of post inc/dec before doing the inc/dec).
+    */
+    
+    
     // first analyse the inner expression
     postIncDec->expr->accept(*this);
     
     ValuePosition* valPos = postIncDec->expr->valPos;
     
-    valPos = atomizeOperand(valPos);
-    ValuePosition* derefValPos = derefOperand(valPos);
+    valPos = makeAtomicDerefable(valPos, REG_TMP_L);
     
-    ValuePosition* derefCpy = getTmpCopy(derefValPos);
+    if (valPos->getWordSize() == 1)
+    {
+        valPos = valPos->atomicDeref();
+    }
+    
+    ValuePosition* derefCpy = getTmpCopy(valPos);
     
     TypeImplementation* typeImpl = this->getTypeImplementation(postIncDec->valType->type);
     
     switch (postIncDec->optoken)
     {
         case INC_OP:
-            typeImpl->inc(asm_current, derefValPos, postIncDec->pointerSize);
+            typeImpl->inc(asm_current, valPos, postIncDec->pointerSize);
             break;
         case DEC_OP:
-            typeImpl->dec(asm_current, derefValPos, postIncDec->pointerSize);
+            typeImpl->dec(asm_current, valPos, postIncDec->pointerSize);
             break;
         default:
             throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
     }
     
-    // TODO delete derefValPos
+    maybeFreeTemporary(valPos);
     
     postIncDec->valPos = derefCpy;
 }
@@ -1250,24 +1385,35 @@ void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
     
     ValuePosition* valPos = preIncDec->expr->valPos;
     
-    valPos = atomizeOperand(valPos);
-    ValuePosition* derefValPos = derefOperand(valPos);
+    ValuePosition* atomicValPos = makeAtomicDerefable(valPos, REG_TMP_L);
+    
+    if (atomicValPos->getWordSize() == 1)
+    {
+        atomicValPos = atomicValPos->atomicDeref();
+    }
     
     TypeImplementation* typeImpl = this->getTypeImplementation(preIncDec->valType->type);
     
     switch (preIncDec->optoken)
     {
         case INC_OP:
-            typeImpl->inc(asm_current, derefValPos, preIncDec->pointerSize);
+            typeImpl->inc(asm_current, valPos, preIncDec->pointerSize);
             break;
         case DEC_OP:
-            typeImpl->dec(asm_current, derefValPos, preIncDec->pointerSize);
+            typeImpl->dec(asm_current, valPos, preIncDec->pointerSize);
             break;
         default:
             throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
     }
     
-    preIncDec->valPos = derefValPos;
+    
+    if (atomicValPos == valPos)
+        preIncDec->valPos = atomicValPos;
+    else
+    {
+        preIncDec->valPos = getTmpCopy(atomicValPos);
+        maybeFreeTemporary(atomicValPos);
+    }
 }
 
 /* 3.3.3.2 Address and indirection operators */
@@ -1287,10 +1433,8 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     
     if (unaryOperator->LtoR)
     {
-        valPos = derefOperand(valPos);
+        valPos = derefOperand(valPos, REG_TMP_L);
     }
-    
-    valPos = atomizeOperand(valPos);
     
     switch(unaryOperator->optoken)
     {
@@ -1299,21 +1443,29 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
             break;
         case SUB_OP:
             // get arithmetic inverse of type
+            valPos = makeAtomicModifyable(valPos);
             typeImpl->ainv(asm_current, valPos);
             break;
             
         case BIN_INV_OP:
+            valPos = makeAtomicModifyable(valPos);
             typeImpl->binv(asm_current, valPos);
             break;
             
         case NOT_OP:
             // get new register, delete old
-            ValPosRegister regist = getFreeRegister();
-            //ValuePosition* valPos = 
+            ValuePosition* newTmp = getTmp(1);
+            valPos = makeAtomicReadable(valPos);
+            typeImpl->linv(asm_current, newTmp, valPos);
+            maybeFreeTemporary(valPos);
+            valPos = newTmp;
             break;
         default:
             throw new errors::InternalCompilerException("Unknown unary operator encountered");
     }
+    
+    // return value:
+    unaryOperator->valPos = valPos;
 }
 
 
@@ -1321,23 +1473,9 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
 
 void DirectCodeGenVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
 {
-    // analyse the expression inside the sizeof operator
-    sizeOfOperator->allChildrenAccept(*this);
-    
-    // set return type as a CValue (constant RValue)
-    sizeOfOperator->valType = new valuetypes::CValue(new types::UnsignedInt());
-    
-    // check it is not a function type
-    if (valuetypes::IsValueTypeHelper::isFunctionDesignator(sizeOfOperator->valType))
-    {
-        addError(sizeOfOperator, ERR_CC_SIZEOF_FUNC);
-        return;
-    }
-    
-    // return the word size of the expression type
-    // TODO special return value for array types??
-    sizeOfOperator->constExpr = new astnodes::UnsignedIntLiteral(sizeOfOperator->valType->type->getByteSize());
+    // just return the constant valpos of the constant expression
     sizeOfOperator->constExpr->accept(*this);
+    sizeOfOperator->valPos = sizeOfOperator->constExpr->valPos;
 }
 
 
@@ -1362,18 +1500,75 @@ void DirectCodeGenVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
 
 void DirectCodeGenVisitor::visit(astnodes::BinaryOperator * binaryOperator)
 {
-    // analyse both sub-expressions
+    // compile both sub-expressions
     binaryOperator->allChildrenAccept(*this);
     
-    // TODO both operand have to be converted from R to L value
-    //.TODO when they are converted, array type gets converted to pointer type
-    // TODO otherwise all those checks below won't work properly :(
+    ValuePosition* lhsValpos = binaryOperator->lhsExrp->valPos;
+    ValuePosition* rhsValpos = binaryOperator->rhsExpr->valPos;
+    ValuePosition* resultValPos = NULL;
     
-    valuetypes::ValueType* lhsVtype = binaryOperator->lhsExrp->valType;
-    valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
-    types::Type* lhsType = lhsVtype->type;
-    types::Type* rhsType = rhsVtype->type;
+    TypeImplementation* typeImpl = this->getTypeImplementation(binaryOperator->commonType);
     
+    /* LValue to RValue derefs*/
+    if (binaryOperator->lhsLtoR)
+    {
+        lhsValpos = derefOperand(lhsValpos, REG_TMP_L);
+    }
+    if (binaryOperator->rhsLtoR)
+    {
+        rhsValpos = derefOperand(rhsValpos, REG_TMP_R);
+    }
+    
+    /* atomizise and make modifyable */
+    switch(binaryOperator->optoken)
+    {
+        /* 3.3.5 Multiplicative operators */
+        case MUL_OP:
+        case DIV_OP:
+        case MOD_OP:
+        /* 3.3.7 Bitwise shift operators */
+        case LEFT_OP:
+        case RIGHT_OP:
+        /* 3.3.10 Bitwise AND operator */
+        case BIN_AND_OP:
+        /* 3.3.11 Bitwise exclusive OR operator */
+        case BIN_XOR_OP:
+        /* 3.3.12 Bitwise inclusive OR operator */
+        case BIN_OR_OP:
+            lhsValpos = makeAtomicModifyable(lhsValpos);
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            resultValPos = lhsValpos;
+            break;
+            
+        /* 3.3.6 Additive operators */
+        case ADD_OP:
+        case SUB_OP:
+            // add and sub do the makeAtomic themselves depending on
+            // whether it is a pointer operation or not
+            break;
+
+        /* 3.3.8 Relational operators */
+        case LT_OP:
+        case GT_OP:
+        case LE_OP:
+        case GE_OP:
+        /* 3.3.9 Equality operators */
+        case EQ_OP:
+        case NE_OP:
+        /* 3.3.13 Logical AND operator */
+        case AND_OP:
+        /* 3.3.14 Logical OR operator */
+        case OR_OP:
+            lhsValpos = makeAtomicReadable(lhsValpos, REG_TMP_L);
+            rhsValpos = makeAtomicReadable(rhsValpos);
+            resultValPos = getTmp(lhsValpos->getWordSize());
+            break;
+
+        default:
+            throw new errors::InternalCompilerException("unknown binary operator encountered");
+    }
+    
+    /* compile operation */
     
     switch(binaryOperator->optoken)
     {
@@ -1381,106 +1576,106 @@ void DirectCodeGenVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         /* 3.3.5 Multiplicative operators */
         
         case MUL_OP:
-        case DIV_OP:
-            // check that the expression type is a arithmetic type
-            if((!types::IsTypeHelper::isArithmeticType(lhsType))
-                || !types::IsTypeHelper::isArithmeticType(rhsType))
-            {
-                addError(binaryOperator, ERR_CC_BIN_EXPECTED_ARITH);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
-            binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-            binaryOperator->commonType = binaryOperator->valType->type;
+            typeImpl->mul(asm_current, lhsValpos, rhsValpos);
             break;
+            
+        case DIV_OP:
+            typeImpl->div(asm_current, lhsValpos, rhsValpos);
+            break;
+            
         case MOD_OP:
-            // check that the expression type is a integral type
-            if((!types::IsTypeHelper::isIntegralType(lhsType))
-                || !types::IsTypeHelper::isIntegralType(rhsType))
-            {
-                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
-            binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-            binaryOperator->commonType = binaryOperator->valType->type;
+            typeImpl->mod(asm_current, lhsValpos, rhsValpos);
             break;
         
-            
         /* 3.3.6 Additive operators */
         
         case ADD_OP:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
+            if (binaryOperator->lhsPtr || binaryOperator->rhsPtr)
             {
-                // both are arithmetic types
-                // promote:
-                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-                binaryOperator->commonType = binaryOperator->valType->type;
-            }
-            else if(((types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isIntegralType(rhsType)))
-
-            {
-                // pointer op
-                binaryOperator->rhsPtr = true;
-                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                binaryOperator->commonType = types::IntegralPromotion::promote(rhsType);
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
-            }
-            else if ((types::IsTypeHelper::isIntegralType(lhsType))
-                && types::IsTypeHelper::isPointerType(rhsType))
-            {
-                // pointer op
-                binaryOperator->rhsPtr = true;
-                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(rhsType);
-                binaryOperator->commonType = types::IntegralPromotion::promote(lhsType);
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(rhsType, lhsVtype, rhsVtype);
+                // assert type size == 1
+                if (typeImpl->getWordSize() != 1)
+                    throw new errors::InternalCompilerException("type implementation for pointer operation has size != 1");
+                
+                // this is a pointer operation
+                if (binaryOperator->lhsPtr)
+                {
+                    lhsValpos = makeAtomicModifyable(lhsValpos);
+                    rhsValpos = makeAtomicReadable(rhsValpos);
+                    if (binaryOperator->pointerSize > 1)
+                    {
+                        typeImpl->mul(asm_current, lhsValpos, ValuePosition::createAtomicConstPos(binaryOperator->pointerSize));
+                    }
+                    typeImpl->add(asm_current, lhsValpos, rhsValpos);
+                    resultValPos = lhsValpos;
+                }
+                else
+                {
+                    lhsValpos = makeAtomicReadable(lhsValpos);
+                    rhsValpos = makeAtomicModifyable(rhsValpos);
+                    if (binaryOperator->pointerSize > 1)
+                    {
+                        typeImpl->mul(asm_current, rhsValpos, ValuePosition::createAtomicConstPos(binaryOperator->pointerSize));
+                    }
+                    typeImpl->add(asm_current, rhsValpos, lhsValpos);
+                    resultValPos = rhsValpos;
+                }
             }
             else
             {
-                addError(binaryOperator, ERR_CC_BIN_ADD_INVALID_TYPES);
-                binaryOperator->valType = getInvalidValType();
-                return;
+                // this is just a simple arithmetic add
+                lhsValpos = makeAtomicModifyable(lhsValpos);
+                rhsValpos = makeAtomicReadable(rhsValpos);
+                typeImpl->add(asm_current, lhsValpos, rhsValpos);
+                resultValPos = lhsValpos;
             }
             break;
+            
         case SUB_OP:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
+            if (binaryOperator->lhsPtr && binaryOperator->rhsPtr)
             {
-                // both are arithmetic types
-                // promote:
-                binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-                binaryOperator->commonType = binaryOperator->valType->type;
-            } else if((binaryOperator->optoken == SUB_OP)
-                && (types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isPointerType(rhsType))
+                // assert type size == 1
+                if (typeImpl->getWordSize() != 1)
+                    throw new errors::InternalCompilerException("type implementation for pointer operation has size != 1");
+                
+                // pointer subtraction
+                lhsValpos = makeAtomicModifyable(lhsValpos);
+                rhsValpos = makeAtomicReadable(rhsValpos);
+                typeImpl->sub(asm_current, lhsValpos, rhsValpos);
+                if (binaryOperator->pointerSize > 1)
+                    typeImpl->div(asm_current, lhsValpos, ValuePosition::createAtomicConstPos(binaryOperator->pointerSize));
+                resultValPos = lhsValpos;
+            }
+            else if (binaryOperator->lhsPtr)
             {
-                // TODO add ptrdiff_t to stddef.h
-                binaryOperator->lhsPtr = true;
-                binaryOperator->rhsPtr = true;
-                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                // TODO properly check for compatible types pointed to
-                if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
+                // assert type size == 1
+                if (typeImpl->getWordSize() != 1)
+                    throw new errors::InternalCompilerException("type implementation for pointer operation has size != 1");
+                
+                // pointer - integer
+                if (binaryOperator->pointerSize > 1)
                 {
-                    addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
-                    binaryOperator->valType = getInvalidValType();
-                    return;
+                    // TODO this is less than optimal:
+                    lhsValpos = makeAtomicModifyable(lhsValpos);
+                    rhsValpos = makeAtomicModifyable(rhsValpos, REG_TMP_R);
+                    typeImpl->mul(asm_current, rhsValpos, ValuePosition::createAtomicConstPos(binaryOperator->pointerSize));
+                    typeImpl->sub(asm_current, lhsValpos, rhsValpos);
+                    resultValPos = lhsValpos;
                 }
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-            } else if((types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isIntegralType(rhsType))
-            {
-                binaryOperator->lhsPtr = true;
-                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                binaryOperator->commonType = types::IntegralPromotion::promote(rhsType);
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
+                else
+                {
+                    lhsValpos = makeAtomicModifyable(lhsValpos);
+                    rhsValpos = makeAtomicReadable(rhsValpos);
+                    typeImpl->sub(asm_current, lhsValpos, rhsValpos);
+                    resultValPos = lhsValpos;
+                }
             }
             else
             {
-                addError(binaryOperator, ERR_CC_BIN_SUB_INVALID_TYPES);
-                binaryOperator->valType = getInvalidValType();
-                return;
+                // arithmetic subtraction
+                lhsValpos = makeAtomicModifyable(lhsValpos);
+                rhsValpos = makeAtomicReadable(rhsValpos);
+                typeImpl->sub(asm_current, lhsValpos, rhsValpos);
+                resultValPos = lhsValpos;
             }
             break;
             
@@ -1488,93 +1683,33 @@ void DirectCodeGenVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         /* 3.3.7 Bitwise shift operators */
             
         case LEFT_OP:
+            typeImpl->shl(asm_current, lhsValpos, rhsValpos);
+            break;
         case RIGHT_OP:
-            // check that the expression type is a integral type
-            if((!types::IsTypeHelper::isIntegralType(lhsType))
-                || !types::IsTypeHelper::isIntegralType(rhsType))
-            {
-                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
-            
-            binaryOperator->commonType = valuetypes::PromotionHelper::promote(lhsVtype)->type;
-            binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(binaryOperator->commonType, lhsVtype, rhsVtype);
+            typeImpl->shr(asm_current, lhsValpos, rhsValpos);
             break;
             
         /* 3.3.8 Relational operators */
         case LT_OP:
-        case GT_OP:
-        case LE_OP:
-        case GE_OP:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
-            {
-                // both are arithmetic types
-                // promote:
-                binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-            } else if((types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isPointerType(rhsType))
-            {
-                binaryOperator->lhsPtr = true;
-                binaryOperator->rhsPtr = true;
-                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                
-                // TODO properly check for compatible types pointed to
-                if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
-                {
-                    addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
-                    binaryOperator->valType = getInvalidValType();
-                    return;
-                }
-                
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-            }
-            else
-            {
-                addError(binaryOperator, ERR_CC_COMP_INVALID_TYPES);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
+            typeImpl->slt(asm_current, resultValPos, lhsValpos, rhsValpos);
             break;
-            
-        
+        case GT_OP:
+            typeImpl->sgt(asm_current, resultValPos, lhsValpos, rhsValpos);
+            break;
+        case LE_OP:
+            typeImpl->sle(asm_current, resultValPos, lhsValpos, rhsValpos);
+            break;
+        case GE_OP:
+            typeImpl->sge(asm_current, resultValPos, lhsValpos, rhsValpos);
+            break;
+
         /* 3.3.9 Equality operators */
         
         case EQ_OP:
+            typeImpl->seq(asm_current, resultValPos, lhsValpos, rhsValpos);
+            break;
         case NE_OP:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
-                && types::IsTypeHelper::isArithmeticType(rhsType))
-            {
-                // both are arithmetic types
-                // promote:
-                binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-            } else if((types::IsTypeHelper::isPointerType(lhsType))
-                && types::IsTypeHelper::isPointerType(rhsType))
-            {
-                binaryOperator->lhsPtr = true;
-                binaryOperator->rhsPtr = true;
-                binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                
-                // TODO properly check for compatible types pointed to
-                if (binaryOperator->pointerSize != types::IsTypeHelper::getPointerBaseSize(rhsType))
-                {
-                    addError(binaryOperator, ERR_CC_PTR_NOT_COMPAT);
-                    binaryOperator->valType = getInvalidValType();
-                    return;
-                }
-                
-                binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
-            }
-            // TODO case for Null pointer constant
-            else
-            {
-                addError(binaryOperator, ERR_CC_COMP_INVALID_TYPES);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
+            typeImpl->sne(asm_current, resultValPos, lhsValpos, rhsValpos);
             break;
         
             
@@ -1583,44 +1718,39 @@ void DirectCodeGenVisitor::visit(astnodes::BinaryOperator * binaryOperator)
         /* 3.3.12 Bitwise inclusive OR operator */
         
         case BIN_AND_OP:
+            typeImpl->band(asm_current, lhsValpos, rhsValpos);
+            break;
         case BIN_XOR_OP:
+            typeImpl->bxor(asm_current, lhsValpos, rhsValpos);
+            break;
         case BIN_OR_OP:
-            // check that the expression type is a integral type
-            if((!types::IsTypeHelper::isIntegralType(lhsType))
-                || !types::IsTypeHelper::isIntegralType(rhsType))
-            {
-                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
-            
-            binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
-            binaryOperator->commonType = binaryOperator->valType->type;
+            typeImpl->bor(asm_current, lhsValpos, rhsValpos);
             break;
             
-            
-            /* 3.3.13 Logical AND operator */
-            /* 3.3.14 Logical OR operator */
+        /* 3.3.13 Logical AND operator */
+        /* 3.3.14 Logical OR operator */
             
         case AND_OP:
+            typeImpl->land(asm_current, resultValPos, lhsValpos, rhsValpos);
+            break;
         case OR_OP:
-            
-            // check that the expression type is a integral type
-            if((!types::IsTypeHelper::isIntegralType(lhsType))
-                || !types::IsTypeHelper::isIntegralType(rhsType))
-            {
-                addError(binaryOperator, ERR_CC_BIN_EXPECTED_INTEGRAL);
-                binaryOperator->valType = getInvalidValType();
-                return;
-            }
-
-            binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
-            binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
+            typeImpl->lor(asm_current, resultValPos, lhsValpos, rhsValpos);
             break;
             
         default:
             throw new errors::InternalCompilerException("unknown binary operator encountered");
     }
+    
+    if (lhsValpos != resultValPos)
+    {
+        maybeFreeTemporary(lhsValpos);
+    }
+    if (rhsValpos != resultValPos)
+    {
+        maybeFreeTemporary(rhsValpos);
+    }
+    
+    binaryOperator->valPos = resultValPos;
 }
 
 /********************************/

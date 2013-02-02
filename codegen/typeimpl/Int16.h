@@ -38,6 +38,9 @@ namespace dtcc
             virtual std::deque<std::string> printConstant(long value);
                         
             
+            /// returns the size of the type
+            virtual void getWordSize();
+            
             /* increase/decrease ops */
             
             /// implements increase: B++
@@ -116,7 +119,7 @@ namespace dtcc
             virtual void bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements binary xor: B = B ^ A
-            virtual void bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            virtual void bxor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             
             /* logical ops */

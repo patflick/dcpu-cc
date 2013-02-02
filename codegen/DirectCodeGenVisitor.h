@@ -66,15 +66,23 @@ namespace dtcc
             int m_currentFunctionTempStackOffset;
             int m_tempStackMax;
             void maybeFreeTemporary(ValuePosition* vp);
+            ValuePosition* getTempWordPos();
             bool isFreeRegisterAvailable();
             void freeTempStack(int pos);
             int getTempStack(int size);
             
-            ValuePosition* atomizeOperand(ValuePosition* operand);
-            ValuePosition* derefOperand(ValuePosition* operand);
+            //ValuePosition* atomizeOperand(ValuePosition* operand);
+            ValuePosition* makeAtomicModifyable(ValuePosition* operandVP);
+            ValuePosition* makeAtomicModifyable(ValuePosition* operandVP, ValPosRegister tmpReg);
+            ValuePosition* makeAtomicReadable(ValuePosition* operandVP);
+            ValuePosition* makeAtomicReadable(ValuePosition* operandVP, ValPosRegister tmpReg);
+            ValuePosition* makeAtomicDerefable(ValuePosition* operandVP, ValPosRegister regist);
+            ValuePosition* derefOperand(ValuePosition* operand, ValPosRegister tmpRegist);
             TypeImplementation* getTypeImplementation(types::Type* type);
             ValuePosition* pushToStack(ValuePosition* valPos);
             ValuePosition* getTmpCopy(ValuePosition* from);
+            void copyValue(ValuePosition* from, ValuePosition* to);
+            ValuePosition* getTmp(int size);
             
             /* automatic/random label management */
             // TODO this is still a duplicate from SemanticCheck Visitor

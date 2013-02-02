@@ -54,6 +54,17 @@ ValuePosition* ValuePosition::createTempStackWord(int offset)
     return pos;
 }
 
+ValuePosition* ValuePosition::createTempStack(int offset, int size)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = FP_REL;
+    pos->offset = offset;
+    pos->isDeref = false;
+    pos->isTemp = true;
+    pos->size = size;
+    return pos;
+}
+
 ValuePosition* ValuePosition::createAtomicConstPos(uint16_t val)
 {
     std::stringstream strstr;
@@ -107,6 +118,11 @@ bool ValuePosition::isTempStack()
         return true;
     else
         return false;
+}
+
+bool ValuePosition::isModifyableTemp()
+{
+    return this->isTemp;
 }
 
 int ValuePosition::getOffset()

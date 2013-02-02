@@ -19,12 +19,12 @@
 using namespace dtcc::codegen;
 
 
-std::deque<std::string> printConstant(double value)
+std::deque<std::string> Int16::printConstant(double value)
 {
     return printConstant((long) value);
 }
 
-std::deque<std::string> printConstant(long value)
+std::deque<std::string> Int16::printConstant(long value)
 {
     std::deque<std::string> result;
     std::stringstream strstr;
@@ -32,6 +32,11 @@ std::deque<std::string> printConstant(long value)
     strstr << "0x" << std::hex << val16;
     result.push_back(strstr.str());
     return result;
+}
+
+void Int16::getWordSize()
+{
+    return 1;
 }
 
 
@@ -149,7 +154,7 @@ void Int16::bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 
 
 /// implements binary xor: B = B ^ A
-void Int16::bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
+void Int16::bxor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     ass << "XOR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
 }
