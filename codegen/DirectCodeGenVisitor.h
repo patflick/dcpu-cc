@@ -51,6 +51,9 @@ namespace dtcc
             
             std::stringstream asm_current;
             
+            
+            
+            
             GetTypeImplVisitor getTypeImpl;
             
             const Assembler assembler;
@@ -85,13 +88,15 @@ namespace dtcc
             void copyValue(ValuePosition* from, ValuePosition* to);
             ValuePosition* getTmp(int size);
             
+            ValuePosition* typePositionToValuePosition(symboltable::TypePosition typePos, unsigned int size);
+            
             /* automatic/random label management */
             // TODO this is still a duplicate from SemanticCheck Visitor
             // TODO put this in some unified helper class
             std::set<std::string> m_AutomaticLabels;
-            astnodes::LabelStatement* getRandomLabel(std::string prefix);
             static char getRandomCharacter();
             static std::string getRandomString(std::string::size_type sz);
+            std::string getRandomLabelName(std::string prefix);
             
             
             /* TODO this needs to be removed once work is done on this */
@@ -103,6 +108,7 @@ namespace dtcc
             bool isDebug;
             
         public:
+            std::string getAssembly();
             
             DirectCodeGenVisitor();
             

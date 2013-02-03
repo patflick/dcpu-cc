@@ -14,6 +14,7 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>
 
 namespace dtcc
 {
@@ -35,7 +36,8 @@ namespace dtcc
             
             /// @brief Constructs a new InternalCompilerException.
             /// @param message The message for the new internal compiler exception.
-            InternalCompilerException(std::string message) : m_Message(message) { };
+            InternalCompilerException(std::string message) : m_Message(message) {
+            };
             
             /// @brief The destructor.
             virtual ~InternalCompilerException() throw() { };

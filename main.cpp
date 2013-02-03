@@ -3,6 +3,7 @@
 #include <visitor/PrintAstVisitor.h>
 #include <visitor/SemanticCheckVisitor.h>
 #include <errors/InternalCompilerException.h>
+#include <codegen/DirectCodeGenVisitor.h>
 
 #include <iostream>
 #include <fstream>
@@ -68,7 +69,28 @@ int main(int argc, char **argv) {
         std::cout << "INTERNAL COMPILER EXCEPTION: " << e->getMessage() << std::endl;
     }
     
-    semCheck->printErrorsAndWarnings();
+    if (semCheck->hasErrors())
+    {
+        semCheck->printErrorsAndWarnings();
+    }
+    else
+    {
+        std::cout << "No Semantic errors, trying Code generation... " << std::endl;
+        // try to compile
+        Assembler::loadAll();
+        dtcc::codegen::DirectCodeGenVisitor* codegen = new dtcc::codegen::DirectCodeGenVisitor();
+        try{
+            program->accept(*codegen);
+            
+            std::string code = codegen->getAssembly();
+            std::cout << code;
+        }
+        catch (dtcc::errors::InternalCompilerException*  e)
+        {
+            std::cout << "INTERNAL COMPILER EXCEPTION: " << e->getMessage() << std::endl;
+        }
+    }
+    
     
     delete(program);
     

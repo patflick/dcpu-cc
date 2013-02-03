@@ -70,6 +70,13 @@ ValuePosition* ValuePosition::createRegisterPos(ValPosRegister regist)
     return pos;
 }
 
+ValuePosition* ValuePosition::createTmpRegisterPos(ValPosRegister regist)
+{
+    ValuePosition* pos = ValuePosition::createRegisterPos(regist);
+    pos->isTemp = true;
+    return pos;
+}
+
 ValuePosition* ValuePosition::createTempStackWord(int offset)
 {
     ValuePosition* pos = new ValuePosition();
@@ -88,6 +95,17 @@ ValuePosition* ValuePosition::createTempStack(int offset, int size)
     pos->offset = offset;
     pos->isDeref = false;
     pos->isTemp = true;
+    pos->size = size;
+    return pos;
+}
+
+ValuePosition* ValuePosition::createFPrel(int offset, int size)
+{
+    ValuePosition* pos = new ValuePosition();
+    pos->posType = FP_REL;
+    pos->offset = offset;
+    pos->isDeref = false;
+    pos->isTemp = false;
     pos->size = size;
     return pos;
 }
@@ -185,7 +203,7 @@ bool ValuePosition::canAtomicDeref()
 
 bool ValuePosition::isAtomicOperand()
 {
-    if (!this->isDeref && (this->posType == LABEL_REL || this->posType == REG_REL || this->posType == STACK_REL))
+    if (!this->isDeref && (this->posType == LABEL_REL || this->posType == REG_REL || this->posType == STACK_REL || this->posType == FP_REL))
         return false;
     else if (this->isDeref && this->posType == LABEL_REL)
         return false;
@@ -241,7 +259,7 @@ ValuePosition* ValuePosition::adrToRegister(AsmBlock& ass, ValPosRegister regist
         case LABEL_REL:
         case FP_REL:
         case STACK_REL:
-            ass << "ADD " << this->registerToString(regist) << ", 0x" << std::hex << this->offset << std::endl;
+            ass << "ADD " << this->registerToString(regist) << ", 0x" << std::hex << (int16_t) this->offset << std::endl;
             break;
         default:
             break;
@@ -278,14 +296,13 @@ std::string ValuePosition::baseToString()
             break;
         case REG:
             base << this->registerToString(this->regist);
-            base << this->registerToString(this->regist);
             break;
         case STACK:
         case STACK_REL:
             base << "SP";
             break;
         case CONST_LITERAL:
-            base << "0x" << std::hex << this->constValue;
+            base << this->constValue;
             break;
     }
     return base.str();

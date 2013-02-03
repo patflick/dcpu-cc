@@ -88,11 +88,13 @@ namespace dtcc
             
             static ValuePosition* createLabelPos(std::string label);
             static ValuePosition* createRegisterPos(ValPosRegister regist);
+            static ValuePosition* createTmpRegisterPos(ValPosRegister regist);
             static ValuePosition* createTempStackWord(int offset);
             static ValuePosition* createStackPos(int size);
             static ValuePosition* createAtomicConstPos(std::string val);
             static ValuePosition* createAtomicConstPos(uint16_t val);
             static ValuePosition* createTempStack(int offset, int size);
+            static ValuePosition* createFPrel(int offset, int size);
             
             bool usesRegister();
             bool isStackPos();

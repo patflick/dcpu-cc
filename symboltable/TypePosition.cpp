@@ -14,6 +14,8 @@
 #include <sstream>
 #include "TypePosition.h"
 
+using namespace dtcc::symboltable;
+
 TypePosition::TypePosition(bool isFound, bool isGlobal, bool isFunctionParameter, bool previousStackFrame, uint16_t position)
 {
     this->m_Found = isFound;
@@ -58,6 +60,47 @@ bool TypePosition::isAtomiclyAddressable()
         return false;
         
     return true;
+}
+
+bool TypePosition::isFPrel()
+{
+    if (!this->m_Found)
+        return false;
+    if (this->m_Global)
+        return false;
+    if (this->m_Function)
+        return false;
+    if (this->m_PreviousStackFrame)
+        return false;
+    return true;
+}
+
+int TypePosition::getFPoffset()
+{
+    if (this->m_IsFunctionParameter)
+    {
+        return this->m_Position;
+    }
+    else
+    {
+        // locals stack
+        return -3-this->m_Position;
+    }
+}
+
+bool TypePosition::isGlobal()
+{
+    return this->m_Global;
+}
+
+std::string TypePosition::getGlobalLabel()
+{
+    return std::string("");
+}
+
+std::string TypePosition::getFunctionName()
+{
+    return this->m_FunctionName;
 }
 
 /*

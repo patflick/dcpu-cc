@@ -957,12 +957,13 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
             (*i)->accept(*this);
         
     // TODO check for compatibility of init types
-    for (astnodes::Expressions::iterator init = arrayDeclarator->initializers->begin(); init != arrayDeclarator->initializers->end(); ++init)
-    {
-        
-        // check that the type is compatible
-        // TODO
-    }
+    if (arrayDeclarator->initializers != NULL)
+        for (astnodes::Expressions::iterator init = arrayDeclarator->initializers->begin(); init != arrayDeclarator->initializers->end(); ++init)
+        {
+            
+            // check that the type is compatible
+            // TODO
+        }
 }
 
 
@@ -1433,6 +1434,9 @@ void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
     {
         identifier->valType = new valuetypes::LValue(varType);
     }
+    
+    // assign typeposition
+    identifier->typePos = this->m_symbolTable->getPositionOfVariable(identifier->name);
 }
 
 
@@ -1714,11 +1718,11 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     
     if (valuetypes::IsValueTypeHelper::isLValue(vtype))
     {
-        unaryOperator->LtoR = true;
+        
         if (types::IsTypeHelper::isArrayType(type))
-        {
             type = types::IsTypeHelper::pointerFromArrayType(type);
-        }
+        else
+            unaryOperator->LtoR = true;
     }
     
     switch(unaryOperator->optoken)
@@ -1818,19 +1822,18 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     /* check for LValue to RValue conversions */
     if (valuetypes::IsValueTypeHelper::isLValue(lhsVtype))
     {
-        binaryOperator->lhsLtoR = true;
+        
         if (types::IsTypeHelper::isArrayType(lhsType))
-        {
             lhsType = types::IsTypeHelper::pointerFromArrayType(lhsType);
-        }
+        else
+            binaryOperator->lhsLtoR = true;
     }
     if (valuetypes::IsValueTypeHelper::isLValue(rhsVtype))
     {
-        binaryOperator->rhsLtoR = true;
         if (types::IsTypeHelper::isArrayType(rhsType))
-        {
             rhsType = types::IsTypeHelper::pointerFromArrayType(rhsType);
-        }
+        else
+            binaryOperator->rhsLtoR = true;
     }
     
     
@@ -2125,11 +2128,10 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     /* check for LtoR conversion */
     if (valuetypes::IsValueTypeHelper::isLValue(rhsVtype))
     {
-        assignmentOperator->rhsLtoR = true;
         if (types::IsTypeHelper::isArrayType(rhsType))
-        {
             rhsType = types::IsTypeHelper::pointerFromArrayType(rhsType);
-        }
+        else
+            assignmentOperator->rhsLtoR = true;
     }
     
     /* convert array to pointer type */
@@ -2157,12 +2159,14 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             {
                 // TODO properly check for compatible types pointed to
                 assignmentOperator->ptrop = true;
+                assignmentOperator->commonType = new types::UnsignedInt();
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
             }
             else if((types::IsTypeHelper::isStructUnionType(lhsType))
                 && types::IsTypeHelper::isStructUnionType(rhsType))
             {
                 // TODO properly check for compatible structs/unions
+                assignmentOperator->commonType = lhsType;
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
             }
             else
@@ -2192,6 +2196,7 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             {
                 // pointer op
                 assignmentOperator->ptrop = true;
+                assignmentOperator->commonType = new types::UnsignedInt();
                 assignmentOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
             }

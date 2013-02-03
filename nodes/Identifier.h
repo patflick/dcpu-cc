@@ -17,12 +17,15 @@
 // include needed nodes
 #include "Expression.h"
 #include <string>
+#include <symboltable/TypePosition.h>
+
 
 namespace dtcc
 {
     namespace astnodes
     {
-
+        using namespace dtcc;
+        
         ///
         /// @class      Identifier
         /// @brief      The Identifier AST node.
@@ -44,7 +47,7 @@ namespace dtcc
             
         public:
             std::string& name;
-
+            symboltable::TypePosition typePos;
             
         public:
             ///

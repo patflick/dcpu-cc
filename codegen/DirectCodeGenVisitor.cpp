@@ -49,8 +49,58 @@ void DirectCodeGenVisitor::printAstName(const char * name)
 std::string DirectCodeGenVisitor::getFileAndLineState(astnodes::Node* node)
 {
     std::stringstream str;
-    str << ".ULINE " << node->line << " \"" << node->file << "\"";
+    str << ".ULINE " << node->line << " \"" << node->file << "\"" << std::endl;
     return str.str();
+}
+
+std::string DirectCodeGenVisitor::getAssembly()
+{
+    std::stringstream ss;
+    ss << "; ================================================" << std::endl;
+    ss << ";  dtcc2 - an ANSI C (C89) compiler for the DCPU"   << std::endl;
+    ss << "; ================================================" << std::endl;
+    ss << ";  Repository: https://github.com/r4d2/dtcc2" << std::endl;
+    ss << ";  Bug reports and fixes to: https://github.com/r4d2/dtcc2/issues" << std::endl;
+    ss << std::endl;
+    ss << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << ";  Global Variables" << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << asm_globalSpace.str();
+    ss << std::endl;
+    ss << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << ";  Global Constants" << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << asm_Constants.str();
+    ss << std::endl;
+    ss << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << ";  String Constants" << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << asm_stringConstants.str();
+    ss << std::endl;
+    ss << std::endl;
+    ss << "; ------------------------" << std::endl;
+    ss << ";  Globals Initialization" << std::endl;
+    ss << "; ------------------------" << std::endl;
+    ss << ".SECTION INIT" << std::endl;
+    ss << asm_globalInit.str();
+    ss << std::endl;
+    ss << std::endl;
+    
+    ss << "; ------------------" << std::endl;
+    ss << ";  Code (functions)" << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << ".SECTION CODE" << std::endl;
+    for (std::deque<std::string>::iterator i = asm_functions.begin(); i != asm_functions.end(); ++i)
+    {
+        ss << *i;
+    }
+    ss << std::endl;
+    ss << std::endl;
+    
+    return ss.str();
 }
 
 
@@ -167,7 +217,7 @@ ValuePosition* DirectCodeGenVisitor::getTempWordPos()
     if (isFreeRegisterAvailable())
     {
         ValPosRegister reg = getFreeRegister();
-        return ValuePosition::createRegisterPos(reg);
+        return ValuePosition::createTmpRegisterPos(reg);
     }
     else
     {
@@ -197,17 +247,14 @@ void DirectCodeGenVisitor::releaseRegister(ValPosRegister regist)
 }
 
 
-
-
-// Generates a random, unique label for use in code.
-astnodes::LabelStatement* DirectCodeGenVisitor::getRandomLabel(std::string prefix)
+std::string DirectCodeGenVisitor::getRandomLabelName(std::string prefix)
 {
     std::string result = "";
     
     while ((result == "") || (this->m_AutomaticLabels.find(result) != this->m_AutomaticLabels.end()))
         result = prefix + "_" + DirectCodeGenVisitor::getRandomString(10);
     
-    return new astnodes::LabelStatement(result, new astnodes::EmptyStatement());
+    return result;
 }
 
 // Generates a random character.
@@ -738,6 +785,20 @@ void DirectCodeGenVisitor::visit(astnodes::TypeQualifier * typeQualifier)
 
 /* identifier */
 
+ValuePosition* DirectCodeGenVisitor::typePositionToValuePosition(symboltable::TypePosition typePos, unsigned int size)
+{
+    // TODO
+    if (typePos.isFPrel())
+    {
+        return ValuePosition::createFPrel(typePos.getFPoffset(), size);
+    }
+    else
+    {
+        throw new errors::InternalCompilerException("FIXME implement global vars and functions");
+    }
+}
+
+
 void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
 {
     // huge TODO
@@ -780,6 +841,16 @@ void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
     
     // Ideas:
     //  - terminal 
+    
+    // TODO get value position from identifier (should be on the local or global stack !?)
+    // TODO
+    types::Type* type = identifier->valType->type;
+    if (types::IsTypeHelper::isArrayType(type))
+    {
+        type = types::IsTypeHelper::pointerFromArrayType(type);
+    }
+    unsigned int size = type->getWordSize();
+    identifier->valPos = typePositionToValuePosition(identifier->typePos, size);
 }
 
 
@@ -789,7 +860,7 @@ ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
 {
     if (vals.size() > 1)
     {
-        std::string label = getRandomLabel("constant_")->label;
+        std::string label = getRandomLabelName("constant_");
         asm_Constants << label << ":" << std::endl;
         asm_Constants << "    DAT ";
         for (std::deque<std::string>::iterator it = vals.begin(); it != vals.end(); ++it)
@@ -935,7 +1006,7 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
     outputstr << "\"";
     
     // add string constant to global string constants
-    std::string label = getRandomLabel("string_const_")->label;
+    std::string label = getRandomLabelName(std::string("string_const_"));
     asm_stringConstants << label << ":" << std::endl;
     asm_stringConstants << "    DAT " << outputstr.str() << ", 0x0" << std::endl;
     
@@ -1137,8 +1208,8 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
             stackoffset++;
         }
         
-        std::string loopLabel = getRandomLabel("copy_loop_")->label;
-        std::string loopEndLabel = getRandomLabel("copy_loop_")->label;
+        std::string loopLabel = getRandomLabelName("copy_loop_");
+        std::string loopEndLabel = getRandomLabelName("copy_loop_");
         
         // set up registers and stack pointer 
         // TODO i have the feeling this could be done more efficient :(
@@ -1775,6 +1846,7 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         rhsValpos = derefOperand(rhsValpos, REG_TMP_R);
     }
     
+    
     ValuePosition* lhsOperandVP = makeAtomicDerefable(lhsValpos, REG_TMP_L);
     bool createCopy = false;
     if (lhsOperandVP != lhsValpos)
@@ -1792,6 +1864,10 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         /* 3.3.16.1 Simple assignment */
         
         case ASSIGN_EQUAL:
+            if(!rhsValpos->isAtomicOperand())
+            {
+                rhsValpos = rhsValpos->valToRegister(asm_current, REG_TMP_R);
+            }
             copyValue(rhsValpos, lhsOperandVP);
             break;
             

@@ -106,6 +106,11 @@ namespace dtcc
             {
                 this->m_errorList.printall();
             }
+            // TODO do this properly
+            bool hasErrors()
+            {
+                return this->m_errorList.hasErrors();
+            }
             
             ///
             /// @brief      Visit function of the visitor pattern.
