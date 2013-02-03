@@ -1089,21 +1089,27 @@ void SemanticCheckVisitor::visit(astnodes::TypeName * typeName)
     // get type from declaration specifiers
     types::Type* declType = declSpecsToType(typeName->declSpecifiers);
     
-    // put the declaration type on the stack
-    this->m_declTypeStack.push_back(declType);
-    this->m_declIsStored.push_back(false);
+    if (typeName->abstrDeclarator != NULL)
+    {
+        // put the declaration type on the stack
+        this->m_declTypeStack.push_back(declType);
+        this->m_declIsStored.push_back(false);
 
-    // call declarator recursively in order to get the actuay declaration type
-    this->m_saveParams.push_back(false);
-    typeName->abstrDeclarator->accept(*this);
-    
-    // get type and name of actual declarator
-    types::Type* actualDeclType = this->m_declTypeStack.back();
-    this->m_declTypeStack.pop_back();
-    this->m_declNameStack.pop_back();
-    this->m_saveParams.pop_back();
-    
-    typeName->type = actualDeclType;
+        // call declarator recursively in order to get the actuay declaration type
+        this->m_saveParams.push_back(false);
+        typeName->abstrDeclarator->accept(*this);
+        
+        // get type and name of actual declarator
+        types::Type* actualDeclType = this->m_declTypeStack.back();
+        this->m_declTypeStack.pop_back();
+        this->m_declNameStack.pop_back();
+        this->m_saveParams.pop_back();
+        typeName->type = actualDeclType;
+    }
+    else
+    {
+        typeName->type = declType;
+    }
 }
 
 
@@ -1388,8 +1394,16 @@ void SemanticCheckVisitor::visit(astnodes::EnumSpecifier * enumSpecifier)
 
 void SemanticCheckVisitor::visit(astnodes::TypeNameSpecifier * typeNameSpecifier)
 {
-    printAstName("TypeNameSpecifier");
-    typeNameSpecifier->allChildrenAccept(*this);
+    types::Type* type = m_symbolTable->getTagType(typeNameSpecifier->name);
+    
+    if (type == NULL)
+    {
+        addError(typeNameSpecifier, ERR_CC_INVALID_TYPENAME, typeNameSpecifier->name);
+        return;
+    }
+    
+    declSpecs.isAdvType = true;
+    declSpecs.type = type;
 }
 
 
@@ -2452,7 +2466,7 @@ void SemanticCheckVisitor::visit(astnodes::TypeConversionOperator * typeConv)
         typeConv->LtoR = true;
     }
     
-    typeConv->valType = valuetypes::IsValueTypeHelper::toRValue(typeConv->expr->valType);
+    typeConv->valType = new valuetypes::RValue(typeConv->toType);
 }
 
 

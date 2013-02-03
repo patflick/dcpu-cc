@@ -84,7 +84,7 @@ int TypePosition::getFPoffset()
     else
     {
         // locals stack
-        return -3-this->m_Position;
+        return -2-this->m_Position;
     }
 }
 

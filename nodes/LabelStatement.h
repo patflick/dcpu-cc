@@ -43,7 +43,7 @@ namespace dtcc
             void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
-            std::string& label;
+            std::string label;
             Statement * statement;
 
             
@@ -54,7 +54,7 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            LabelStatement(std::string& label, Statement * statement) : label(label), statement(statement) {}
+            LabelStatement(std::string label, Statement * statement) : label(label), statement(statement) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

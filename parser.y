@@ -258,6 +258,14 @@ unary_expression
         {
             $$ = new UnaryOperator($1, $2);
         }
+        | BIN_AND_OP unary_expression
+        {
+            $$ = new AddressOfOperator($2);
+        }
+        | MUL_OP unary_expression
+        {
+            $$ = new DerefOperator($2);
+        }
         | SIZEOF unary_expression
         {
             $$ = new SizeOfOperator($2);
@@ -269,9 +277,7 @@ unary_expression
         ;
 
 unary_operator
-        : BIN_AND_OP
-        | MUL_OP
-        | ADD_OP
+        : ADD_OP
         | SUB_OP
         | BIN_INV_OP
         | NOT_OP

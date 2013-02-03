@@ -26,7 +26,7 @@ isTemp(false), offset(0), constValue(std::string("")), labelName(std::string("")
 
 ValuePosition::ValuePosition(ValuePosition& vp) : 
 posType(vp.posType), size(vp.size), isDeref(vp.isDeref), isAdr(vp.isAdr),
-isTemp(vp.isTemp), offset(vp.offset), constValue(vp.constValue), labelName(vp.labelName)
+isTemp(vp.isTemp), offset(vp.offset), constValue(vp.constValue), labelName(vp.labelName), regist(vp.regist)
 {
     
 }
@@ -229,6 +229,7 @@ ValuePosition* ValuePosition::atomicDeref()
     }
     ValuePosition* newVP = new ValuePosition(*this);
     newVP->isDeref = true;
+    return newVP;
 }
 
 ValuePosition* ValuePosition::atomicDerefOffset(int offset)
@@ -274,12 +275,20 @@ ValuePosition* ValuePosition::adrToRegister(AsmBlock& ass, ValPosRegister regist
 
 ValuePosition* ValuePosition::valToRegister(AsmBlock& ass, ValPosRegister regist)
 {
-    ValuePosition* newVP = this->adrToRegister(ass, regist);
-    if (this->isDeref)
+    if (this->isAtomicOperand())
     {
-        ass << "SET " << this->registerToString(regist) << ", [" << this->registerToString(regist) << "]" << std::endl;
+        ass << "SET " << this->registerToString(regist) << ", " << this->toAtomicOperand() << std::endl;
+        return ValuePosition::createRegisterPos(regist);
     }
-    return newVP;
+    else
+    {
+        ValuePosition* newVP = this->adrToRegister(ass, regist);
+        if (this->isDeref)
+        {
+            ass << "SET " << this->registerToString(regist) << ", [" << this->registerToString(regist) << "]" << std::endl;
+        }
+        return newVP;
+    }
 }
 
 std::string ValuePosition::baseToString()
@@ -317,7 +326,10 @@ std::string ValuePosition::toAtomicOperand()
         case LABEL_REL:
         case FP_REL:
         case STACK_REL:
-            base << " + " << this->offset;
+            if (this->offset > 0)
+                base << " + " << this->offset;
+            else if (this->offset < 0)
+                base << " - " << -this->offset;
             break;
         default:
             break;

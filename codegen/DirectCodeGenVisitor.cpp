@@ -1216,11 +1216,10 @@ ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP, ValP
             newVP = operandVP->atomicDeref();
         else
         {
-            if (!operandVP->isAtomicOperand() || !operandVP->isModifyableTemp())
-                newVP = getTmpCopy(operandVP);
-            
             ValuePosition* tmpRegVP = newVP->valToRegister(asm_current, tmpRegist);
             tmpRegVP = tmpRegVP->atomicDeref();
+            if ((!operandVP->isAtomicOperand()) || (!operandVP->isModifyableTemp()))
+                newVP = getTmp(1);
             copyValue(tmpRegVP, newVP);
         }
     }
@@ -1616,11 +1615,18 @@ void DirectCodeGenVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
 
 void DirectCodeGenVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOperator)
 {
-    // TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    printAstName("ExplicitCastOperator");
+    // compile sub expression
     explicitCastOperator->allChildrenAccept(*this);
+    
+    ValuePosition* valPos = explicitCastOperator->expr->valPos;
+    
+    /* LValue to RValue deref */
+    if (explicitCastOperator->LtoR)
+    {
+        valPos = derefOperand(valPos, REG_TMP_R);
+    }
+    
+    explicitCastOperator->valPos = valPos;
 }
 
 
@@ -2040,6 +2046,9 @@ void DirectCodeGenVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversionOperator)
 {
+    // compile sub expression
+    typeConversionOperator->allChildrenAccept(*this);
+    
     types::Type* from = typeConversionOperator->fromType;
     types::Type* to = typeConversionOperator->toType;
     
@@ -2048,10 +2057,23 @@ void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversio
     ValuePosition* toValPos = fromValPos;
     bool delTemp = false;
     
+    /* LValue to RValue deref */
+    if (typeConversionOperator->LtoR)
+    {
+        fromValPos = derefOperand(fromValPos, REG_TMP_R);
+    }
+    
+    
     if (to->getWordSize() != from->getWordSize())
     {
+        fromValPos = makeAtomicReadable(fromValPos);
         delTemp = true;
         toValPos = getTmp(to->getWordSize());
+    }
+    else
+    {
+        fromValPos = makeAtomicModifyable(fromValPos);
+        toValPos = fromValPos;
     }
     
     TypeConversions::convert(from, to, asm_current, toValPos, fromValPos);

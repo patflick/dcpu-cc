@@ -16,7 +16,7 @@ using namespace dtcc::astnodes;
 // implements the destructor, which deletes all children
 Expression::~Expression()
 {
-    this->safe_delete(valType);
+    //this->safe_delete(valType);
 }
 
 ///

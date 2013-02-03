@@ -96,3 +96,6 @@ ERR_CC_ADRESS_OF_NON_LVALUE                          cc-adress-of-non-lvalue    
 
 ERR_CC_INVALID_EXPLICIT_CAST                         cc-invalid-explicit-cast                 "invalid explicit cast."
 ERR_CC_SIZEOF_INCOMPLETE                             cc-sizeof-incomplete                     "can not get size of incomplete type"
+ERR_CC_INVALID_TYPENAME                              cc-invalid-typename                      "typename `%s` is not in the current scope"
+
+
