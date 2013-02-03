@@ -1,0 +1,89 @@
+# Visual Studio files #
+#######################
+*.sln
+*.sdf
+*.suo
+*.user
+*.opensdf
+*.vcxproj
+*.vcxproj.filters
+ipch/*
+
+# KDevelop4 files #
+###################
+*.kdev4
+
+# Vim and backup files #
+########################
+*.swp
+*~
+
+# Binary files #
+################
+*.exe
+*.dll
+*.lib
+*.obj
+*.log
+*.manifest
+*.res
+*.rc
+*.tlog
+*.idb
+*.pdb
+*.lastbuildstate
+*.check_cache
+*.bin
+*parser.output
+
+# Unix make and binary files #
+##############################
+*.a
+Makefile
+
+
+# Distribution folder #
+#######################
+build
+tools
+tests
+dist/*
+Debug/*
+Release/*
+*/Debug/*
+*/Release/*
+
+# CMake files #
+###############
+CMakeCache.txt
+CTestCostData.txt
+CMakeFiles/*
+*/CMakeFiles/*
+*/*/CMakeFiles/*
+*/*/*/CMakeFiles/*
+*/*/*/*/CMakeFiles/*
+*.rule
+*/*.dir/*
+*/lexer.c
+*/lexer.h
+*/parser.c
+*/parser.h
+*/lexer.cpp
+*/lexer.hpp
+*/parser.cpp
+*/parser.hpp
+cmake_install.cmake
+CTestTestfile.cmake
+*mingw32*.cmake
+curlbuild.h.cmake
+
+
+# Build artifacts #
+###################
+*.o
+*.oa
+*.os
+*.dcpu16
+*.dobj16
+errors/derr.defs.cpp
+errors/derr.defs.h
