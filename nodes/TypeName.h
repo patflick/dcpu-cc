@@ -18,6 +18,7 @@
 #include "Node.h"
 #include "DeclarationSpecifiers.h"
 #include "Declarator.h"
+#include <types/Type.h>
 
 
 namespace dtcc
@@ -47,6 +48,7 @@ namespace dtcc
         public:
             DeclarationSpecifiers * declSpecifiers;
             Declarator * abstrDeclarator;
+            types::Type* type;
 
             
         public:
@@ -56,7 +58,7 @@ namespace dtcc
             /// @param abstrDeclarator TODO: FILLOUT
 
             ///
-            TypeName(DeclarationSpecifiers * declSpecifiers, Declarator * abstrDeclarator) : declSpecifiers(declSpecifiers), abstrDeclarator(abstrDeclarator) {}
+            TypeName(DeclarationSpecifiers * declSpecifiers, Declarator * abstrDeclarator) : declSpecifiers(declSpecifiers), abstrDeclarator(abstrDeclarator), type(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

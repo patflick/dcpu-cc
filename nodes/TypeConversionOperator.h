@@ -48,6 +48,8 @@ namespace dtcc
             types::Type* fromType;
             types::Type* toType;
             
+            bool LtoR;
+            
 
             
         public:
@@ -58,7 +60,7 @@ namespace dtcc
 
             ///
             TypeConversionOperator(Expression * expr, types::Type* fromType, types::Type* toType)
-            : expr(expr), fromType(fromType), toType(toType) {}
+            : expr(expr), fromType(fromType), toType(toType), LtoR(false) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

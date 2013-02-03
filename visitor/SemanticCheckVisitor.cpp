@@ -1084,12 +1084,26 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarat
 /**********************************/
 
 // the type for cast and size of expression
-// TODO do something very similar to declaration
-// in order to get the type to return
 void SemanticCheckVisitor::visit(astnodes::TypeName * typeName)
 {
-    printAstName("TypeName");
-    typeName->allChildrenAccept(*this);
+    // get type from declaration specifiers
+    types::Type* declType = declSpecsToType(typeName->declSpecifiers);
+    
+    // put the declaration type on the stack
+    this->m_declTypeStack.push_back(declType);
+    this->m_declIsStored.push_back(false);
+
+    // call declarator recursively in order to get the actuay declaration type
+    this->m_saveParams.push_back(false);
+    typeName->abstrDeclarator->accept(*this);
+    
+    // get type and name of actual declarator
+    types::Type* actualDeclType = this->m_declTypeStack.back();
+    this->m_declTypeStack.pop_back();
+    this->m_declNameStack.pop_back();
+    this->m_saveParams.pop_back();
+    
+    typeName->type = actualDeclType;
 }
 
 
@@ -1822,17 +1836,39 @@ void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
     // set return type as a CValue (constant RValue)
     sizeOfOperator->valType = new valuetypes::CValue(new types::UnsignedInt());
     
-    // check it is not a function type
-    if (valuetypes::IsValueTypeHelper::isFunctionDesignator(sizeOfOperator->valType))
+    types::Type* type = NULL;
+    if (sizeOfOperator->expr != NULL)
     {
-        addError(sizeOfOperator, ERR_CC_SIZEOF_FUNC);
+        // get the size of the expression type 
+        // check it is not a function type
+        if (valuetypes::IsValueTypeHelper::isFunctionDesignator(sizeOfOperator->expr->valType))
+        {
+            addError(sizeOfOperator, ERR_CC_SIZEOF_FUNC);
+            return;
+        }
+        type = sizeOfOperator->expr->valType->type;
+    }
+    else if (sizeOfOperator->typeName != NULL)
+    {
+        type = sizeOfOperator->typeName->type;
+    }
+    else
+    {
+        throw new errors::InternalCompilerException("invalid sizeof operator");
+    }
+    
+    if (!type->isComplete())
+    {
+        addError(sizeOfOperator, ERR_CC_SIZEOF_INCOMPLETE);
         return;
     }
     
-    // return the word size of the expression type
-    // TODO special return value for array types??
-    sizeOfOperator->constExpr = new astnodes::UnsignedIntLiteral(sizeOfOperator->valType->type->getByteSize());
+    // return the word size of the type
+    sizeOfOperator->constExpr = new astnodes::UnsignedIntLiteral(type->getByteSize());
     sizeOfOperator->constExpr->accept(*this);
+    
+    // set val type
+    sizeOfOperator->valType = sizeOfOperator->constExpr->valType;
 }
 
 
@@ -1842,11 +1878,79 @@ void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
 
 void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOperator)
 {
-    // TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    printAstName("ExplicitCastOperator");
+    // analyse the typename and the expression:
     explicitCastOperator->allChildrenAccept(*this);
+    
+    // get the type
+    types::Type* fromType = explicitCastOperator->expr->valType->type;
+    types::Type* toType = explicitCastOperator->typeName->type;
+    
+    if (valuetypes::IsValueTypeHelper::isLValue(explicitCastOperator->expr->valType))
+    {
+        
+        if (types::IsTypeHelper::isArrayType(fromType))
+            fromType = types::IsTypeHelper::pointerFromArrayType(fromType);
+        else
+            explicitCastOperator->LtoR = true;
+    }
+    
+    // check that these types are castable to each other
+    if (types::IsTypeHelper::isArithmeticType(fromType) && types::IsTypeHelper::isArithmeticType(toType))   
+    {
+        // L to R will be done by the TypeConversionOperator
+        explicitCastOperator->LtoR = false;
+        
+        // insert a type conversion operator
+        explicitCastOperator->expr = new astnodes::TypeConversionOperator(explicitCastOperator->expr, fromType, toType);
+        
+        // visit the type conversion operator (which is not recursive)
+        // but needs to set up a few things
+        explicitCastOperator->expr->accept(*this);
+        
+        // take over the valType of the type conversion operator
+        explicitCastOperator->valType = explicitCastOperator->expr->valType;
+    }
+    else if (types::IsTypeHelper::isPointerType(fromType) && types::IsTypeHelper::isPointerType(toType))
+    {
+        explicitCastOperator->valType = new valuetypes::RValue(toType);
+    }
+    else if (types::IsTypeHelper::isArithmeticType(fromType) && types::IsTypeHelper::isPointerType(toType))
+    {
+        // L to R will be done by the TypeConversionOperator
+        explicitCastOperator->LtoR = false;
+        
+        // insert a type conversion operator to convert to uint16_t
+        explicitCastOperator->expr = new astnodes::TypeConversionOperator(explicitCastOperator->expr, fromType, new types::UnsignedInt());
+        
+        // visit the type conversion operator (which is not recursive)
+        // but needs to set up a few things
+        explicitCastOperator->expr->accept(*this);
+        
+        // set the wanted pointer type
+        explicitCastOperator->valType = new valuetypes::RValue(toType);
+    }
+    else if (types::IsTypeHelper::isPointerType(fromType) && types::IsTypeHelper::isArithmeticType(toType))
+    {
+        // L to R will be done by the TypeConversionOperator
+        explicitCastOperator->LtoR = false;
+        
+        // insert a type conversion operator to convert from uint to the arithmetic type
+        explicitCastOperator->expr = new astnodes::TypeConversionOperator(explicitCastOperator->expr, new types::UnsignedInt(), toType);
+        
+        // visit the type conversion operator (which is not recursive)
+        // but needs to set up a few things
+        explicitCastOperator->expr->accept(*this);
+        
+        // set the wanted pointer type
+        explicitCastOperator->valType = new valuetypes::RValue(toType);
+    }
+    else
+    {
+        
+        addError(explicitCastOperator, ERR_CC_INVALID_EXPLICIT_CAST);
+        explicitCastOperator->valType = getInvalidValType();
+        return;
+    }
 }
 
 
@@ -2340,7 +2444,15 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 void SemanticCheckVisitor::visit(astnodes::TypeConversionOperator * typeConv)
 {
-    throw new errors::InternalCompilerException("type conversion operator was visited in semantic check");
+    // ATTENTION: this is not allowed to be recursive.
+    if (valuetypes::IsValueTypeHelper::isLValue(typeConv->expr->valType)
+        && !types::IsTypeHelper::isArrayType(typeConv->expr->valType->type)
+    )
+    {
+        typeConv->LtoR = true;
+    }
+    
+    typeConv->valType = valuetypes::IsValueTypeHelper::toRValue(typeConv->expr->valType);
 }
 
 

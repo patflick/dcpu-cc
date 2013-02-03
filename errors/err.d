@@ -94,3 +94,5 @@ ERR_CC_TOO_MANY_INITS                                cc-too-many-inits          
 
 ERR_CC_ADRESS_OF_NON_LVALUE                          cc-adress-of-non-lvalue                  "can not get address of non LValue object."
 
+ERR_CC_INVALID_EXPLICIT_CAST                         cc-invalid-explicit-cast                 "invalid explicit cast."
+ERR_CC_SIZEOF_INCOMPLETE                             cc-sizeof-incomplete                     "can not get size of incomplete type"

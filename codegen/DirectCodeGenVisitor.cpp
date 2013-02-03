@@ -2036,8 +2036,7 @@ void DirectCodeGenVisitor::visit(astnodes::ChainExpressions * chainExpressions)
     chainExpressions->valPos = chainExpressions->exprs->back()->valPos;
 }
 
-
-// TODO implement those below
+/* type conversion */
 
 void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversionOperator)
 {
