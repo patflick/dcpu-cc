@@ -64,6 +64,15 @@ std::string DirectCodeGenVisitor::getAssembly()
     ss << std::endl;
     ss << std::endl;
     ss << "; ------------------" << std::endl;
+    ss << ";  Import Bootstrap" << std::endl;
+    ss << "; ------------------" << std::endl;
+    ss << ".IMPORT _stack_caller_init" << std::endl;
+    ss << ".IMPORT _stack_caller_init_overlap" << std::endl;
+    ss << ".IMPORT _stack_callee_return" << std::endl;
+    ss << ".IMPORT cfunc__stdlib_enter" << std::endl;
+    ss << std::endl;
+    ss << std::endl;
+    ss << "; ------------------" << std::endl;
     ss << ";  Global Variables" << std::endl;
     ss << "; ------------------" << std::endl;
     ss << asm_globalSpace.str();
@@ -88,11 +97,19 @@ std::string DirectCodeGenVisitor::getAssembly()
     ss << asm_globalInit.str();
     ss << std::endl;
     ss << std::endl;
-    
+    ss << "; --------------------------" << std::endl;
+    ss << ";  Code (call stdlib_enter)" << std::endl;
+    ss << "; --------------------------" << std::endl;
+    ss << ".SECTION CODE" << std::endl;
+    ss << "    SET X, 0" << std::endl;
+    ss << "    SET Z, 0" << std::endl;
+    ss << "    JSR _stack_caller_init" << std::endl;
+    ss << "    SET PC, cfunc__stdlib_enter" << std::endl;
+    ss << std::endl;
+    ss << std::endl;
     ss << "; ------------------" << std::endl;
     ss << ";  Code (functions)" << std::endl;
     ss << "; ------------------" << std::endl;
-    ss << ".SECTION CODE" << std::endl;
     for (std::deque<std::string>::iterator i = asm_functions.begin(); i != asm_functions.end(); ++i)
     {
         ss << *i;
@@ -334,6 +351,9 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // clear output:
     asm_current.str(std::string());
     
+    // init temporary registers
+    initFreeRegisters();
+    
     // Now compile the block.
     functionDefinition->block->accept(*this);
     
@@ -452,9 +472,14 @@ void DirectCodeGenVisitor::visit(astnodes::ForStatement * forStatement)
     // translate the check expression
     forStatement->condExpr->accept(*this);
     
+    ValuePosition* valPos = forStatement->condExpr->expr->valPos;
+    TypeImplementation* typeImpl = getTypeImplementation(forStatement->condExpr->expr->valType->type);
+    valPos = makeAtomicReadable(valPos);
+    
     // If A is not true, jump to the end.
-    asm_current <<   "   IFE A, 0x0" << std::endl;
-    asm_current <<   "       SET PC, " << forStatement->endLbl->label << std::endl;
+    typeImpl->jmpeqz(asm_current, valPos, forStatement->endLbl->label);
+    
+    maybeFreeTemporary(valPos);
     
     // Compile the main block.
     forStatement->statement->accept(*this);
@@ -465,8 +490,10 @@ void DirectCodeGenVisitor::visit(astnodes::ForStatement * forStatement)
     // Do the loop statement.
     forStatement->loopExpr->accept(*this);
     
+    maybeFreeTemporary(forStatement->loopExpr->valPos);
+    
     // Jump back up to the start to do the evaluation.
-    asm_current <<   "   SET PC, " << forStatement->startLbl->label << std::endl;
+    asm_current << "    SET PC, " << forStatement->startLbl->label << std::endl;
     
     // And insert the end label.
     asm_current << ":" << forStatement->endLbl->label << std::endl;
@@ -490,9 +517,15 @@ void DirectCodeGenVisitor::visit(astnodes::DoWhileStatement * doWhileStatement)
     // compile the condition 
     doWhileStatement->condExpr->accept(*this);
     
+    ValuePosition* valPos = doWhileStatement->condExpr->valPos;
+    TypeImplementation* typeImpl = getTypeImplementation(doWhileStatement->condExpr->valType->type);
+    valPos = makeAtomicReadable(valPos);
+    
     // while the expression is true, jump to beginning
-    asm_current <<   "   IFN A, 0x0" << std::endl;
-    asm_current <<   "       SET PC, " << doWhileStatement->startLbl->label << std::endl;
+    typeImpl->jmpneqz(asm_current, valPos, doWhileStatement->startLbl->label);
+    
+    // free now unused temporaries
+    maybeFreeTemporary(valPos);
     
     // And insert the end label.
     asm_current << ":" << doWhileStatement->endLbl->label << std::endl;
@@ -510,9 +543,16 @@ void DirectCodeGenVisitor::visit(astnodes::WhileStatement * whileStatement)
     // compile the condition 
     whileStatement->condExpr->accept(*this);
     
+    // get ValuePosition of the conditional expression
+    ValuePosition* valPos = whileStatement->condExpr->valPos;
+    TypeImplementation* typeImpl = getTypeImplementation(whileStatement->condExpr->valType->type);
+    valPos = makeAtomicReadable(valPos);
+    
     // if the expression evaluates to false, jump to end
-    asm_current <<   "   IFE A, 0x0" << std::endl;
-    asm_current <<   "       SET PC, " << whileStatement->endLbl->label << std::endl;
+    typeImpl->jmpeqz(asm_current, valPos, whileStatement->endLbl->label);
+    
+    // free now unused temporaries
+    maybeFreeTemporary(valPos);
     
     // compile the block
     whileStatement->statement->accept(*this);
@@ -547,13 +587,20 @@ void DirectCodeGenVisitor::visit(astnodes::IfStatement * ifStatement)
     // When an expression is evaluated, the result goes into the A register.
     ifStatement->condExpr->accept(*this);
     
+    // get ValuePosition of the conditional expression
+    ValuePosition* valPos = ifStatement->condExpr->valPos;
+    TypeImplementation* typeImpl = getTypeImplementation(ifStatement->condExpr->valType->type);
+    valPos = makeAtomicReadable(valPos);
+    
     // check for the result of the conditional expression
-    asm_current << "   IFE A, 0x0" << std::endl;
     if (ifStatement->elseStmt != NULL)
-        asm_current << "       SET PC, " << ifStatement->elselbl->label << std::endl;
+        typeImpl->jmpeqz(asm_current, valPos, ifStatement->elselbl->label);
     else
-        asm_current << "       SET PC, " << ifStatement->endlbl->label << std::endl;
-        
+        typeImpl->jmpeqz(asm_current, valPos, ifStatement->endlbl->label);
+    
+    // free now unused temporaries
+    maybeFreeTemporary(valPos);
+    
     // compile if block
     ifStatement->ifStmt->accept(*this);
     
@@ -581,6 +628,9 @@ void DirectCodeGenVisitor::visit(astnodes::ExpressionStatement * expressionState
     asm_current << this->getFileAndLineState(expressionStatement);
     // just pass through
     expressionStatement->allChildrenAccept(*this);
+    
+    // free now unused temporaries
+    maybeFreeTemporary(expressionStatement->expr->valPos);
 }
 
 
@@ -1936,7 +1986,10 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     if (createCopy)
     {
         resultValPos = getTmpCopy(lhsOperandVP);
+        maybeFreeTemporary(lhsOperandVP);
     }
+    
+    maybeFreeTemporary(rhsValpos);
     
     assignmentOperator->valPos = resultValPos;
 }
@@ -1949,8 +2002,12 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
 
 void DirectCodeGenVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 {
-    // compile  all children
-    chainExpressions->allChildrenAccept(*this);
+    for (astnodes::Expressions::iterator it = chainExpressions->exprs->begin(); it != chainExpressions->exprs->end(); ++it)
+    {
+        (*it)->accept(*this);
+        if (*it != chainExpressions->exprs->back())
+            maybeFreeTemporary((*it)->valPos);
+    }
     
     // return the result from the last expression
     chainExpressions->valPos = chainExpressions->exprs->back()->valPos;

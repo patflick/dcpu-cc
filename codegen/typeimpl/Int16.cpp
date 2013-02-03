@@ -182,6 +182,19 @@ void Int16::lor(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePo
     ass << "        SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
 }
 
+/// implements IF A == 0: JUMP label
+void Int16::jmpeqz(AsmBlock& ass, ValuePosition* posA, std::string label)
+{
+    ass << "IFE " << posA->toAtomicOperand() << ", 0x0" << std::endl;
+    ass << "    SET PC, " << label << std::endl;
+}
+
+/// implements IF A != 0: JUMP label
+void Int16::jmpneqz(AsmBlock& ass, ValuePosition* posA, std::string label)
+{
+    ass << "IFN " << posA->toAtomicOperand() << ", 0x0" << std::endl;
+    ass << "    SET PC, " << label << std::endl;
+}
 
 
 ///

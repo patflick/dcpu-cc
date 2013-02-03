@@ -552,12 +552,6 @@ void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 /*        3.5 DECLARATIONS              */
 /*######################################*/
 
-
-
-// TODO TODO FIXME TODO TODO FIXME
-// implement declarators ;)
-// first now implementing expressions
-
 void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
 {
     // get type from declaration specifiers

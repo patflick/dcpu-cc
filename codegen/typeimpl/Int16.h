@@ -126,6 +126,14 @@ namespace dtcc
             
             /// implements logical or: C = B || A
             virtual void lor(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
+            
+            
+            /* is zero */
+            /// implements IF A == 0: JUMP label
+            virtual void jmpeqz(AsmBlock& ass, ValuePosition* posA, std::string label);
+            
+            /// implements IF A != 0: JUMP label
+            virtual void jmpneqz(AsmBlock& ass, ValuePosition* posA, std::string label);
         };
 
 
