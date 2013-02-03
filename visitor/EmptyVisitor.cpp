@@ -313,6 +313,17 @@ void EmptyVisitor::visit(astnodes::BuiltInVaStart * builtInVaStart)
 {
 }
 
+void EmptyVisitor::visit(astnodes::AddressOfOperator * addressOfOperator)
+{
+}
+
+void EmptyVisitor::visit(astnodes::DerefOperator * derefOperator)
+{
+}
+
+void EmptyVisitor::visit(astnodes::TypeConversionOperator * typeConversionOperator)
+{
+}
 
 ///
 /// @}

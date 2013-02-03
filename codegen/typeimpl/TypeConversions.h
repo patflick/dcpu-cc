@@ -27,11 +27,11 @@ namespace dtcc
         private:
             /// Copy A to B (i.e. B = A) if posA and posB are different.
             /// This only works for 1 word sizes
-            void copyIfDifferent(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            static void copyIfDifferent(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             
-            bool isSigned(types::Type* type);
-            int typeToNr(types::Type* type);
+            static bool isSigned(types::Type* type);
+            static int typeToNr(types::Type* type);
             
         public:
             /* 
@@ -54,49 +54,49 @@ namespace dtcc
             /// @param posA The source value position.
             ///
             /// Returns the conversion function for casting from `from` to `to`.
-            void convert(types::Type* from, types::Type* to, AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            static void convert(types::Type* from, types::Type* to, AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements conversion char -> short
-            void char2short(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void char2short(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion short -> char
-            void short2char(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void short2char(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion short -> int
-            void short2int(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void short2int(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion int -> short
-            void int2short(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void int2short(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion int -> long
-            void int2long(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void int2long(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion long -> int
-            void long2int(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void long2int(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
 
             /// implements conversion int -> float
-            void int2float(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void int2float(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion float -> int
-            void float2int(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void float2int(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion long -> double
-            void long2double(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void long2double(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion double -> long
-            void double2long(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
+            static void double2long(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
             /// implements conversion float -> double
-            void float2double(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            static void float2double(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements conversion double -> float
-            void double2float(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            static void double2float(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements conversion double -> long double
-            void double2longdouble(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            static void double2longdouble(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
             /// implements conversion long double -> double
-            void longdouble2double(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
+            static void longdouble2double(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
 
         };
 

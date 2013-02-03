@@ -23,6 +23,7 @@
 #include <valuetypes/ConstHelper.h>
 
 #include "ValuePosition.h"
+#include "typeimpl/TypeConversions.h"
 
 // only include the int tokens
 #define YYSTYPE int
@@ -1524,8 +1525,30 @@ void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
 }
 
 /* 3.3.3.2 Address and indirection operators */
-// TODO add the Address of Operator!
+void DirectCodeGenVisitor::visit(astnodes::AddressOfOperator * addressOfOperator)
+{
+    // analyse inner expression first:
+    addressOfOperator->expr->accept(*this);
+    
+    // same valpos as inner expression (which was an LValue and is now handled
+    // as an RValue)
+    addressOfOperator->valPos = addressOfOperator->expr->valPos;
+}
 
+void DirectCodeGenVisitor::visit(astnodes::DerefOperator * derefOperator)
+{
+    // analyse inner expression first:
+    derefOperator->expr->accept(*this);
+    
+    ValuePosition* valPos = derefOperator->expr->valPos;
+    
+    if (derefOperator->LtoR)
+    {
+        valPos = derefOperand(valPos, REG_TMP_L);
+    }
+    
+    derefOperator->valPos = valPos;
+}
 
 /* 3.3.3.3 Unary arithmetic operators */
 
@@ -2014,15 +2037,31 @@ void DirectCodeGenVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 }
 
 
-
-
-
-
 // TODO implement those below
-// TODO implement deref und address of operators!!
 
-
-
+void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversionOperator)
+{
+    types::Type* from = typeConversionOperator->fromType;
+    types::Type* to = typeConversionOperator->toType;
+    
+    ValuePosition* fromValPos = typeConversionOperator->expr->valPos;
+    // default to in-place conversion
+    ValuePosition* toValPos = fromValPos;
+    bool delTemp = false;
+    
+    if (to->getWordSize() != from->getWordSize())
+    {
+        delTemp = true;
+        toValPos = getTmp(to->getWordSize());
+    }
+    
+    TypeConversions::convert(from, to, asm_current, toValPos, fromValPos);
+    
+    if (delTemp)
+        maybeFreeTemporary(fromValPos);
+    
+    typeConversionOperator->valPos = toValPos;
+}
 
 
 void DirectCodeGenVisitor::visit(astnodes::Enumerator * enumerator)

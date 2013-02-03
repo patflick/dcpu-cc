@@ -562,3 +562,26 @@ void PrintAstVisitor::visit(astnodes::BuiltInVaStart * builtInVaStart)
     decreaseIdentation();
 }
 
+void PrintAstVisitor::visit(astnodes::AddressOfOperator * addressOfOperator)
+{
+    printAstName("AddressOfOperator");
+    increaseIdentation();
+    addressOfOperator->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+void PrintAstVisitor::visit(astnodes::DerefOperator * derefOperator)
+{
+    printAstName("DerefOperator");
+    increaseIdentation();
+    derefOperator->allChildrenAccept(*this);
+    decreaseIdentation();
+}
+
+void PrintAstVisitor::visit(astnodes::TypeConversionOperator * typeConv)
+{
+    printAstName("TypeConversionOperator");
+    increaseIdentation();
+    typeConv->allChildrenAccept(*this);
+    decreaseIdentation();
+}

@@ -446,6 +446,23 @@ namespace dtcc
             /// @param builtInVaStart    The node to visit this visitor
             virtual void visit(astnodes::BuiltInVaStart * builtInVaStart) = 0;
             
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param addressOfOperator    The node to visit this visitor
+            virtual void visit(astnodes::AddressOfOperator * addressOfOperator) = 0;
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param derefOperator    The node to visit this visitor
+            virtual void visit(astnodes::DerefOperator * derefOperator) = 0;
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param typeConversionOperator    The node to visit this visitor
+            virtual void visit(astnodes::TypeConversionOperator * typeConversionOperator) = 0;
         };
         
     } // namespace dtcc

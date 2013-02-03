@@ -92,6 +92,5 @@ ERR_CC_FUNC_RETURN_TYPE                              cc-func-return-types       
 ERR_CC_FUNC_IS_NOT_A_FUNC_TYPE                       cc-func-is-not-a-func-type               "function is not a function type"
 ERR_CC_TOO_MANY_INITS                                cc-too-many-inits                        "too many initializers for declaration of `%s`."
 
-
-
+ERR_CC_ADRESS_OF_NON_LVALUE                          cc-adress-of-non-lvalue                  "can not get address of non LValue object."
 

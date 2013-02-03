@@ -1696,8 +1696,60 @@ void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
     preIncDec->valType = valuetypes::IsValueTypeHelper::toRValue(preIncDec->expr->valType);
 }
 
+
 /* 3.3.3.2 Address and indirection operators */
-// TODO add the Address of Operator!
+
+void SemanticCheckVisitor::visit(astnodes::AddressOfOperator * addressOfOperator)
+{
+    // analyse inner expression first:
+    addressOfOperator->allChildrenAccept(*this);
+    
+    valuetypes::ValueType* vtype = addressOfOperator->expr->valType;
+    types::Type* type = vtype->type;
+    
+    if (!valuetypes::IsValueTypeHelper::isLValue(vtype))
+    {
+        addError(addressOfOperator, ERR_CC_ADRESS_OF_NON_LVALUE);
+        addressOfOperator->valType = getInvalidValType();
+        return;
+    }
+    if (types::IsTypeHelper::isArrayType(type))
+    {
+        addressOfOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(types::IsTypeHelper::pointerFromArrayType(type) , vtype);
+    }
+    else
+    {
+        addressOfOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::PointerType(type), vtype);
+    }
+}
+
+void SemanticCheckVisitor::visit(astnodes::DerefOperator * derefOperator)
+{
+    // analyse inner expression first:
+    derefOperator->allChildrenAccept(*this);
+    
+    valuetypes::ValueType* vtype = derefOperator->expr->valType;
+    types::Type* type = vtype->type;
+    
+    if (valuetypes::IsValueTypeHelper::isLValue(vtype))
+    {
+        if (types::IsTypeHelper::isArrayType(type))
+            type = types::IsTypeHelper::pointerFromArrayType(type);
+        else
+            derefOperator->LtoR = true;
+    }
+    
+    if (!types::IsTypeHelper::isPointerType(type))
+    {
+        addError(derefOperator, ERR_CC_DEREF_NON_POINTER);
+        derefOperator->valType = getInvalidValType();
+        return;
+    }
+    types::PointerType* ptrType = types::IsTypeHelper::getPointerType(type);
+    types::Type* baseType = ptrType->baseType;
+    
+    derefOperator->valType = new valuetypes::LValue(baseType);
+}
 
 
 /* 3.3.3.3 Unary arithmetic operators */
@@ -2284,10 +2336,12 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 
 // TODO implement those below
-// TODO implement deref und address of operators!!
 
 
-
+void SemanticCheckVisitor::visit(astnodes::TypeConversionOperator * typeConv)
+{
+    throw new errors::InternalCompilerException("type conversion operator was visited in semantic check");
+}
 
 
 void SemanticCheckVisitor::visit(astnodes::Enumerator * enumerator)
