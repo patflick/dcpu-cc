@@ -1435,14 +1435,25 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
         astnodes::Expression* expr = (*methodCall->rhsExprs)[i];
         expr->accept(*this);
         
+        ValuePosition* paramValPos = expr->valPos;
+        
+        // TODO do this part in the semantic analysis visitor
+        if (valuetypes::IsValueTypeHelper::isLValue(expr->valType))
+        {
+            if (!types::IsTypeHelper::isArrayType(expr->valType->type))
+                paramValPos = derefOperand(paramValPos, REG_TMP_R);
+        }
+        
+        paramValPos = makeAtomicReadable(paramValPos);
+        
         // push to stack (in reverse order)
-        pushToStack(expr->valPos);
+        pushToStack(paramValPos);
         
         // free any used temporaries
-        maybeFreeTemporary(expr->valPos);
+        maybeFreeTemporary(paramValPos);
         
         // add to stack size
-        parametersize += expr->valPos->getWordSize();
+        parametersize += paramValPos->getWordSize();
     }
     
     // get atomically readable variable
