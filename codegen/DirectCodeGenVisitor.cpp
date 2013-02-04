@@ -943,8 +943,7 @@ ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
 void DirectCodeGenVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
 {
     std::stringstream ss;
-    // TODO FIXME escape the string as done for the string (one shared escape function)
-    ss << "'" << characterLiteral->str[0] << "'";
+    ss << "'" << escapeChar(characterLiteral->str[0]) << "'";
     std::deque<std::string> ch;
     ch.push_back(ss.str());
     characterLiteral->valPos = handleLiteral(ch);
@@ -999,6 +998,53 @@ void DirectCodeGenVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral
     longDoubleLiteral->valPos = handleLiteral(typeImpl->printConstant(longDoubleLiteral->literalValue));
 }
 
+std::string DirectCodeGenVisitor::escapeChar(char c)
+{
+    std::stringstream outputstr;
+    switch (c)
+    {
+        case '"':
+            outputstr << "\\\"";
+            break;
+        case '\'':
+            outputstr << "\\\'";
+            break;
+        case '\\':
+            outputstr << "\\\\";
+            break;
+        case '\t':
+            outputstr << "\\t";
+            break;
+        case '\r':
+            outputstr << "\\r";
+            break;
+        case '\n':
+            outputstr << "\\n";
+            break;
+        case '\v':
+            outputstr << "\\v";
+            break;
+        case '\f':
+            outputstr << "\\f";
+            break;
+        case '\b':
+            outputstr << "\\b";
+            break;
+        case '\a':
+            outputstr << "\\a";
+            break;
+        case '\0':
+            outputstr << "\\0";
+            break;
+        case '\?':
+            outputstr << "\\\?";
+            break;
+        default :
+            outputstr << c;
+    }
+    return outputstr.str();
+}
+
 
 /* string literal */
 
@@ -1012,47 +1058,7 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
     for (std::string::const_iterator i = s.begin(), end = s.end(); i != end; ++i)
     {
         unsigned char c = *i;
-        switch (c)
-        {
-            case '"':
-                outputstr << "\\\"";
-                break;
-            case '\'':
-                outputstr << "\\\'";
-                break;
-            case '\\':
-                outputstr << "\\\\";
-                break;
-            case '\t':
-                outputstr << "\\t";
-                break;
-            case '\r':
-                outputstr << "\\r";
-                break;
-            case '\n':
-                outputstr << "\\n";
-                break;
-            case '\v':
-                outputstr << "\\v";
-                break;
-            case '\f':
-                outputstr << "\\f";
-                break;
-            case '\b':
-                outputstr << "\\b";
-                break;
-            case '\a':
-                outputstr << "\\a";
-                break;
-            case '\0':
-                outputstr << "\\0";
-                break;
-            case '\?':
-                outputstr << "\\\?";
-                break;
-            default :
-                outputstr << c;
-        }
+        outputstr << escapeChar(c);
     }
     outputstr << "\"";
     

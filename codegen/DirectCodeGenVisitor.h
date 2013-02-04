@@ -104,6 +104,7 @@ namespace dtcc
             std::string getFileAndLineState(astnodes::Node* node);
             
             ValuePosition* handleLiteral(std::deque<std::string> vals);
+            std::string escapeChar(char c);
             
             bool isDebug;
             
