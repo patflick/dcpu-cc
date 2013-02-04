@@ -45,7 +45,8 @@ namespace dtcc
         public:
             Expression * lhsExpr;
             Expressions * rhsExprs;
-
+            unsigned int varArgsSize;
+            types::Type* returnType;
             
         public:
             ///
@@ -54,7 +55,7 @@ namespace dtcc
             /// @param rhsExprs TODO: FILLOUT
 
             ///
-            MethodCall(Expression * lhsExpr, Expressions * rhsExprs) : lhsExpr(lhsExpr), rhsExprs(rhsExprs) {}
+            MethodCall(Expression * lhsExpr, Expressions * rhsExprs) : lhsExpr(lhsExpr), rhsExprs(rhsExprs), varArgsSize(0), returnType(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

@@ -50,7 +50,8 @@ void DirectCodeGenVisitor::printAstName(const char * name)
 std::string DirectCodeGenVisitor::getFileAndLineState(astnodes::Node* node)
 {
     std::stringstream str;
-    str << ".ULINE " << node->line << " \"" << node->file << "\"" << std::endl;
+    // TODO implement this correctly
+    //str << ".ULINE " << node->line << " \"" << node->file << "\"" << std::endl;
     return str.str();
 }
 
@@ -843,6 +844,10 @@ ValuePosition* DirectCodeGenVisitor::typePositionToValuePosition(symboltable::Ty
     {
         return ValuePosition::createFPrel(typePos.getFPoffset(), size);
     }
+    else if (typePos.isFunction())
+    {
+        return ValuePosition::createLabelPos(std::string("cfunc_") + typePos.getFunctionName());
+    }
     else
     {
         throw new errors::InternalCompilerException("FIXME implement global vars and functions");
@@ -1293,8 +1298,6 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
         if (m_registersUsed[REG_J])
             asm_current << "SET J, POP" << std::endl;
     }
-    
-    return ValuePosition::createStackPos(valPos->getWordSize());
 }
 
 ValuePosition* DirectCodeGenVisitor::getTmpCopy(ValuePosition* from)
@@ -1416,8 +1419,46 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
 
 void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
 {
-    // TODO TODO
-    printAstName("MethodCall");
+    // compile the lhs
+    methodCall->lhsExpr->accept(*this);
+    
+    ValuePosition* lhsValPos = methodCall->lhsExpr->valPos;
+    
+    // reserve some space for the return value
+    ValuePosition* returnValPos =  getTmp(methodCall->returnType->getWordSize());
+    
+    // compile and push on stack in reverse order
+    unsigned int parametersize = 0;
+    std::string jmpback = getRandomLabelName("_function_call_return_");
+    for (int i = methodCall->rhsExprs->size() - 1; i >= 0 ; i--)
+    {
+        astnodes::Expression* expr = (*methodCall->rhsExprs)[i];
+        expr->accept(*this);
+        
+        // push to stack (in reverse order)
+        pushToStack(expr->valPos);
+        
+        // free any used temporaries
+        maybeFreeTemporary(expr->valPos);
+        
+        // add to stack size
+        parametersize += expr->valPos->getWordSize();
+    }
+    
+    // get atomically readable variable
+    lhsValPos = makeAtomicReadable(lhsValPos, REG_TMP_L);
+    
+    asm_current <<  "    SET Z, " << jmpback << std::endl;
+    asm_current <<  "    JSR _stack_caller_init_overlap" << std::endl;
+    asm_current <<  "    SET PC, " << lhsValPos->toAtomicOperand() << std::endl;
+    asm_current <<  ":" << jmpback << std::endl;
+    
+    if (methodCall->varArgsSize > 0)
+    {
+        asm_current << "    ADD SP, " << methodCall->varArgsSize << std::endl;
+    }
+    
+    methodCall->valPos = returnValPos;
 }
 
 

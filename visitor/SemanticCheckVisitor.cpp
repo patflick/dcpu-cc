@@ -1639,13 +1639,24 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
     for (unsigned int i = 0; i < methodCall->rhsExprs->size(); i++)
     {
         valuetypes::ValueType* from = (*methodCall->rhsExprs)[i]->valType;
-        types::Type* to = (*funType->paramTypes)[i];
-        // make sure all the parameter types match
-        // TODO check that they are assignable (see assignment operator)
-        // TODO FIXME TODO FIXME
+        
+        
+        if (i >= funType->paramTypes->size())
+        {
+            methodCall->varArgsSize += from->type->getWordSize();
+        }
+        else
+        {
+            types::Type* to = (*funType->paramTypes)[i];
+            // make sure all the parameter types match
+            // TODO check that they are assignable (see assignment operator)
+            // TODO FIXME TODO FIXME
+        }
     }
     
-    // TODO what to do if return type is bigger than 1 word??
+    // get return type
+    
+    methodCall->returnType = funType->returnType;
 }
 
 
