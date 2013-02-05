@@ -61,6 +61,8 @@ namespace dtcc
             
             bool isGlobalScope();
             
+            void clearScope();
+            
             bool contains(std::string name);
             bool containsRec(std::string name);
             bool containsSymbol(std::string name);

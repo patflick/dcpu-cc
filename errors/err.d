@@ -85,9 +85,9 @@ ERR_CC_ARRAY_INCOMPL_TYPE                            cc-array-incompl-type      
 
 ERR_CC_FUNCDECL_RETURN_ARRAY                         cc-funcdecl-return-array                 "function cannot return an array"
 ERR_CC_FUNCDECL_RETURN_FUNCT                         cc-funcdecl-return-funct                 "function cannot return a function"
-ERR_CC_FUNC_PARAM_STORAGE                            cc-func-param-storage                    "invalid storage specifier in function parameter"
+ERR_CC_FUNC_PARAM_STORAGE                            cc-func-param-storage                    "invalid storage specifier in function parameter `%s`"
 ERR_CC_FUNC_PARAM_NO_NAME                            cc-func-param-no-name                    "function parameters must have a name in a function definition"
-ERR_CC_FUNC_RETURN_STORAGE                           cc-func-return-storage                   "invalid storage specifier in function definition"
+ERR_CC_FUNC_RETURN_STORAGE                           cc-func-return-storage                   "invalid storage specifier in function definition of function `%s(...)`"
 ERR_CC_FUNC_RETURN_TYPE                              cc-func-return-types                     "invalid return type"
 ERR_CC_FUNC_IS_NOT_A_FUNC_TYPE                       cc-func-is-not-a-func-type               "function is not a function type"
 ERR_CC_TOO_MANY_INITS                                cc-too-many-inits                        "too many initializers for declaration of `%s`."
@@ -99,7 +99,11 @@ ERR_CC_SIZEOF_INCOMPLETE                             cc-sizeof-incomplete       
 ERR_CC_INVALID_TYPENAME                              cc-invalid-typename                      "typename `%s` is not in the current scope"
 
 
+ERR_CC_PARAMTER_FUNCTION_TYPE                        cc-parameter-function-type               "a parameter cannot be of function type."
 ERR_CC_INIT_FOR_FUNCTION                             cc-init-for-function                     "invalid initialization for function `%s`. Function types can not be initialized."
-
+ERR_CC_INIT_FOR_PARAM                                cc-init-for-function-param               "parameters can not be initialized."
 
 WARN_CC_INIT_LIST_TOO_LONG                           cc-init-list-too-long                    "array initializer list of `%s` has too many elements."
+
+
+

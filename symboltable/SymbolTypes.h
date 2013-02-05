@@ -19,7 +19,7 @@ namespace dtcc
     {
         enum DeclType {VARIABLE_DECL, FUNCTION_DECL, FUNCTION_DEF};
         // only relevant to decl types
-        enum ObjectPosition {GLOBAL, LOCAL_STACK, PARAMETER_STACK};
+        enum ObjectPosition {GLOBAL, LOCAL_STACK, PARAMETER_STACK, STATIC_FUNC, POS_EXTERN};
         enum TagType {STRUCT_TAG, UNION_TAG, ENUM_TAG, TYPEDEF_TAG};
         
     } // namespace symboltable

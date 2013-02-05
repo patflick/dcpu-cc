@@ -21,6 +21,15 @@ bool SymbolTableScope::isGlobalScope()
     return this->prevScope == NULL;
 }
 
+void SymbolTableScope::clearScope()
+{
+    this->m_globalsSize = 0;
+    this->m_localStackSize = 0;
+    this->m_parameterStackSize = 0;
+    this->m_symbolMap.clear();
+    this->m_tagMap.clear();
+}
+
 
 bool SymbolTableScope::containsSymbol(std::string name)
 {
@@ -158,6 +167,10 @@ void SymbolTableScope::insertSymbol(std::string name, DeclType declType, types::
         {
             offset = this->m_globalsSize;
             this->m_globalsSize += type->getWordSize();
+        }
+        else if (pos == POS_EXTERN)
+        {
+            // doesn't need any size
         }
         this->m_symbolMap.insert(std::pair<std::string, SymbolObject>(name, SymbolObject(name, declType, type, pos, offset)));
     }
