@@ -40,11 +40,17 @@ namespace dtcc
             /// instance of the ValuePosition class.
             codegen::ValuePosition* valPos;
             
+            /// whether this expression should return a RValue (default = true)
+            bool returnRValue;
+            
+            /// whether this expression should return a value at all (default = true)
+            bool returnValue;
+            
         public:
             ///
             /// @brief      The constructor of the Expression AST node.
             ///
-            Expression() : valType(NULL), valPos(NULL) {}
+            Expression() : valType(NULL), valPos(NULL), returnRValue(true), returnValue(true) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

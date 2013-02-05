@@ -45,8 +45,6 @@ namespace dtcc
         public:
             int optoken;
             Expression * expr;
-            
-            bool LtoR;
 
             
         public:
@@ -56,7 +54,7 @@ namespace dtcc
             /// @param expr TODO: FILLOUT
 
             ///
-            UnaryOperator(int optoken, Expression * expr) : optoken(optoken), expr(expr), LtoR(false) {}
+            UnaryOperator(int optoken, Expression * expr) : optoken(optoken), expr(expr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

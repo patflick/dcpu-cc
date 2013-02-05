@@ -44,8 +44,6 @@ namespace dtcc
             
         public:
             Expression * expr;
-            
-            bool LtoR;
 
             
         public:
@@ -55,7 +53,7 @@ namespace dtcc
             /// @param expr TODO: FILLOUT
 
             ///
-            AddressOfOperator(Expression * expr) : expr(expr), LtoR(false) {}
+            AddressOfOperator(Expression * expr) : expr(expr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

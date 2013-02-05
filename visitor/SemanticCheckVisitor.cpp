@@ -352,6 +352,7 @@ void SemanticCheckVisitor::visit(astnodes::ForStatement * forStatement)
     // evaluate all children
     forStatement->allChildrenAccept(*this);
     
+    
     // check that the expression type is a scalar type
     if(!types::IsTypeHelper::isScalarType(forStatement->condExpr->expr->valType->type))
     {
@@ -470,6 +471,9 @@ void SemanticCheckVisitor::visit(astnodes::ExpressionStatement * expressionState
 {
     // just pass through
     expressionStatement->allChildrenAccept(*this);
+    
+    // a statement does not need to return a value:
+    expressionStatement->expr->returnValue = false;
 }
 
 
@@ -1549,11 +1553,25 @@ void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
         {
             throw new errors::InternalCompilerException("Neither a variable nor a function was found by the name '" + identifier->name + "'.");
         }
+        // don't deref the function name
+        identifier->returnRValue = false;
         identifier->valType = new valuetypes::FunctionDesignator(funcType);
     }
     else
     {
-        identifier->valType = new valuetypes::LValue(varType);
+        if (identifier->returnRValue)
+        {
+            if (types::IsTypeHelper::isArrayType(varType))
+            {
+                varType = types::IsTypeHelper::pointerFromArrayType(varType);
+                identifier->returnRValue = false;
+            }
+            identifier->valType = new valuetypes::RValue(varType);
+        }
+        else
+        {
+            identifier->valType = new valuetypes::LValue(varType);
+        }
     }
     
     // assign typeposition
@@ -1615,7 +1633,14 @@ void SemanticCheckVisitor::visit(astnodes::LongDoubleLiteral * longDoubleLiteral
 
 void SemanticCheckVisitor::visit(astnodes::StringLiteral * stringLiteral)
 {
-   stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length(), 1));
+    if (stringLiteral->returnRValue)
+    {
+        stringLiteral->valType = new valuetypes::RValue(new types::PointerType(new types::UnsignedChar()));
+    }
+    else
+    {
+        stringLiteral->valType = new valuetypes::LValue(new types::ArrayType(new types::UnsignedChar(), stringLiteral->str.length(), 1));
+    }
 }
 
 
@@ -1635,20 +1660,6 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     // check LHS type
     types::Type* lhsType = arrayAccessOperator->lhsExpr->valType->type;
     
-    if (types::IsTypeHelper::isArrayType(lhsType))
-    {
-        // convert array to pointer type
-        lhsType = types::IsTypeHelper::pointerFromArrayType(lhsType);
-    }
-    else
-    {
-        // get LtoR state
-        if (valuetypes::IsValueTypeHelper::isLValue(arrayAccessOperator->lhsExpr->valType))
-        {
-            arrayAccessOperator->lhsLtoR = true;
-        }
-    }
-    
     if(!types::IsTypeHelper::isPointerType(lhsType))
     {
         addError(arrayAccessOperator, ERR_CC_ARRAY_ACCESS_NO_POINTER);
@@ -1667,12 +1678,6 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     // check RHS type
     types::Type* rhsType = arrayAccessOperator->rhsExpr->valType->type;
     
-    // get LtoR state
-    if (valuetypes::IsValueTypeHelper::isLValue(arrayAccessOperator->rhsExpr->valType))
-    {
-        arrayAccessOperator->rhsLtoR = true;
-    }
-    
     if(!types::IsTypeHelper::isIntegralType(rhsType))
     {
         addError(arrayAccessOperator, ERR_CC_ARRAY_SUB_NOT_INT);
@@ -1680,7 +1685,21 @@ void SemanticCheckVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
         return;
     }
     
-    arrayAccessOperator->valType = new valuetypes::LValue(types::IsTypeHelper::getPointerType(lhsType)->baseType);
+    types::Type* baseType = types::IsTypeHelper::getPointerType(lhsType)->baseType;
+    
+    if (arrayAccessOperator->returnRValue)
+    {
+        if (types::IsTypeHelper::isArrayType(baseType))
+        {
+            baseType = types::IsTypeHelper::pointerFromArrayType(baseType);
+            arrayAccessOperator->returnRValue = false;
+        }
+        arrayAccessOperator->valType = new valuetypes::RValue(baseType);
+    }
+    else
+    {
+        arrayAccessOperator->valType = new valuetypes::LValue(baseType);
+    }
 }
 
 
@@ -1774,8 +1793,11 @@ void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structu
 
 void SemanticCheckVisitor::visit(astnodes::PostIncDec * postIncDec)
 {
+    // needs an LValue:
+    postIncDec->expr->returnRValue = false;
+    
     // fist analyse the inner expression
-    postIncDec->allChildrenAccept(*this);
+    postIncDec->expr->accept(*this);
     
     // check that the expression type is a scalar type
     if(!types::IsTypeHelper::isScalarType(postIncDec->expr->valType->type))
@@ -1809,8 +1831,11 @@ void SemanticCheckVisitor::visit(astnodes::PostIncDec * postIncDec)
 
 void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
 {
+    // needs an LValue:
+    preIncDec->expr->returnRValue = false;
+    
     // fist analyse the inner expression
-    preIncDec->allChildrenAccept(*this);
+    preIncDec->expr->accept(*this);
     
     // check that the expression type is a scalar type
     if(!types::IsTypeHelper::isScalarType(preIncDec->expr->valType->type))
@@ -1839,8 +1864,11 @@ void SemanticCheckVisitor::visit(astnodes::PreIncDec * preIncDec)
 
 void SemanticCheckVisitor::visit(astnodes::AddressOfOperator * addressOfOperator)
 {
+    // this needs an LValue
+    addressOfOperator->expr->returnRValue = false;
+    
     // analyse inner expression first:
-    addressOfOperator->allChildrenAccept(*this);
+    addressOfOperator->expr->accept(*this);
     
     valuetypes::ValueType* vtype = addressOfOperator->expr->valType;
     types::Type* type = vtype->type;
@@ -1851,6 +1879,7 @@ void SemanticCheckVisitor::visit(astnodes::AddressOfOperator * addressOfOperator
         addressOfOperator->valType = getInvalidValType();
         return;
     }
+    
     if (types::IsTypeHelper::isArrayType(type))
     {
         addressOfOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(types::IsTypeHelper::pointerFromArrayType(type) , vtype);
@@ -1872,9 +1901,10 @@ void SemanticCheckVisitor::visit(astnodes::DerefOperator * derefOperator)
     if (valuetypes::IsValueTypeHelper::isLValue(vtype))
     {
         if (types::IsTypeHelper::isArrayType(type))
+        {
             type = types::IsTypeHelper::pointerFromArrayType(type);
-        else
-            derefOperator->LtoR = true;
+            derefOperator->expr->returnRValue = false;
+        }
     }
     
     if (!types::IsTypeHelper::isPointerType(type))
@@ -1886,7 +1916,20 @@ void SemanticCheckVisitor::visit(astnodes::DerefOperator * derefOperator)
     types::PointerType* ptrType = types::IsTypeHelper::getPointerType(type);
     types::Type* baseType = ptrType->baseType;
     
-    derefOperator->valType = new valuetypes::LValue(baseType);
+    
+    if (derefOperator->returnRValue)
+    {
+        if (types::IsTypeHelper::isArrayType(baseType))
+        {
+            baseType = types::IsTypeHelper::pointerFromArrayType(baseType);
+            derefOperator->returnRValue = false;
+        }
+        derefOperator->valType = new valuetypes::RValue(baseType);
+    }
+    else
+    {
+        derefOperator->valType = new valuetypes::LValue(baseType);
+    }
 }
 
 
@@ -1899,15 +1942,6 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     
     valuetypes::ValueType* vtype = unaryOperator->expr->valType;
     types::Type* type = vtype->type;
-    
-    if (valuetypes::IsValueTypeHelper::isLValue(vtype))
-    {
-        
-        if (types::IsTypeHelper::isArrayType(type))
-            type = types::IsTypeHelper::pointerFromArrayType(type);
-        else
-            unaryOperator->LtoR = true;
-    }
     
     switch(unaryOperator->optoken)
     {
@@ -1954,6 +1988,9 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
 
 void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
 {
+    // this needs an LValue (if possible) to keep arrays
+    sizeOfOperator->expr->returnRValue = false;
+    
     // analyse the expression inside the sizeof operator
     sizeOfOperator->allChildrenAccept(*this);
     
@@ -2009,20 +2046,9 @@ void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
     types::Type* fromType = explicitCastOperator->expr->valType->type;
     types::Type* toType = explicitCastOperator->typeName->type;
     
-    if (valuetypes::IsValueTypeHelper::isLValue(explicitCastOperator->expr->valType))
-    {
-        
-        if (types::IsTypeHelper::isArrayType(fromType))
-            fromType = types::IsTypeHelper::pointerFromArrayType(fromType);
-        else
-            explicitCastOperator->LtoR = true;
-    }
-    
     // check that these types are castable to each other
     if (types::IsTypeHelper::isArithmeticType(fromType) && types::IsTypeHelper::isArithmeticType(toType))   
     {
-        // L to R will be done by the TypeConversionOperator
-        explicitCastOperator->LtoR = false;
         
         // insert a type conversion operator
         explicitCastOperator->expr = new astnodes::TypeConversionOperator(explicitCastOperator->expr, fromType, toType);
@@ -2040,9 +2066,6 @@ void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
     }
     else if (types::IsTypeHelper::isArithmeticType(fromType) && types::IsTypeHelper::isPointerType(toType))
     {
-        // L to R will be done by the TypeConversionOperator
-        explicitCastOperator->LtoR = false;
-        
         // insert a type conversion operator to convert to uint16_t
         explicitCastOperator->expr = new astnodes::TypeConversionOperator(explicitCastOperator->expr, fromType, new types::UnsignedInt());
         
@@ -2055,9 +2078,6 @@ void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
     }
     else if (types::IsTypeHelper::isPointerType(fromType) && types::IsTypeHelper::isArithmeticType(toType))
     {
-        // L to R will be done by the TypeConversionOperator
-        explicitCastOperator->LtoR = false;
-        
         // insert a type conversion operator to convert from uint to the arithmetic type
         explicitCastOperator->expr = new astnodes::TypeConversionOperator(explicitCastOperator->expr, new types::UnsignedInt(), toType);
         
@@ -2092,24 +2112,6 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
     types::Type* lhsType = lhsVtype->type;
     types::Type* rhsType = rhsVtype->type;
-    
-    /* check for LValue to RValue conversions */
-    if (valuetypes::IsValueTypeHelper::isLValue(lhsVtype))
-    {
-        
-        if (types::IsTypeHelper::isArrayType(lhsType))
-            lhsType = types::IsTypeHelper::pointerFromArrayType(lhsType);
-        else
-            binaryOperator->lhsLtoR = true;
-    }
-    if (valuetypes::IsValueTypeHelper::isLValue(rhsVtype))
-    {
-        if (types::IsTypeHelper::isArrayType(rhsType))
-            rhsType = types::IsTypeHelper::pointerFromArrayType(rhsType);
-        else
-            binaryOperator->rhsLtoR = true;
-    }
-    
     
     switch(binaryOperator->optoken)
     {
@@ -2384,6 +2386,9 @@ void SemanticCheckVisitor::visit(astnodes::ConditionalOperator * conditionalOper
 
 void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperator)
 {
+    // this needs a LValue
+    assignmentOperator->lhsExrp->returnRValue = false;
+    
     // first check lhs and rhs expression
     assignmentOperator->allChildrenAccept(*this);
     
@@ -2397,15 +2402,6 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     if(!valuetypes::IsValueTypeHelper::isModifiableLValue(assignmentOperator->lhsExrp->valType))
     {
         addError(assignmentOperator, ERR_CC_ASSIGN_NO_MOD_LVALUE);
-    }
-    
-    /* check for LtoR conversion */
-    if (valuetypes::IsValueTypeHelper::isLValue(rhsVtype))
-    {
-        if (types::IsTypeHelper::isArrayType(rhsType))
-            rhsType = types::IsTypeHelper::pointerFromArrayType(rhsType);
-        else
-            assignmentOperator->rhsLtoR = true;
     }
     
     /* convert array to pointer type */
@@ -2545,6 +2541,10 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
         {
             if (!valuetypes::IsValueTypeHelper::isCValue((*i)->valType))
                 isCValue = false;
+            if (*i != chainExpressions->exprs->back())
+            {
+                (*i)->returnValue = false;
+            }
         }
         
         if (isCValue)
@@ -2568,14 +2568,6 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 void SemanticCheckVisitor::visit(astnodes::TypeConversionOperator * typeConv)
 {
-    // ATTENTION: this is not allowed to be recursive.
-    if (valuetypes::IsValueTypeHelper::isLValue(typeConv->expr->valType)
-        && !types::IsTypeHelper::isArrayType(typeConv->expr->valType->type)
-    )
-    {
-        typeConv->LtoR = true;
-    }
-    
     typeConv->valType = new valuetypes::RValue(typeConv->toType);
 }
 

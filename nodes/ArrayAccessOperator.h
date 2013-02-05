@@ -46,9 +46,6 @@ namespace dtcc
             Expression * lhsExpr;
             Expression * rhsExpr;
             
-            bool lhsLtoR;
-            bool rhsLtoR;
-            
             unsigned int pointerSize;
 
             
@@ -60,7 +57,7 @@ namespace dtcc
 
             ///
             ArrayAccessOperator(Expression * lhsExpr, Expression * rhsExpr) :
-                lhsExpr(lhsExpr), rhsExpr(rhsExpr), lhsLtoR(false), rhsLtoR(false) {}
+                lhsExpr(lhsExpr), rhsExpr(rhsExpr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

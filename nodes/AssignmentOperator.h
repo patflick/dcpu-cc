@@ -50,7 +50,6 @@ namespace dtcc
             bool ptrop;
             unsigned int pointerSize;
             types::Type* commonType;
-            bool rhsLtoR;
 
             
         public:
@@ -62,7 +61,7 @@ namespace dtcc
 
             ///
             AssignmentOperator(Expression * lhsExrp, int optoken, Expression * rhsExpr)
-            : lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr), rhsLtoR(false) {}
+            : lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

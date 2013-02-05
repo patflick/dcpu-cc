@@ -45,16 +45,13 @@ namespace dtcc
         public:
             Expression * expr;
             
-            bool LtoR;
-
-            
         public:
             ///
             /// @brief      The constructor of the DerefOperator AST node.
             /// @param expr TODO: FILLOUT
 
             ///
-            DerefOperator(Expression * expr) : expr(expr), LtoR(false) {}
+            DerefOperator(Expression * expr) : expr(expr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

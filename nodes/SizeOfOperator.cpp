@@ -18,7 +18,8 @@ void SizeOfOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visi
 {
     if (this->typeName != NULL)
         this->typeName->acceptPreRecursive(visitor);
-
+    if (this->expr != NULL)
+        this->expr->acceptPreRecursive(visitor);
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
@@ -26,6 +27,8 @@ void SizeOfOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & vis
 {
     if (this->typeName != NULL)
         this->typeName->acceptPostRecursive(visitor);
+    if (this->expr != NULL)
+        this->expr->acceptPostRecursive(visitor);
 
 }
 
@@ -33,7 +36,10 @@ void SizeOfOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & vis
 void SizeOfOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
-    this->typeName->accept(visitor);
+    if (this->typeName != NULL)
+        this->typeName->accept(visitor);
+    if (this->expr != NULL)
+        this->expr->accept(visitor);
 
 }
 

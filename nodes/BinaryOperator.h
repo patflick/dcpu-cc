@@ -51,8 +51,6 @@ namespace dtcc
             // filled out by semantic check:
             bool lhsPtr;
             bool rhsPtr;
-            bool lhsLtoR;
-            bool rhsLtoR;
             unsigned int pointerSize;
             types::Type* commonType;
 
@@ -67,8 +65,7 @@ namespace dtcc
             ///
             BinaryOperator(Expression * lhsExrp, int optoken, Expression * rhsExpr) :
                 lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr),
-                commonType(NULL), lhsPtr(false), rhsPtr(false), pointerSize(0),
-                lhsLtoR(false), rhsLtoR(false) {}
+                commonType(NULL), lhsPtr(false), rhsPtr(false), pointerSize(0) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

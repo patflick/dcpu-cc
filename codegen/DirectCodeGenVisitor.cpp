@@ -402,7 +402,6 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     asmStr << std::endl;
     asmStr << "; === END  function: " << functionDefinition->name << "  END ==="<< std::endl;
     asmStr << std::endl;
-    asmStr << std::endl;
     
     // put the generated code in the functions list
     asm_functions.push_back(asmStr.str());
@@ -1011,7 +1010,14 @@ void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
         type = types::IsTypeHelper::pointerFromArrayType(type);
     }
     unsigned int size = type->getWordSize();
-    identifier->valPos = typePositionToValuePosition(identifier->typePos, size);
+    ValuePosition* valPos = typePositionToValuePosition(identifier->typePos, size);
+    
+    // deref if next expression needs an RValue instead of an LValue
+    if (identifier->returnRValue)
+    {
+        valPos = derefOperand(valPos, REG_TMP_L);
+    }
+    identifier->valPos = valPos;
 }
 
 
@@ -1468,6 +1474,7 @@ ValuePosition* DirectCodeGenVisitor::getTmp(int size)
 
 void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOperator)
 {
+    
     // first compile lhs expression (i.e. the array)
     arrayAccessOperator->lhsExpr->accept(*this);
     
@@ -1478,26 +1485,15 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     
     ValuePosition* rhsVP = arrayAccessOperator->rhsExpr->valPos;
     
+    // maybe we don't have to do anything:
+    if (!arrayAccessOperator->returnValue)
+        return;
+    
     // get type implementation
     TypeImplementation* typeImpl = this->getTypeImplementation(new types::UnsignedInt());
     
-    // deref lhs if necessary
-    if (arrayAccessOperator->lhsLtoR)
-        lhsVP = derefOperand(lhsVP, REG_TMP_L);
-    else
-    {
-        // in this case, the value position is the array address.
-        ValuePosition* tmpReg = lhsVP->valToRegister(asm_current, REG_TMP_L);
-        ValuePosition* newLhsVP = getTmpCopy(tmpReg);
-        maybeFreeTemporary(lhsVP);
-        lhsVP = newLhsVP;
-    }
-    
-    /* deref RHS if necessary */
-    if (arrayAccessOperator->rhsLtoR)
-    {
-        rhsVP = derefOperand(rhsVP, REG_TMP_R);
-    }
+    // get lhs as modifyable
+    lhsVP = makeAtomicModifyable(lhsVP);
     
     if (arrayAccessOperator->pointerSize > 1)
     {
@@ -1515,7 +1511,13 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
         typeImpl->add(asm_current, lhsVP, rhsVP);
     }
     
-    // return this value (which is a LValue)
+    /* arrayAccessOperator is a LValue, so maybe we have to deref */
+    if (arrayAccessOperator->returnRValue)
+    {
+        lhsVP = derefOperand(lhsVP, REG_TMP_L);
+    }
+    
+    // return this value
     arrayAccessOperator->valPos = lhsVP;
 }
 
@@ -1530,7 +1532,11 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
     ValuePosition* lhsValPos = methodCall->lhsExpr->valPos;
     
     // reserve some space for the return value
-    ValuePosition* returnValPos =  getTmp(methodCall->returnType->getWordSize());
+    ValuePosition* returnValPos;
+    if (methodCall->returnValue)
+        returnValPos =  getTmp(methodCall->returnType->getWordSize());
+    
+    
     
     // compile and push on stack in reverse order
     unsigned int parametersize = 0;
@@ -1541,13 +1547,6 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
         expr->accept(*this);
         
         ValuePosition* paramValPos = expr->valPos;
-        
-        // TODO do this part in the semantic analysis visitor
-        if (valuetypes::IsValueTypeHelper::isLValue(expr->valType))
-        {
-            if (!types::IsTypeHelper::isArrayType(expr->valType->type))
-                paramValPos = derefOperand(paramValPos, REG_TMP_R);
-        }
         
         paramValPos = makeAtomicReadable(paramValPos);
         
@@ -1573,6 +1572,11 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
     {
         asm_current << "    ADD SP, " << methodCall->varArgsSize << std::endl;
     }
+    
+    if (!methodCall->returnValue)
+        return;
+    
+    // TODO save return value (only when value is to be returned
     
     methodCall->valPos = returnValPos;
 }
@@ -1619,7 +1623,8 @@ void DirectCodeGenVisitor::visit(astnodes::PostIncDec * postIncDec)
         valPos = valPos->atomicDeref();
     }
     
-    ValuePosition* derefCpy = getTmpCopy(valPos);
+    if (postIncDec->returnValue)
+        postIncDec->valPos = getTmpCopy(valPos);
     
     TypeImplementation* typeImpl = this->getTypeImplementation(postIncDec->valType->type);
     
@@ -1636,8 +1641,6 @@ void DirectCodeGenVisitor::visit(astnodes::PostIncDec * postIncDec)
     }
     
     maybeFreeTemporary(valPos);
-    
-    postIncDec->valPos = derefCpy;
 }
 
 
@@ -1676,12 +1679,12 @@ void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
             throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
     }
     
-    
     if (atomicValPos == valPos)
         preIncDec->valPos = atomicValPos;
     else
     {
-        preIncDec->valPos = getTmpCopy(atomicValPos);
+        if (preIncDec->returnValue)
+            preIncDec->valPos = getTmpCopy(atomicValPos);
         maybeFreeTemporary(atomicValPos);
     }
 }
@@ -1704,7 +1707,10 @@ void DirectCodeGenVisitor::visit(astnodes::DerefOperator * derefOperator)
     
     ValuePosition* valPos = derefOperator->expr->valPos;
     
-    if (derefOperator->LtoR)
+    if (!derefOperator->returnValue)
+        return;
+    
+    if (derefOperator->returnRValue)
     {
         valPos = derefOperand(valPos, REG_TMP_L);
     }
@@ -1719,14 +1725,13 @@ void DirectCodeGenVisitor::visit(astnodes::UnaryOperator * unaryOperator)
     // analyse inner expression first:
     unaryOperator->expr->accept(*this);
     
+    if (!unaryOperator->returnValue)
+        return;
+    
     ValuePosition* valPos = unaryOperator->expr->valPos;
     
     TypeImplementation* typeImpl = this->getTypeImplementation(unaryOperator->expr->valType->type);
     
-    if (unaryOperator->LtoR)
-    {
-        valPos = derefOperand(valPos, REG_TMP_L);
-    }
     ValuePosition* newTmp = NULL;
     
     switch(unaryOperator->optoken)
@@ -1783,12 +1788,6 @@ void DirectCodeGenVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
     
     ValuePosition* valPos = explicitCastOperator->expr->valPos;
     
-    /* LValue to RValue deref */
-    if (explicitCastOperator->LtoR)
-    {
-        valPos = derefOperand(valPos, REG_TMP_R);
-    }
-    
     explicitCastOperator->valPos = valPos;
 }
 
@@ -1803,21 +1802,14 @@ void DirectCodeGenVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     // compile both sub-expressions
     binaryOperator->allChildrenAccept(*this);
     
+    if (!binaryOperator->returnValue)
+        return;
+    
     ValuePosition* lhsValpos = binaryOperator->lhsExrp->valPos;
     ValuePosition* rhsValpos = binaryOperator->rhsExpr->valPos;
     ValuePosition* resultValPos = NULL;
     
     TypeImplementation* typeImpl = this->getTypeImplementation(binaryOperator->commonType);
-    
-    /* LValue to RValue derefs*/
-    if (binaryOperator->lhsLtoR)
-    {
-        lhsValpos = derefOperand(lhsValpos, REG_TMP_L);
-    }
-    if (binaryOperator->rhsLtoR)
-    {
-        rhsValpos = derefOperand(rhsValpos, REG_TMP_R);
-    }
     
     /* atomizise and make modifyable */
     switch(binaryOperator->optoken)
@@ -2082,12 +2074,6 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     
     TypeImplementation* typeImpl = this->getTypeImplementation(assignmentOperator->commonType);
     
-    /* LValue to RValue deref */
-    if (assignmentOperator->rhsLtoR)
-    {
-        rhsValpos = derefOperand(rhsValpos, REG_TMP_R);
-    }
-    
     
     ValuePosition* lhsOperandVP = makeAtomicDerefable(lhsValpos, REG_TMP_L);
     bool createCopy = false;
@@ -2175,7 +2161,8 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     }
     
     ValuePosition* resultValPos = lhsOperandVP;
-    if (createCopy)
+    
+    if (createCopy && assignmentOperator->returnValue)
     {
         resultValPos = getTmpCopy(lhsOperandVP);
         maybeFreeTemporary(lhsOperandVP);
@@ -2212,6 +2199,9 @@ void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversio
     // compile sub expression
     typeConversionOperator->allChildrenAccept(*this);
     
+    if (!typeConversionOperator->returnValue)
+        return;
+    
     types::Type* from = typeConversionOperator->fromType;
     types::Type* to = typeConversionOperator->toType;
     
@@ -2219,12 +2209,6 @@ void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversio
     // default to in-place conversion
     ValuePosition* toValPos = fromValPos;
     bool delTemp = false;
-    
-    /* LValue to RValue deref */
-    if (typeConversionOperator->LtoR)
-    {
-        fromValPos = derefOperand(fromValPos, REG_TMP_R);
-    }
     
     
     if (to->getWordSize() != from->getWordSize())

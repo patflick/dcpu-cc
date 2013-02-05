@@ -46,8 +46,6 @@ namespace dtcc
         public:
             TypeName * typeName;
             Expression * expr;
-            
-            bool LtoR;
 
             
         public:
@@ -57,7 +55,7 @@ namespace dtcc
             /// @param expr TODO: FILLOUT
 
             ///
-            ExplicitCastOperator(TypeName * typeName, Expression * expr) : typeName(typeName), expr(expr), LtoR(false) {}
+            ExplicitCastOperator(TypeName * typeName, Expression * expr) : typeName(typeName), expr(expr) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.
