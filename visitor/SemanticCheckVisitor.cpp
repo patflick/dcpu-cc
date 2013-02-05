@@ -164,6 +164,10 @@ void SemanticCheckVisitor::visit(astnodes::Program * program)
     // set declarations to global
     this->m_declState = DECLSTATE_GLOBAL;
     
+    // set functions that were only declared but not defined,
+    // so that CodeGen can create the appropriate .IMPORT for the linker
+    program->functionDecls = this->m_symbolTable->getFunctionDeclarations();
+    
     // analyse everything
     program->allChildrenAccept(*this);
 }
@@ -192,18 +196,20 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     {
         switch(functionDefinition->declSpecifiers->storageSpecifiers.front()->token)
         {
-            case STATIC:
-            case EXTERN:
-                // TODO use it do decide on visibility
-                break;
             case TYPEDEF:
             case AUTO:
             case REGISTER:
                 addError(functionDefinition->declSpecifiers->storageSpecifiers.front(), ERR_CC_FUNC_RETURN_STORAGE);
                 return;
                 break;
+                
             default:
-                throw new errors::InternalCompilerException("unknown storage specifier encountered");
+            case EXTERN:
+                functionDefinition->exportFunction = true;
+                break;
+            case STATIC:
+                functionDefinition->exportFunction = false;
+                break;
         }
     }
     
@@ -712,6 +718,10 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
     
     // TODO maybe set type as member of identifierDeclarator
     
+    // default to output nothing for the identifier
+    identifierDeclarator->varoutput = astnodes::VAROUT_NOTHING;
+    identifierDeclarator->isVariableDeclaration = false;
+    
     // check if this was enough
     if (m_declState == DECLSTATE_TYPE_ONLY)
         return;
@@ -869,10 +879,14 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
                 m_symbolTable->getCurrentScope().insertTag(declName, symboltable::TYPEDEF_TAG, actualDeclType);
                 break;
             case astnodes::STORAGE_EXTERN:
+                identifierDeclarator->isVariableDeclaration = true;
                 m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, actualDeclType, symboltable::POS_EXTERN);
+                identifierDeclarator->varoutput = astnodes::VAROUT_EXTERN;
                 break;
             case astnodes::STORAGE_STATIC:
+                identifierDeclarator->isVariableDeclaration = true;
                 m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, actualDeclType, symboltable::GLOBAL);
+                identifierDeclarator->varoutput = astnodes::VAROUT_STATIC;
                 break;
             case astnodes::STORAGE_AUTO:
                 // this is the default storage for declarations:
@@ -881,15 +895,27 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
                 // just fucking ignore the request for register storage for now :P
                 // TODO maybe handle it specially some time ;P
             case astnodes::STORAGE_DEFAULT:
+                identifierDeclarator->isVariableDeclaration = true;
                 if (m_symbolTable->isGlobalCurScope())
+                {
+                    identifierDeclarator->varoutput = astnodes::VAROUT_GLOBAL;
                     // put onto global storage
                     m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, actualDeclType, symboltable::GLOBAL);
+                }
                 else
+                {
                     // put onto local stack symbol table
                     m_symbolTable->getCurrentScope().insertSymbol(declName, symboltable::VARIABLE_DECL, actualDeclType, symboltable::LOCAL_STACK);
+                }
                 break;
             default:
                 throw new errors::InternalCompilerException("unknown storage specifier encountered");
+        }
+        
+        if (identifierDeclarator->isVariableDeclaration)
+        {
+            identifierDeclarator->typePos = m_symbolTable->getPositionOfVariable(declName);
+            identifierDeclarator->variableType = actualDeclType;
         }
     }
     

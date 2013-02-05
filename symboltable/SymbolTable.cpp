@@ -129,6 +129,22 @@ types::Type* SymbolTable::getTypeOfVariable(std::string name)
     }
 }
 
+std::vector<std::string> SymbolTable::getFunctionDeclarations()
+{
+    std::map<std::string, SymbolObject>::iterator it;
+    SymbolObject obj;
+    std::vector<std::string> result;
+    for (it = this->m_globalScope->m_symbolMap.begin(); it != this->m_globalScope->m_symbolMap.end(); ++it)
+    {
+        obj = it->second;
+        if (obj.declType == FUNCTION_DECL)
+        {
+            result.push_back(it->first);
+        }
+    }
+    return result;
+}
+
 types::FunctionType* SymbolTable::getFunction(std::string name)
 {
     SymbolObject obj;

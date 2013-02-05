@@ -54,6 +54,7 @@ namespace dtcc
             TypePosition getPositionOfVariable(std::string name, bool previousStackFrame);
             types::Type* getTypeOfVariable(std::string name);
             types::FunctionType* getFunction(std::string name);
+            std::vector<std::string> getFunctionDeclarations();
             types::StructUnionType* getStructType(std::string name);
             types::Type* getTagType(std::string name);
             types::EnumType* getEnumType(std::string name);

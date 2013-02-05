@@ -59,6 +59,8 @@ namespace dtcc
                     prevScope(prev),
                     doneInsert(false) {}
             
+            friend class SymbolTable;
+            
             bool isGlobalScope();
             
             void clearScope();

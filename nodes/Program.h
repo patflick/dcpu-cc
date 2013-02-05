@@ -45,6 +45,9 @@ namespace dtcc
             
         public:
             ExternalDeclarations* decls;
+            
+            /// has all the functions that are only declared and need to be imported
+            std::vector<std::string> functionDecls;
 
             
         public:

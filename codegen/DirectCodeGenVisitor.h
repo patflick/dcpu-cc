@@ -43,6 +43,7 @@ namespace dtcc
         {
         private:
 
+            std::stringstream asm_globalImport;
             std::stringstream asm_globalSpace;
             std::stringstream asm_globalInit;
             std::stringstream asm_Constants;
@@ -52,7 +53,7 @@ namespace dtcc
             std::stringstream asm_current;
             
             
-            
+            std::string getDats(unsigned int num);
             
             GetTypeImplVisitor getTypeImpl;
             

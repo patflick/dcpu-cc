@@ -74,6 +74,12 @@ std::string DirectCodeGenVisitor::getAssembly()
     ss << ".IMPORT cfunc__stdlib_enter" << std::endl;
     ss << std::endl;
     ss << std::endl;
+    ss << "; ---------------------" << std::endl;
+    ss << ";  Extern Declarations" << std::endl;
+    ss << "; ---------------------" << std::endl;
+    ss << asm_globalImport.str();
+    ss << std::endl;
+    ss << std::endl;
     ss << "; ------------------" << std::endl;
     ss << ";  Global Variables" << std::endl;
     ss << "; ------------------" << std::endl;
@@ -311,20 +317,34 @@ TypeImplementation* DirectCodeGenVisitor::getTypeImplementation(types::Type* typ
 
 void DirectCodeGenVisitor::visit(astnodes::Program * program)
 {
+    // output .IMPORT for all functions that were only declared and not defined
+    for (std::vector<std::string>::iterator it = program->functionDecls.begin(); it != program->functionDecls.end(); ++it)
+    {
+        asm_globalImport << "    .IMPORT cfunc_" << *it << std::endl;
+    }
+    
     // compile everything
     program->allChildrenAccept(*this);
     
-    // loop through global vars and function declarations
-    // TODO do this with symbol table?
-    // TODO or in the single declarations?
+    // put all current asm into global init
+    asm_globalInit << asm_current.str();
 }
 
 
 void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefinition)
 {
     std::stringstream asmStr;
-    asmStr << getFileAndLineState(functionDefinition);
+    asmStr << std::endl;
     
+    // put all current asm into global init
+    asm_globalInit << asm_current.str();
+    // clear output:
+    asm_current.str(std::string());
+    
+    // print function header
+    asmStr << "; === BEGIN  function: " << functionDefinition->name << "  BEGIN ==="<< std::endl;
+    
+    asmStr << getFileAndLineState(functionDefinition);
     // Output a safety boundary if the assembler supports
     // it and we want to output in debug mode.
     if (isDebug)
@@ -337,8 +357,7 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     
     // If the assembler supports exporting symbols, automatically
     // export this function.
-    // TODO unless specified as static
-    if (assembler.supportsLinkedExportDirective)
+    if (functionDefinition->exportFunction && assembler.supportsLinkedExportDirective)
         asmStr <<  ".EXPORT cfunc_" << functionDefinition->name << std::endl;
     
     // Output the leading information and immediate jump.
@@ -353,9 +372,6 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     m_tempStackAlloc.clear();
     m_tempStackObjects.clear();
     m_tempStackMax = 0;
-            
-    // clear output:
-    asm_current.str(std::string());
     
     // init temporary registers
     initFreeRegisters();
@@ -364,7 +380,9 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     functionDefinition->block->accept(*this);
     
     // Allocate locals and temporaries
-    asmStr <<  "    SUB SP, " << functionDefinition->stackSize + m_tempStackMax << std::endl;
+    unsigned int stacksize = functionDefinition->stackSize + m_tempStackMax;
+    if (stacksize > 0)
+        asmStr <<  "    SUB SP, " << stacksize << std::endl;
     
     asmStr << asm_current.str();
     
@@ -372,15 +390,25 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     asmStr <<  ":cfunc_" << functionDefinition->name << "_end" << std::endl;
     
     // Free locals and temporaries
-    asmStr <<  "    ADD SP, " << functionDefinition->stackSize + m_tempStackMax << std::endl;
+    if (stacksize > 0)
+        asmStr <<  "    ADD SP, " << stacksize << std::endl;
     
     // Return from this function.
     asmStr <<  "    SET A, 0xFFFF" << std::endl;
     asmStr <<  "    SET X, " << functionDefinition->paramSize << std::endl;
     asmStr <<  "    SET PC, _stack_callee_return" << std::endl;
     
+    // print function footer
+    asmStr << std::endl;
+    asmStr << "; === END  function: " << functionDefinition->name << "  END ==="<< std::endl;
+    asmStr << std::endl;
+    asmStr << std::endl;
+    
     // put the generated code in the functions list
     asm_functions.push_back(asmStr.str());
+    
+    // clear output:
+    asm_current.str(std::string());
 }
 
 
@@ -697,6 +725,23 @@ void DirectCodeGenVisitor::visit(astnodes::Declaration * declaration)
 }
 
 
+std::string DirectCodeGenVisitor::getDats(unsigned int num)
+{
+    std::stringstream ss;
+    unsigned int i;
+    while (num > 0)
+    {
+        ss << "    DAT 0x0";
+        for (i = 1; i < 10 && i < num; i++)
+        {
+            ss << ", 0x0";
+        }
+        ss << std::endl;
+        num -= i;
+    }
+    return ss.str();
+}
+
 
 
 /******************************/
@@ -715,7 +760,68 @@ void DirectCodeGenVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifier
 
 void DirectCodeGenVisitor::visit(astnodes::IdentifierDeclarator * identifierDeclarator)
 {
-    // TODO compile initializers
+    if (!identifierDeclarator->isVariableDeclaration)
+        return;
+    
+    // get value position from identifier
+    types::Type* type = identifierDeclarator->variableType;
+    unsigned int rawsize = type->getWordSize();
+    
+    // output globals
+    switch (identifierDeclarator->varoutput)
+    {
+        case astnodes::VAROUT_EXTERN:
+            asm_globalImport << ".IMPORT cglob_" << identifierDeclarator->name << std::endl;
+            return;
+            break;
+        // TODO handle local statics separately (otherwise there will be naming conflicts)
+        case astnodes::VAROUT_STATIC:
+            asm_globalSpace << "cglob_" << identifierDeclarator->name << ":" << std::endl;
+            asm_globalSpace << getDats(rawsize);
+            break;
+        case astnodes::VAROUT_GLOBAL:
+            asm_globalSpace << ".EXPORT cglob_" << identifierDeclarator->name << std::endl;
+            asm_globalSpace << "cglob_" << identifierDeclarator->name << ":" << std::endl;
+            asm_globalSpace << getDats(rawsize);
+            break;
+        default:
+            // no output
+            break;
+    }
+    
+    if (types::IsTypeHelper::isArrayType(type))
+    {
+        types::ArrayType* arrtype = types::IsTypeHelper::getArrayType(type);
+        type = arrtype->basetype;
+    }
+    unsigned int size = type->getWordSize();
+    ValuePosition* valPos = typePositionToValuePosition(identifierDeclarator->typePos, size);
+    
+    if (identifierDeclarator->initializers != NULL)
+    {
+        for (astnodes::Expressions::iterator i = identifierDeclarator->initializers->begin(); i != identifierDeclarator->initializers->end(); ++i)
+        {
+            // compile the expression
+            (*i)->accept(*this);
+            
+            // save the result
+            ValuePosition* resultVP = (*i)->valPos;
+            resultVP = makeAtomicReadable(resultVP, REG_TMP_R);
+            ValuePosition* derefValPos = makeAtomicDerefable(valPos, REG_TMP_L);
+            
+            if (size == 1)
+            {
+                derefValPos = valPos->atomicDeref();
+            }
+            
+            copyValue(resultVP, derefValPos);
+            
+            valPos = valPos->addOffset(size);
+            
+            maybeFreeTemporary(resultVP);
+            maybeFreeTemporary(derefValPos);
+        }
+    }
 }
 
 
@@ -731,16 +837,8 @@ void DirectCodeGenVisitor::visit(astnodes::Pointer * pointer)
 
 void DirectCodeGenVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 {
-    // TODO compile the the initializers
-    if (arrayDeclarator->initializers != NULL)
-        for (astnodes::Expressions::iterator i = arrayDeclarator->initializers->begin(); i != arrayDeclarator->initializers->end(); ++i)
-        {
-            // evaluate the expression
-            (*i)->accept(*this);
-            
-            // save the result
-            // TODO
-        }
+    // nothing to do
+    arrayDeclarator->baseDeclarator->accept(*this);
 }
 
 
@@ -748,7 +846,8 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 
 void DirectCodeGenVisitor::visit(astnodes::FunctionDeclarator * functionDeclarator)
 {
-    // TODO compile the the initializers
+    // nothing to do
+    functionDeclarator->baseDeclarator->accept(*this);
 }
 
 
@@ -853,11 +952,11 @@ ValuePosition* DirectCodeGenVisitor::typePositionToValuePosition(symboltable::Ty
     }
     if (typePos.isGlobal())
     {
-        return ValuePosition::createLabelPos(typePos.getGlobalLabel());
+        return ValuePosition::createLabelPos(std::string("cglob_") + typePos.getGlobalVariableName());
     }
     else
     {
-        throw new errors::InternalCompilerException("FIXME implement global vars and functions");
+        throw new errors::InternalCompilerException("unknown typeposition");
     }
 }
 

@@ -79,16 +79,18 @@ int main(int argc, char **argv) {
         // try to compile
         Assembler::loadAll();
         dtcc::codegen::DirectCodeGenVisitor* codegen = new dtcc::codegen::DirectCodeGenVisitor();
-        try{
+        //try{
             program->accept(*codegen);
             
             std::string code = codegen->getAssembly();
             std::cout << code;
+            /*
         }
         catch (dtcc::errors::InternalCompilerException*  e)
         {
             std::cout << "INTERNAL COMPILER EXCEPTION: " << e->getMessage() << std::endl;
         }
+        */
     }
     
     

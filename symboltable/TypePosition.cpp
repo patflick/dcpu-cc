@@ -119,7 +119,7 @@ bool TypePosition::isGlobal()
     return this->m_Global;
 }
 
-std::string TypePosition::getGlobalLabel()
+std::string TypePosition::getGlobalVariableName()
 {
     return this->m_Name;
 }

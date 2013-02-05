@@ -175,6 +175,19 @@ int ValuePosition::getOffset()
     return this->offset;
 }
 
+ValuePosition* ValuePosition::addOffset(int offset)
+{
+    ValuePosition* newVP = new ValuePosition(*this);
+    newVP->offset += offset;
+    if (newVP->posType == LABEL)
+        newVP->posType = LABEL_REL;
+    else if (newVP->posType == REG)
+        newVP->posType = REG_REL;
+    else if (newVP->posType == STACK)
+        newVP->posType = STACK_REL;
+    return newVP;
+}
+
 bool ValuePosition::usesRegister()
 {
     if (this->posType == REG || this->posType == REG_REL)

@@ -101,6 +101,7 @@ namespace dtcc
             bool isModifyableTemp();
             bool isTempStack();
             int getOffset();
+            ValuePosition* addOffset(int offset);
             
             ValPosRegister getRegister();
             

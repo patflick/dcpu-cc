@@ -54,6 +54,7 @@ namespace dtcc
             std::string name;
             uint16_t stackSize;
             uint16_t paramSize;
+            bool exportFunction;
             
         public:
             ///
@@ -63,7 +64,7 @@ namespace dtcc
             /// @param block TODO: FILLOUT
 
             ///
-            FunctionDefinition(DeclarationSpecifiers * declSpecifiers, Declarator * declarator, BlockStatement * block) : declSpecifiers(declSpecifiers), declarator(declarator), block(block) {}
+            FunctionDefinition(DeclarationSpecifiers * declSpecifiers, Declarator * declarator, BlockStatement * block) : declSpecifiers(declSpecifiers), declarator(declarator), block(block), exportFunction(true) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

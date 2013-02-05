@@ -45,7 +45,7 @@ namespace dtcc
             bool isFPrel();
             int getFPoffset();
             bool isGlobal();
-            std::string getGlobalLabel();
+            std::string getGlobalVariableName();
             std::string getFunctionName();
             /*
             std::string getAtomicAddress();

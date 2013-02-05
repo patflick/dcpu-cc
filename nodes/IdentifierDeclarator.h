@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include "Declarator.h"
+#include <symboltable/TypePosition.h>
 
 #include <string>
 
@@ -24,7 +25,9 @@ namespace dtcc
 {
     namespace astnodes
     {
-
+        /// Defines possible output values for the identifier declarator.
+        enum VariableOutput_t {VAROUT_NOTHING, VAROUT_STATIC, VAROUT_GLOBAL, VAROUT_EXTERN};
+        
         ///
         /// @class      IdentifierDeclarator
         /// @brief      The IdentifierDeclarator AST node.
@@ -46,12 +49,16 @@ namespace dtcc
             
         public:
             std::string& name;
+            bool isVariableDeclaration;
+            VariableOutput_t varoutput;
+            symboltable::TypePosition typePos;
+            types::Type* variableType;
 
         public:
             ///
             /// @brief      The constructor of the IdentifierDeclarator AST node.
             ///
-            IdentifierDeclarator(std::string& name) : name(name)  {}
+            IdentifierDeclarator(std::string& name) : name(name), isVariableDeclaration(false), variableType(NULL)  {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.
