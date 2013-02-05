@@ -30,11 +30,15 @@ namespace dtcc
             bool m_IsFunctionParameter;
             bool m_PreviousStackFrame;
             uint16_t m_Position;
-            std::string m_FunctionName;
+            std::string m_Name;
         public:
             TypePosition(bool isFound, bool isGlobal, bool isFunctionParameter, bool previousStackFrame, uint16_t position);
             TypePosition(bool isFound, std::string funcName);
-            TypePosition() : m_Found(false), m_Global(false), m_Function(false), m_IsFunctionParameter(false), m_Position(0) {}
+            TypePosition() : m_Found(false), m_Global(false), m_Function(false), m_IsFunctionParameter(false), m_Position(0), m_Name(std::string("")) {}
+            static TypePosition& createFunctionPosition(std::string functionName);
+            static TypePosition& createGlobalPosition(std::string globalName);
+            static TypePosition& createFunctionParamter(uint16_t offset);
+            static TypePosition& createLocalStack(uint16_t offset);
             bool isFound();
             bool isFunction();
             bool isAtomiclyAddressable();

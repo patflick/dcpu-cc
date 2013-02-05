@@ -91,6 +91,8 @@ namespace dtcc
             std::deque<std::string> m_declNameStack;
             std::deque<bool> m_declIsStored;
             std::deque<bool> m_saveParams;
+            std::deque<astnodes::StorSpec_t> m_storSpecStack;
+            astnodes::Expressions* m_declarationInitializer;
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);

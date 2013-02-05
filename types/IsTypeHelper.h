@@ -222,6 +222,12 @@ namespace dtcc
             static PointerType* getPointerType(Type* type);
             
             ///
+            /// @brief          Returns the array type if this is a array type, and NULL otherwise.
+            /// @param type     The type to be cast to arraytype and returned.
+            /// @returns        The array type if this is a array type, and NULL otherwise.
+            static ArrayType* getArrayType(Type* type);
+            
+            ///
             /// @brief          Returns the corresponding pointer type if this is an array type, and NULL otherwise.
             /// @param type     The type to be cast to pointer and returned.
             /// @returns        The pointer type if this is an array type, and NULL otherwise.

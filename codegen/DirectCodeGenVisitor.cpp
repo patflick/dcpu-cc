@@ -313,6 +313,10 @@ void DirectCodeGenVisitor::visit(astnodes::Program * program)
 {
     // compile everything
     program->allChildrenAccept(*this);
+    
+    // loop through global vars and function declarations
+    // TODO do this with symbol table?
+    // TODO or in the single declarations?
 }
 
 
@@ -839,7 +843,6 @@ void DirectCodeGenVisitor::visit(astnodes::TypeQualifier * typeQualifier)
 
 ValuePosition* DirectCodeGenVisitor::typePositionToValuePosition(symboltable::TypePosition typePos, unsigned int size)
 {
-    // TODO
     if (typePos.isFPrel())
     {
         return ValuePosition::createFPrel(typePos.getFPoffset(), size);
@@ -847,6 +850,10 @@ ValuePosition* DirectCodeGenVisitor::typePositionToValuePosition(symboltable::Ty
     else if (typePos.isFunction())
     {
         return ValuePosition::createLabelPos(std::string("cfunc_") + typePos.getFunctionName());
+    }
+    if (typePos.isGlobal())
+    {
+        return ValuePosition::createLabelPos(typePos.getGlobalLabel());
     }
     else
     {
@@ -898,8 +905,7 @@ void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
     // Ideas:
     //  - terminal 
     
-    // TODO get value position from identifier (should be on the local or global stack !?)
-    // TODO
+    // get value position from identifier
     types::Type* type = identifier->valType->type;
     if (types::IsTypeHelper::isArrayType(type))
     {

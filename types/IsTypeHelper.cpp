@@ -360,6 +360,14 @@ PointerType* IsTypeHelper::getPointerType(Type* type)
         return NULL;
 }
 
+ArrayType* IsTypeHelper::getArrayType(Type* type)
+{
+    if (IsTypeHelper::isArrayType(type))
+        return (ArrayType*) type;
+    else
+        return NULL;
+}
+
 PointerType* IsTypeHelper::pointerFromArrayType(Type* type)
 {
     if (IsTypeHelper::isArrayType(type))

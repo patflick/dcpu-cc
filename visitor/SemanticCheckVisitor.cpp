@@ -43,6 +43,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_invalidValType = new valuetypes::RValue(new types::InvalidType());
     this->m_declTypeStack = std::deque<types::Type*>();
     this->m_declNameStack = std::deque<std::string>();
+    this->m_storSpecStack = std::deque<astnodes::StorSpec_t>();
     this->m_declIsStored = std::deque<bool>();
     this->m_saveParams = std::deque<bool>();
 }
@@ -552,6 +553,45 @@ void SemanticCheckVisitor::visit(astnodes::LabelStatement * labelStatement)
 /*        3.5 DECLARATIONS              */
 /*######################################*/
 
+/*
+ *  TODO implement all this:
+ *  TODO
+ *  How declarations are handled:
+ *    The Declaration consists of multiple declarators.
+ *    those are recursively consisting of more declarators.
+ * 
+ *    To desolve the type of a declaration, the declarators recursively
+ *    add to the basic type calculated by the declaration.
+ *  
+ *  How storage specifiers are handled:
+ *    Variables:
+ *      Typedef: add to current scope -> TAGS
+ *      Extern:  add to current scope as "ghost" (no space allocation)
+ *               IdentifierDeclarator in CodeGen: add to global space:
+ *                      .IMPORT cglob_<varname>
+ *      Static:  add to current scope as global
+ *               IdentifierDeclarator in CodeGen; add to global space:
+ *                      _cstatic_<varname> DAT 0x0, ...
+ *      Other:   add to current scope as local or global if global scope
+ *               IdentifierDeclarator in CodeGen, if global add to global space:
+ *                      .EXPORT cglob_<varname>
+ *                      cglob_<varname>: DAT 0x0, ...
+ *
+ *    Functions: (Function Declaration AND Definition)
+ *       Static: -> no .EXPORT
+ *       Default: -> .EXPORT for definition, .IMPORT for declaration
+ *          => this is handled on a global basis via the symbol table
+ *       
+ *  How initializers are handled:
+ *    They are passed down recursively to the final identifierDeclarator.
+ *     This is where they are type checked, (and in mismatch case converted).
+ *    During CodeGen, the identifierDeclarator implements the initialization of the
+ *     variable, or the array.
+ * 
+ * 
+ */
+
+
 void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
 {
     // get type from declaration specifiers
@@ -620,6 +660,8 @@ void SemanticCheckVisitor::visit(astnodes::Declaration * declaration)
             
             // call declarator recursively in order to get the actuay declaration type
             this->m_saveParams.push_back(false);
+            this->m_storSpecStack.push_back(declaration->storageSpecifier);
+            this->m_declarationInitializer = (*i)->initializers;
             (*i)->accept(*this);
             
             // get type and name of actual declarator
@@ -819,32 +861,68 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
     if (identifierDeclarator->pointers != NULL)
         for (astnodes::Pointers::iterator i = identifierDeclarator->pointers->begin(); i != identifierDeclarator->pointers->end(); ++i)
             (*i)->accept(*this);
+        
     // no change in the type, we've reached the bottom in the declarator recursion
     // just push the namespace
     this->m_declNameStack.push_back(identifierDeclarator->name);
     
-    // TODO get initializer
-    if (identifierDeclarator->initializers != NULL)
+    // get type for the identifier
+    types::Type* type = this->m_declTypeStack.back();
+    
+    // get initilizers
+    identifierDeclarator->initializers = m_declarationInitializer;
+    
+    // check for conditions for the initilizers
+    if (types::IsTypeHelper::isFunctionType(type))
     {
-        // check that there is at most 1 initializer
-        if (identifierDeclarator->initializers->size() > 1)
+        if (identifierDeclarator->initializers != NULL)
         {
-            addError(identifierDeclarator, ERR_CC_TOO_MANY_INITS, identifierDeclarator->name);
-            return;
-        }
-        
-        if (identifierDeclarator->initializers->size() == 1)
-        {
-            // visit the expression
-            identifierDeclarator->initializers->front()->accept(*this);
-            
-            // now check for compatible types
-            // TODO
+            if (identifierDeclarator->initializers->size() > 0)
+            {
+                addError(identifierDeclarator, ERR_CC_INIT_FOR_FUNCTION, identifierDeclarator->name);
+                return;
+            }
         }
     }
-    
-
-    
+    else if (types::IsTypeHelper::isArrayType(type))
+    {
+        types::ArrayType* arrType = types::IsTypeHelper::getArrayType(type);
+        if (identifierDeclarator->initializers != NULL)
+        {
+            if (identifierDeclarator->initializers->size() > arrType->size)
+            {
+                addWarning(identifierDeclarator, WARN_CC_INIT_LIST_TOO_LONG, identifierDeclarator->name);
+            }
+            
+            // visit expressions recursively to resolve their type
+            for (astnodes::Expressions::iterator i = identifierDeclarator->initializers->begin(); i != identifierDeclarator->initializers->end(); ++i)
+                (*i)->accept(*this);
+            
+            // TODO check for compatible types
+        }
+    }
+    else
+    {
+        // this is a "normal" variable then
+        if (identifierDeclarator->initializers != NULL)
+        {
+            // check that there is at most 1 initializer
+            if (identifierDeclarator->initializers->size() > 1)
+            {
+                addError(identifierDeclarator, ERR_CC_TOO_MANY_INITS, identifierDeclarator->name);
+                return;
+            }
+            
+            if (identifierDeclarator->initializers->size() == 1)
+            {
+                // visit the expression
+                identifierDeclarator->initializers->front()->accept(*this);
+                
+                // now check for compatible types
+                // TODO
+            }
+        }
+    }
 }
 
 
@@ -945,19 +1023,6 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
     // visit recursively
     arrayDeclarator->baseDeclarator->accept(*this);
     
-    // and the initializers
-    if (arrayDeclarator->initializers != NULL)
-        for (astnodes::Expressions::iterator i = arrayDeclarator->initializers->begin(); i != arrayDeclarator->initializers->end(); ++i)
-            (*i)->accept(*this);
-        
-    // TODO check for compatibility of init types
-    if (arrayDeclarator->initializers != NULL)
-        for (astnodes::Expressions::iterator init = arrayDeclarator->initializers->begin(); init != arrayDeclarator->initializers->end(); ++init)
-        {
-            
-            // check that the type is compatible
-            // TODO
-        }
 }
 
 
@@ -1047,26 +1112,6 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarat
     
     // visit recursively
     functionDeclarator->baseDeclarator->accept(*this);
-    
-    // and the initializers (if any)
-    if (functionDeclarator->initializers != NULL)
-    {
-        // check that there is at most 1 initializer
-        if (functionDeclarator->initializers->size() > 1)
-        {
-            addError(functionDeclarator, ERR_CC_TOO_MANY_INITS, this->m_declNameStack.back());
-            return;
-        }
-        
-        if (functionDeclarator->initializers->size() == 1)
-        {
-            // visit the expression
-            functionDeclarator->initializers->front()->accept(*this);
-            
-            // now check for compatible types
-            // TODO
-        }
-    }
 }
 
 

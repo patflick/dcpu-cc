@@ -20,7 +20,7 @@ TypePosition::TypePosition(bool isFound, bool isGlobal, bool isFunctionParameter
 {
     this->m_Found = isFound;
     this->m_Function = false;
-    this->m_FunctionName = "";
+    this->m_Name = "";
     this->m_Global = isGlobal;
     this->m_IsFunctionParameter = isFunctionParameter;
     this->m_PreviousStackFrame = previousStackFrame;
@@ -31,12 +31,38 @@ TypePosition::TypePosition(bool isFound, std::string funcName)
 {
     this->m_Found = true;
     this->m_Function = true;
-    this->m_FunctionName = funcName;
+    this->m_Name = funcName;
     this->m_Global = true;
     this->m_IsFunctionParameter = false;
     this->m_PreviousStackFrame = false;
     this->m_Position = 0;
 }
+
+TypePosition& TypePosition::createFunctionPosition(std::string functionName)
+{
+    return *(new TypePosition(true, functionName));
+}
+
+TypePosition& TypePosition::createGlobalPosition(std::string globalName)
+{
+    TypePosition* pos = new TypePosition(true, true, false, false, 0);
+    pos->m_Name = globalName;
+    return *pos;
+}
+
+TypePosition& TypePosition::createFunctionParamter(uint16_t offset)
+{
+    TypePosition* pos = new TypePosition(true, false, true, false, offset);
+    return *pos;
+}
+
+TypePosition& TypePosition::createLocalStack(uint16_t offset)
+{
+    TypePosition* pos = new TypePosition(true, false, false, false, offset);
+    return *pos;
+}
+
+
 
 bool TypePosition::isFound()
 {
@@ -95,12 +121,12 @@ bool TypePosition::isGlobal()
 
 std::string TypePosition::getGlobalLabel()
 {
-    return std::string("");
+    return this->m_Name;
 }
 
 std::string TypePosition::getFunctionName()
 {
-    return this->m_FunctionName;
+    return this->m_Name;
 }
 
 /*

@@ -99,3 +99,7 @@ ERR_CC_SIZEOF_INCOMPLETE                             cc-sizeof-incomplete       
 ERR_CC_INVALID_TYPENAME                              cc-invalid-typename                      "typename `%s` is not in the current scope"
 
 
+ERR_CC_INIT_FOR_FUNCTION                             cc-init-for-function                     "invalid initialization for function `%s`. Function types can not be initialized."
+
+
+WARN_CC_INIT_LIST_TOO_LONG                           cc-init-list-too-long                    "array initializer list of `%s` has too many elements."

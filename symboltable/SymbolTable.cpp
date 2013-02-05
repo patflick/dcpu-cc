@@ -102,10 +102,9 @@ TypePosition SymbolTable::getPositionOfVariable(std::string name, bool previousS
             if (obj.declType == FUNCTION_DECL || obj.declType == FUNCTION_DEF)
                 return TypePosition(true, name);
             else
-                return TypePosition(true, true, false, previousStackFrame, obj.positionOffset);
+                return TypePosition::createGlobalPosition(name);
         }
     }
-
     return TypePosition(false, false, false, false, 0);
 }
 
