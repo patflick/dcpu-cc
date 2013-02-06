@@ -256,7 +256,9 @@ void DirectCodeGenVisitor::maybeFreeTemporary(ValuePosition* vp)
 {
     if (vp->usesRegister())
     {
-        this->releaseRegister(vp->getRegister());
+        ValPosRegister reg = vp->getRegister();
+        if (reg != REG_TMP_L && reg != REG_TMP_R)
+            this->releaseRegister(reg);
     }
     else if (vp->isTempStack())
     {
@@ -1249,9 +1251,25 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operand
     {
         if (!operandVP->isAtomicOperand() || !operandVP->isModifyableTemp())
         {
+            newVP = getTmp(operandVP->getWordSize());
             if (!operandVP->isAtomicOperand())
-                newVP = operandVP->valToRegister(asm_current, tmpReg);
-            newVP = getTmpCopy(newVP);
+            {
+                if (newVP->usesRegister() && newVP->canAtomicDeref())
+                {
+                    // no use to use the temporary register, if this is already one
+                    operandVP->adrToAtomicOperand(asm_current, newVP);
+                }
+                else
+                {
+                    newVP = operandVP->valToRegister(asm_current, tmpReg);
+                    copyValue(operandVP, newVP);
+                }
+            }
+            else
+            {
+                copyValue(operandVP, newVP);
+            }
+            maybeFreeTemporary(operandVP);
         }
     }
     else
@@ -1264,6 +1282,7 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operand
                 newVP = operandVP->valToRegister(asm_current, tmpReg);
             }
             newVP = getTmpCopy(newVP);
+            maybeFreeTemporary(operandVP);
         }
     }
     return newVP;
@@ -1284,6 +1303,7 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicReadable(ValuePosition* operandVP
         if (!operandVP->isAtomicOperand())
         {
             newVP = operandVP->valToRegister(asm_current, tmpReg);
+            maybeFreeTemporary(operandVP);
         }
     }
     else
@@ -1292,6 +1312,7 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicReadable(ValuePosition* operandVP
         {
             // get the address into the LHS temporary register
             newVP = operandVP->valToRegister(asm_current, tmpReg);
+            maybeFreeTemporary(operandVP);
         }
     }
     return newVP;
@@ -1305,6 +1326,7 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicDerefable(ValuePosition* operandV
         if (!operandVP->canAtomicDeref())
         {
             newVP = operandVP->valToRegister(asm_current, regist);
+            maybeFreeTemporary(operandVP);
         }
     }
     else
@@ -1312,6 +1334,7 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicDerefable(ValuePosition* operandV
         if (!operandVP->canAtomicDerefOffset())
         {
             newVP = operandVP->valToRegister(asm_current, regist);
+            maybeFreeTemporary(operandVP);
         }
     }
     return newVP;
@@ -1347,6 +1370,7 @@ ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP, ValP
             if ((!operandVP->isAtomicOperand()) || (!operandVP->isModifyableTemp()))
                 newVP = getTmp(1);
             copyValue(tmpRegVP, newVP);
+            maybeFreeTemporary(operandVP);
         }
     }
     return newVP;
@@ -1482,9 +1506,10 @@ ValuePosition* DirectCodeGenVisitor::getTmp(int size)
 
 void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOperator)
 {
-    
     // first compile lhs expression (i.e. the array)
     arrayAccessOperator->lhsExpr->accept(*this);
+    
+    asm_current << " ; -- ArrayAccessOperator --" << std::endl;
     
     ValuePosition* lhsVP = arrayAccessOperator->lhsExpr->valPos;
     
@@ -1495,7 +1520,11 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     
     // maybe we don't have to do anything:
     if (!arrayAccessOperator->returnValue)
+    {
+        maybeFreeTemporary(lhsVP);
+        maybeFreeTemporary(rhsVP);
         return;
+    }
     
     // get type implementation
     TypeImplementation* typeImpl = this->getTypeImplementation(new types::UnsignedInt());
@@ -1521,6 +1550,8 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
         // add to address
         typeImpl->add(asm_current, lhsVP, rhsVP);
     }
+    
+    maybeFreeTemporary(rhsVP);
     
     /* arrayAccessOperator is a LValue, so maybe we have to deref */
     lhsVP = lhsVP->newSize(arrayAccessOperator->pointerSize);
@@ -1605,14 +1636,19 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
     // get the lhs
     structureResolutionOperator->allChildrenAccept(*this);
     
-    if (!structureResolutionOperator->returnValue)
-        return;
+    asm_current << " ; -- StructureResolutionOperator --" << std::endl;
     
     // get lhs value position
     ValuePosition* lhsVP = structureResolutionOperator->lhsExpr->valPos;
     
     // get new VP from old with offset and new size
     ValuePosition* smallerVP = lhsVP->newSizeOffset(structureResolutionOperator->fieldSize, structureResolutionOperator->offset);
+    
+    if (!structureResolutionOperator->returnValue)
+    {
+        maybeFreeTemporary(lhsVP);
+        return;
+    }
     
     // deref if we have to:
     if (structureResolutionOperator->returnRValue)
@@ -2197,6 +2233,11 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     if (createCopy && assignmentOperator->returnValue)
     {
         resultValPos = getTmpCopy(lhsOperandVP);
+        maybeFreeTemporary(lhsOperandVP);
+    }
+    
+    if (!assignmentOperator->returnValue)
+    {
         maybeFreeTemporary(lhsOperandVP);
     }
     

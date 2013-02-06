@@ -277,9 +277,9 @@ ValuePosition* ValuePosition::atomicDerefOffset(int offset)
     return newVP;
 }
 
-ValuePosition* ValuePosition::adrToRegister(AsmBlock& ass, ValPosRegister regist)
+void ValuePosition::adrToAtomicOperand(AsmBlock& ass, ValuePosition* atomicOperand)
 {
-    ass << "SET " << this->registerToString(regist) << ", " << this->baseToString() << std::endl;
+    ass << "SET " << atomicOperand->toAtomicOperand() << ", " << this->baseToString() << std::endl;
     
     // add offset if needed
     switch (this->posType)
@@ -287,16 +287,21 @@ ValuePosition* ValuePosition::adrToRegister(AsmBlock& ass, ValPosRegister regist
         case LABEL_REL:
         case FP_REL:
         case STACK_REL:
-            ass << "ADD " << this->registerToString(regist) << ", 0x" << std::hex << (int16_t) this->offset << std::endl;
+        case REG_REL:
+            ass << "ADD " << atomicOperand->toAtomicOperand() << ", 0x" << std::hex << (int16_t) this->offset << std::endl;
             break;
         default:
             break;
     }
-    
+}
+
+ValuePosition* ValuePosition::adrToRegister(AsmBlock& ass, ValPosRegister regist)
+{
     ValuePosition* newVP = new ValuePosition(*this);
     newVP->posType = REG;
     newVP->regist = regist;
     newVP->isDeref = false;
+    this->adrToAtomicOperand(ass, newVP);
     return newVP;
 }
 

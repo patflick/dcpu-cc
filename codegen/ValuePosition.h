@@ -79,8 +79,8 @@ namespace dtcc
             ValuePosition* atomicDeref();
             ValuePosition* atomicDerefOffset(int offset);
             
+            void adrToAtomicOperand(AsmBlock& ass, ValuePosition* atomicOperand);
             ValuePosition* adrToRegister(AsmBlock& ass, ValPosRegister regist);
-            
             ValuePosition* valToRegister(AsmBlock& ass, ValPosRegister regist);
             
             std::string toAtomicOperand();

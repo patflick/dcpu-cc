@@ -1945,9 +1945,6 @@ void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structu
     types::Type* fieldType = structType->getMember(fieldName);
     unsigned int offset = structType->getOffset(fieldName);
     
-    // assign offset
-    structureResolutionOperator->offset = offset;
-    structureResolutionOperator->fieldSize = fieldType->getWordSize();
     
     // maybe resolve array
     if (structureResolutionOperator->returnRValue)
@@ -1961,8 +1958,16 @@ void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structu
     }
     else
     {
+        if (types::IsTypeHelper::isArrayType(fieldType))
+        {
+            fieldType = types::IsTypeHelper::pointerFromArrayType(fieldType);
+        }
         structureResolutionOperator->valType = new valuetypes::LValue(fieldType);
     }
+    
+    // assign offset
+    structureResolutionOperator->offset = offset;
+    structureResolutionOperator->fieldSize = fieldType->getWordSize();
 }
 
 
