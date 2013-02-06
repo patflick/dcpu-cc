@@ -97,7 +97,14 @@ ERR_CC_ADRESS_OF_NON_LVALUE                          cc-adress-of-non-lvalue    
 ERR_CC_INVALID_EXPLICIT_CAST                         cc-invalid-explicit-cast                 "invalid explicit cast."
 ERR_CC_SIZEOF_INCOMPLETE                             cc-sizeof-incomplete                     "can not get size of incomplete type"
 ERR_CC_INVALID_TYPENAME                              cc-invalid-typename                      "typename `%s` is not in the current scope"
-
+ERR_CC_STRUCT_MEM_INCOMPLETE                         cc-struct-mem-incomplete                 "struct member `%s` is of incomplete type"
+ERR_CC_STRUCT_MEM_REDECL                             cc-struct-mem-redecl                     "redeclaration of struct member `%s`."
+ERR_CC_STRUCT_RESOL_NO_PTR                           cc-struct-resol-no-ptr                   "left side of `->` operator must be a pointer to a struct or union"
+ERR_CC_STRUCT_RESOL_NO_LVALUE                        cc-struct-resol-no-lvalue                "left side of `.` operator must be a LValue of a type struct or union."
+ERR_CC_STRUCT_NO_MEM                                 cc-struct-no-mem                         "the struct or union has no member with name `%s`."
+ERR_CC_STRUCT_NOT_FOUND                              cc-struct-not-found                      "a structure or union with name `%s` was not found in the current scope."
+ERR_CC_NOT_A_STRUCT                                  cc-not-a-struct                          "the tag with name `%s` is not a struct or union."
+ERR_CC_STRUCT_UNION_CONFL                            cc-struct-union-confl                    "conflicting declaration of `%s` as struct/union"
 
 ERR_CC_PARAMTER_FUNCTION_TYPE                        cc-parameter-function-type               "a parameter cannot be of function type."
 ERR_CC_INIT_FOR_FUNCTION                             cc-init-for-function                     "invalid initialization for function `%s`. Function types can not be initialized."

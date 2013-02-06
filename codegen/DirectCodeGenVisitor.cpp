@@ -362,6 +362,8 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     
     // Output the leading information and immediate jump.
     asmStr <<  ":cfunc_" << functionDefinition->name << std::endl;
+    
+    // TODO this is old calling convention 
     asmStr <<  "    SET PC, cfunc_" << functionDefinition->name << "_actual" << std::endl;
     asmStr <<  "    DAT " << functionDefinition->paramSize << std::endl;
     asmStr <<  ":cfunc_" << functionDefinition->name << "_actual" << std::endl;
@@ -382,7 +384,7 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // Allocate locals and temporaries
     unsigned int stacksize = functionDefinition->stackSize + m_tempStackMax;
     if (stacksize > 0)
-        asmStr <<  "    SUB SP, " << stacksize << std::endl;
+        asmStr <<  "    SUB SP, 0x" << std::hex << stacksize << std::endl;
     
     asmStr << asm_current.str();
     
@@ -391,7 +393,7 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     
     // Free locals and temporaries
     if (stacksize > 0)
-        asmStr <<  "    ADD SP, " << stacksize << std::endl;
+        asmStr <<  "    ADD SP, 0x" << std::hex << stacksize << std::endl;
     
     // Return from this function.
     asmStr <<  "    SET A, 0xFFFF" << std::endl;
@@ -810,7 +812,7 @@ void DirectCodeGenVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
             
             if (size == 1)
             {
-                derefValPos = valPos->atomicDeref();
+                derefValPos = derefValPos->atomicDeref();
             }
             
             copyValue(resultVP, derefValPos);
@@ -947,11 +949,11 @@ ValuePosition* DirectCodeGenVisitor::typePositionToValuePosition(symboltable::Ty
     }
     else if (typePos.isFunction())
     {
-        return ValuePosition::createLabelPos(std::string("cfunc_") + typePos.getFunctionName());
+        return ValuePosition::createLabelPos(std::string("cfunc_") + typePos.getFunctionName(), size);
     }
     if (typePos.isGlobal())
     {
-        return ValuePosition::createLabelPos(std::string("cglob_") + typePos.getGlobalVariableName());
+        return ValuePosition::createLabelPos(std::string("cglob_") + typePos.getGlobalVariableName(), size);
     }
     else
     {
@@ -1041,7 +1043,7 @@ ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
         asm_Constants << std::endl;
         
         // return a label valuepos
-        return ValuePosition::createLabelPos(label);
+        return ValuePosition::createLabelPos(label, vals.size());
     }
     else if (vals.size() == 1)
     {
@@ -1184,7 +1186,7 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
     asm_stringConstants << "    DAT " << outputstr.str() << ", 0x0" << std::endl;
     
     // set a label ValuePosition
-    stringLiteral->valPos = ValuePosition::createLabelPos(label);
+    stringLiteral->valPos = ValuePosition::createLabelPos(label, 1);
 }
 
 
@@ -1247,7 +1249,9 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operand
     {
         if (!operandVP->isAtomicOperand() || !operandVP->isModifyableTemp())
         {
-            newVP = getTmpCopy(operandVP);
+            if (!operandVP->isAtomicOperand())
+                newVP = operandVP->valToRegister(asm_current, tmpReg);
+            newVP = getTmpCopy(newVP);
         }
     }
     else
@@ -1257,9 +1261,9 @@ ValuePosition* DirectCodeGenVisitor::makeAtomicModifyable(ValuePosition* operand
             if (!operandVP->canAtomicDerefOffset())
             {
                 // get the address into the LHS temporary register
-                operandVP = operandVP->valToRegister(asm_current, tmpReg);
+                newVP = operandVP->valToRegister(asm_current, tmpReg);
             }
-            newVP = getTmpCopy(operandVP);
+            newVP = getTmpCopy(newVP);
         }
     }
     return newVP;
@@ -1353,7 +1357,9 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
     if (valPos->getWordSize() == 1)
     {
         asm_current << "SET PUSH, " << valPos->toAtomicOperand() << std::endl;
-    } else if (valPos->getWordSize() < MIN_SIZE_LOOP_COPY)
+    //} else if (valPos->getWordSize() < MIN_SIZE_LOOP_COPY)
+    }
+    else
     {
         for (int i = valPos->getWordSize() - 1; i >= 0; i--)
         {
@@ -1363,9 +1369,10 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
                 asm_current << "SET PUSH, " << valPos->atomicDeref()->toAtomicOperand() << std::endl;
         }
     }
+    /*
     else if (valPos->getWordSize() >= MIN_SIZE_LOOP_COPY)
     {
-        asm_current << "SUB SP, " << valPos->getWordSize() << std::endl;
+        asm_current << "SUB SP, 0x" << std::hex << valPos->getWordSize() << std::endl;
         
         int stackoffset = 0;
         // save I and J
@@ -1385,10 +1392,10 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
         
         // set up registers and stack pointer 
         // TODO i have the feeling this could be done more efficient :(
-        asm_current << "SET I, " << valPos->toAtomicOperand() << std::endl;
-        asm_current << "ADD I, " << valPos->getWordSize()-1 << std::endl;
+        asm_current << "SET I, " << valPos->atomicDeref()->toAtomicOperand() << std::endl;
+        asm_current << "ADD I, 0x" << std::hex << valPos->getWordSize()-1 << std::endl;
         asm_current << "SET J, SP" << std::endl;
-        asm_current << "ADD J, " << valPos->getWordSize() + stackoffset - 1 << std::endl;
+        asm_current << "ADD J, 0x" << std::hex << valPos->getWordSize() + stackoffset - 1 << std::endl;
         asm_current << "ADD SP, " << stackoffset << std::endl;
         
         // compile the copy loop
@@ -1409,6 +1416,7 @@ ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
         if (m_registersUsed[REG_J])
             asm_current << "SET J, POP" << std::endl;
     }
+    */
 }
 
 ValuePosition* DirectCodeGenVisitor::getTmpCopy(ValuePosition* from)
@@ -1492,6 +1500,9 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     // get type implementation
     TypeImplementation* typeImpl = this->getTypeImplementation(new types::UnsignedInt());
     
+    // set new size 
+    lhsVP = lhsVP->newSize(1);
+    
     // get lhs as modifyable
     lhsVP = makeAtomicModifyable(lhsVP);
     
@@ -1512,6 +1523,8 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     }
     
     /* arrayAccessOperator is a LValue, so maybe we have to deref */
+    lhsVP = lhsVP->newSize(arrayAccessOperator->pointerSize);
+
     if (arrayAccessOperator->returnRValue)
     {
         lhsVP = derefOperand(lhsVP, REG_TMP_L);
@@ -1563,6 +1576,9 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
     // get atomically readable variable
     lhsValPos = makeAtomicReadable(lhsValPos, REG_TMP_L);
     
+    // TODO for new call standard:
+    //      use  SET A, SP \ SET PUSH, Y \ SET Y, A \ JSR cfunc_function (most optimal)
+    
     asm_current <<  "    SET Z, " << jmpback << std::endl;
     asm_current <<  "    JSR _stack_caller_init_overlap" << std::endl;
     asm_current <<  "    SET PC, " << lhsValPos->toAtomicOperand() << std::endl;
@@ -1586,10 +1602,26 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
 
 void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structureResolutionOperator)
 {
-    // TODO FIXME TODO FIXME
-    // TODO implement structs properly
-    printAstName("StructureResolutionOperator");
+    // get the lhs
     structureResolutionOperator->allChildrenAccept(*this);
+    
+    if (!structureResolutionOperator->returnValue)
+        return;
+    
+    // get lhs value position
+    ValuePosition* lhsVP = structureResolutionOperator->lhsExpr->valPos;
+    
+    // get new VP from old with offset and new size
+    ValuePosition* smallerVP = lhsVP->newSizeOffset(structureResolutionOperator->fieldSize, structureResolutionOperator->offset);
+    
+    // deref if we have to:
+    if (structureResolutionOperator->returnRValue)
+    {
+        smallerVP = derefOperand(smallerVP, REG_TMP_L);
+    }
+    
+    // set value position
+    structureResolutionOperator->valPos = smallerVP;
 }
 
 
@@ -1670,10 +1702,10 @@ void DirectCodeGenVisitor::visit(astnodes::PreIncDec * preIncDec)
     switch (preIncDec->optoken)
     {
         case INC_OP:
-            typeImpl->inc(asm_current, valPos, preIncDec->pointerSize);
+            typeImpl->inc(asm_current, atomicValPos, preIncDec->pointerSize);
             break;
         case DEC_OP:
-            typeImpl->dec(asm_current, valPos, preIncDec->pointerSize);
+            typeImpl->dec(asm_current, atomicValPos, preIncDec->pointerSize);
             break;
         default:
             throw new errors::InternalCompilerException("invalid inc/dec operator encountered");
@@ -1697,7 +1729,7 @@ void DirectCodeGenVisitor::visit(astnodes::AddressOfOperator * addressOfOperator
     
     // same valpos as inner expression (which was an LValue and is now handled
     // as an RValue)
-    addressOfOperator->valPos = addressOfOperator->expr->valPos;
+    addressOfOperator->valPos = addressOfOperator->expr->valPos->newSize(1);
 }
 
 void DirectCodeGenVisitor::visit(astnodes::DerefOperator * derefOperator)
@@ -1706,6 +1738,7 @@ void DirectCodeGenVisitor::visit(astnodes::DerefOperator * derefOperator)
     derefOperator->expr->accept(*this);
     
     ValuePosition* valPos = derefOperator->expr->valPos;
+    valPos = valPos->newSize(derefOperator->newSize);
     
     if (!derefOperator->returnValue)
         return;
@@ -2072,7 +2105,9 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     ValuePosition* lhsValpos = assignmentOperator->lhsExrp->valPos;
     ValuePosition* rhsValpos = assignmentOperator->rhsExpr->valPos;
     
-    TypeImplementation* typeImpl = this->getTypeImplementation(assignmentOperator->commonType);
+    TypeImplementation* typeImpl = NULL;
+    if (assignmentOperator->optoken != ASSIGN_EQUAL)
+        typeImpl = this->getTypeImplementation(assignmentOperator->commonType);
     
     
     ValuePosition* lhsOperandVP = makeAtomicDerefable(lhsValpos, REG_TMP_L);
@@ -2092,10 +2127,7 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         /* 3.3.16.1 Simple assignment */
         
         case ASSIGN_EQUAL:
-            if(!rhsValpos->isAtomicOperand())
-            {
-                rhsValpos = rhsValpos->valToRegister(asm_current, REG_TMP_R);
-            }
+            rhsValpos = makeAtomicReadable(rhsValpos);
             copyValue(rhsValpos, lhsOperandVP);
             break;
             

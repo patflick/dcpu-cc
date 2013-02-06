@@ -44,6 +44,7 @@ namespace dtcc
             
         public:
             Expression * expr;
+            unsigned int newSize;
             
         public:
             ///
@@ -51,7 +52,7 @@ namespace dtcc
             /// @param expr TODO: FILLOUT
 
             ///
-            DerefOperator(Expression * expr) : expr(expr) {}
+            DerefOperator(Expression * expr) : expr(expr), newSize(0) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

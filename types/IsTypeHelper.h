@@ -228,6 +228,12 @@ namespace dtcc
             static ArrayType* getArrayType(Type* type);
             
             ///
+            /// @brief          Returns the StructUnion type if this is a StructUnion type, and NULL otherwise.
+            /// @param type     The type to be cast to StructUnion and returned.
+            /// @returns        The StructUnion type if this is a StructUnion type, and NULL otherwise.
+            static StructUnionType* getStructUnionType(Type* type);
+            
+            ///
             /// @brief          Returns the corresponding pointer type if this is an array type, and NULL otherwise.
             /// @param type     The type to be cast to pointer and returned.
             /// @returns        The pointer type if this is an array type, and NULL otherwise.

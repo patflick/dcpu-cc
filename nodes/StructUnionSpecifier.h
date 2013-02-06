@@ -46,7 +46,7 @@ namespace dtcc
         public:
             int token;
             Declarations * declarations;
-            std::string& name;
+            std::string name;
             bool hasName;
 
             
@@ -57,7 +57,7 @@ namespace dtcc
             /// @param declarations TODO: FILLOUT
             /// @param name TODO: FILLOUT
             ///
-            StructUnionSpecifier(int token, Declarations * declarations, std::string& name) : token(token), declarations(declarations), name(name), hasName(true) {}
+            StructUnionSpecifier(int token, Declarations * declarations, std::string name) : token(token), declarations(declarations), name(name), hasName(true) {}
             
             ///
             /// @brief      The constructor of the StructUnionSpecifier AST node.

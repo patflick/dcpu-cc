@@ -44,8 +44,11 @@ namespace dtcc
             
         public:
             Expression * lhsExpr;
-            std::string& fieldName;
+            std::string fieldName;
             bool isPointered;
+            
+            unsigned int offset;
+            unsigned int fieldSize;
 
             
         public:
@@ -56,7 +59,7 @@ namespace dtcc
             /// @param isPointered TODO: FILLOUT
 
             ///
-            StructureResolutionOperator(Expression * lhsExpr, std::string& fieldName, bool isPointered) : lhsExpr(lhsExpr), fieldName(fieldName), isPointered(isPointered) {}
+            StructureResolutionOperator(Expression * lhsExpr, std::string fieldName, bool isPointered) : lhsExpr(lhsExpr), fieldName(fieldName), isPointered(isPointered), offset(0) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

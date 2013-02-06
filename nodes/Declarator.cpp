@@ -79,8 +79,6 @@ void Declarator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
 // implements the destructor, which deletes all children
 Declarator::~Declarator()
 {
-    if (this->initializers != NULL)
-        delete this->initializers;
     if (this->pointers != NULL)
         delete this->pointers;
 }

@@ -23,12 +23,12 @@ void count();
 bool comment();
 bool comment_line();
 int check_type();
-std::string* yyfilename = new std::string("FIXME: implement filename and line information in lexer");
+std::string* yyfilename = new std::string("<fixmefile>");
 extern int string_return;
 extern std::set<std::string> activeTypedef;
 %}
 
-
+%option yylineno
 
 D                       [0-9]
 O                       [0-7]
@@ -233,7 +233,7 @@ bool comment()
     char c;
 
 loop:
-    while ((c = yyinput()) != '*' && c != 0 && c != EOF) ;
+    while ((c = yyinput()) != '*' && c != 0 && c != EOF);
 
 star_loop:
     if ((c = yyinput()) != '/' && c != 0 && c != EOF)

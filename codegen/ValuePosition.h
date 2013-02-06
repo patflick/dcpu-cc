@@ -86,21 +86,24 @@ namespace dtcc
             std::string toAtomicOperand();
             std::string baseToString();
             
-            static ValuePosition* createLabelPos(std::string label);
+            static ValuePosition* createLabelPos(std::string label, typesize_t size);
             static ValuePosition* createRegisterPos(ValPosRegister regist);
             static ValuePosition* createTmpRegisterPos(ValPosRegister regist);
             static ValuePosition* createTempStackWord(int offset);
             static ValuePosition* createStackPos(int size);
             static ValuePosition* createAtomicConstPos(std::string val);
             static ValuePosition* createAtomicConstPos(uint16_t val);
-            static ValuePosition* createTempStack(int offset, int size);
-            static ValuePosition* createFPrel(int offset, int size);
+            static ValuePosition* createTempStack(int offset, typesize_t size);
+            static ValuePosition* createFPrel(int offset, typesize_t size);
             
             bool usesRegister();
             bool isStackPos();
             bool isModifyableTemp();
             bool isTempStack();
             int getOffset();
+            
+            ValuePosition* newSize(typesize_t size);
+            ValuePosition* newSizeOffset(typesize_t size, int offset);
             ValuePosition* addOffset(int offset);
             
             ValPosRegister getRegister();

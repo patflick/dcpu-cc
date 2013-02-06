@@ -43,12 +43,12 @@ uint16_t ValuePosition::getWordSize()
 
 
 
-ValuePosition* ValuePosition::createLabelPos(std::string label)
+ValuePosition* ValuePosition::createLabelPos(std::string label, typesize_t size)
 {
     ValuePosition* pos = new ValuePosition();
     pos->posType = LABEL;
     pos->labelName = label;
-    pos->size = 1;
+    pos->size = size;
     return pos;
 }
 
@@ -88,7 +88,7 @@ ValuePosition* ValuePosition::createTempStackWord(int offset)
     return pos;
 }
 
-ValuePosition* ValuePosition::createTempStack(int offset, int size)
+ValuePosition* ValuePosition::createTempStack(int offset, typesize_t size)
 {
     ValuePosition* pos = new ValuePosition();
     pos->posType = FP_REL;
@@ -99,7 +99,7 @@ ValuePosition* ValuePosition::createTempStack(int offset, int size)
     return pos;
 }
 
-ValuePosition* ValuePosition::createFPrel(int offset, int size)
+ValuePosition* ValuePosition::createFPrel(int offset, typesize_t size)
 {
     ValuePosition* pos = new ValuePosition();
     pos->posType = FP_REL;
@@ -123,6 +123,20 @@ ValuePosition* ValuePosition::createStackPos(int size)
     pos->posType = STACK;
     pos->size = size;
     return pos;
+}
+
+ValuePosition* ValuePosition::newSizeOffset(typesize_t size, int offset)
+{
+    ValuePosition* result = this->addOffset(offset);
+    result->size = size;
+    return result;
+}
+
+ValuePosition* ValuePosition::newSize(typesize_t size)
+{
+    ValuePosition* result = new ValuePosition(*this);
+    result->size = size;
+    return result;
 }
 
 bool ValuePosition::isStackPos()
@@ -291,7 +305,9 @@ ValuePosition* ValuePosition::valToRegister(AsmBlock& ass, ValPosRegister regist
     if (this->isAtomicOperand())
     {
         ass << "SET " << this->registerToString(regist) << ", " << this->toAtomicOperand() << std::endl;
-        return ValuePosition::createRegisterPos(regist);
+        ValuePosition* newVP = ValuePosition::createRegisterPos(regist);
+        newVP->size = this->size;
+        return newVP;
     }
     else
     {
@@ -300,6 +316,7 @@ ValuePosition* ValuePosition::valToRegister(AsmBlock& ass, ValPosRegister regist
         {
             ass << "SET " << this->registerToString(regist) << ", [" << this->registerToString(regist) << "]" << std::endl;
         }
+        newVP->size = this->size;
         return newVP;
     }
 }
@@ -317,6 +334,7 @@ std::string ValuePosition::baseToString()
             base << this->registerToString(REG_FRAME_POINTER);
             break;
         case REG:
+        case REG_REL:
             base << this->registerToString(this->regist);
             break;
         case STACK:
@@ -339,6 +357,7 @@ std::string ValuePosition::toAtomicOperand()
         case LABEL_REL:
         case FP_REL:
         case STACK_REL:
+        case REG_REL:
             if (this->offset > 0)
                 base << " + " << this->offset;
             else if (this->offset < 0)

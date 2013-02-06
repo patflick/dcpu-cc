@@ -89,7 +89,7 @@ void ErrorList::printall()
             errormsg = std::string(buffer);
         }
         
-        std::cout << it->file << ":" << it->line << " " << errwar << " " << errormsg << std::endl;
+        std::cerr  << it->file << ":" << it->line << " " << errwar << " " << errormsg << std::endl;
     }
 }
 

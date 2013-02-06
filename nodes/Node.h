@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <string>
 extern int yylineno;
+extern int yycolumn;
 extern std::string* yyfilename;
 
 namespace dtcc
@@ -37,11 +38,13 @@ namespace dtcc
         {
         public:
             int line;
+            int col;
             std::string file;
             
         protected:
             Node()
             {
+                this->col = yycolumn;
                 this->line = yylineno;
                 if (yyfilename == NULL)
                     this->file = "<unknown>";

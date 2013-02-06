@@ -83,18 +83,19 @@ namespace dtcc
                 bool isShort;
                 bool isFloat;
                 bool isDouble;
-            } declSpecs;
+            } m_declSpecs;
             void resetDeclSpecs();
             types::Type* typeSpecsToType(dtcc::astnodes::Node* decl);
             types::Type* declSpecsToType(astnodes::DeclarationSpecifiers* declSpecs);
             
             /* declaration handleing */
-            enum DeclarationState_t { DECLSTATE_LOCAL, DECLSTATE_GLOBAL, DECLSTATE_PARAM, DECLSTATE_FUNDEF, DECLSTATE_TYPE_ONLY};
+            enum DeclarationState_t { DECLSTATE_LOCAL, DECLSTATE_GLOBAL, DECLSTATE_PARAM, DECLSTATE_FUNDEF, DECLSTATE_TYPE_ONLY, DECLSTATE_STRUCT};
             DeclarationState_t m_declState;
             types::Type* m_curDeclType;
             astnodes::StorSpec_t m_curStorSpec;
             astnodes::Expressions* m_declarationInitializer;
             std::string m_functionName;
+            types::StructUnionType* m_curStructDecl;
             
             //std::deque<types::Type*> m_declTypeStack;
             //std::deque<std::string> m_declNameStack;

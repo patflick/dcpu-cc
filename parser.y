@@ -1002,7 +1002,7 @@ initializer_list
             {
                 $1->push_back(*i);
             }
-            delete $1;
+            delete $3;
             $$ = $1;
         }
         ;

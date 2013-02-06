@@ -41,6 +41,7 @@ SemanticCheckVisitor::SemanticCheckVisitor()
     this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
     this->m_funcLabels = std::map<std::string, astnodes::LabelStatement*>();
     this->m_invalidValType = new valuetypes::RValue(new types::InvalidType());
+    this->m_curStructDecl = NULL;
 }
 
 // TODO this is just while dev, to be removed in final version:
@@ -738,7 +739,23 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
     }
     
     // insert into symbol table based on storage specs
-    if (types::IsTypeHelper::isFunctionType(actualDeclType))
+    if (m_declState == DECLSTATE_STRUCT)
+    {
+        if (!actualDeclType->isComplete())
+        {
+            addError(identifierDeclarator, ERR_CC_STRUCT_MEM_INCOMPLETE, declName);
+            return;
+        }
+        
+        if(m_curStructDecl->hasMember(declName))
+        {
+            addError(identifierDeclarator, ERR_CC_STRUCT_MEM_REDECL, declName);
+            return;
+        }
+        
+        m_curStructDecl->addMember(declName, actualDeclType);
+    }
+    else if (types::IsTypeHelper::isFunctionType(actualDeclType))
     {
         // check that this is not a parameter type
         if (m_declState == DECLSTATE_PARAM)
@@ -1244,9 +1261,10 @@ void SemanticCheckVisitor::visit(astnodes::StorageSpecifier * storageSpecifier)
 
 types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::DeclarationSpecifiers* declSpecs)
 {
-    
-    // first get the type from the type specifier
+    // back up and then reset the declaration specifier struct
+    DeclSpecs oldDeclSpecs = m_declSpecs;
     resetDeclSpecs();
+    // first get the type from the type specifier
     // visit all type specifiers
     for (std::vector<astnodes::TypeSpecifier*>::iterator i = declSpecs->typeSpecifiers.begin(); i != declSpecs->typeSpecifiers.end(); ++i)
     {
@@ -1259,7 +1277,7 @@ types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::DeclarationSpecifie
         // errors have already been generated in this case, just ignore this declaration
         return new types::InvalidType();
     
-    // now check for type qualifiers
+    // now check for type qualifier
     for (std::vector<astnodes::TypeQualifier*>::iterator i = declSpecs->typeQualifiers.begin(); i != declSpecs->typeQualifiers.end(); ++i)
     {
         switch ((*i)->token)
@@ -1275,6 +1293,9 @@ types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::DeclarationSpecifie
         }
     }
     
+    // restore declSpecs
+    m_declSpecs = oldDeclSpecs;
+    
     return declType;
 }
 
@@ -1282,17 +1303,17 @@ types::Type* SemanticCheckVisitor::declSpecsToType(astnodes::DeclarationSpecifie
 
 void SemanticCheckVisitor::resetDeclSpecs()
 {
-    declSpecs.isAdvType = false;
-    declSpecs.type = NULL;
-    declSpecs.isVoid = false;
-    declSpecs.isChar = false;
-    declSpecs.isSigned = false;
-    declSpecs.isUnsigned = false;
-    declSpecs.isInt = false;
-    declSpecs.isLong = false;
-    declSpecs.isShort = false;
-    declSpecs.isFloat = false;
-    declSpecs.isDouble = false;
+    m_declSpecs.isAdvType = false;
+    m_declSpecs.type = NULL;
+    m_declSpecs.isVoid = false;
+    m_declSpecs.isChar = false;
+    m_declSpecs.isSigned = false;
+    m_declSpecs.isUnsigned = false;
+    m_declSpecs.isInt = false;
+    m_declSpecs.isLong = false;
+    m_declSpecs.isShort = false;
+    m_declSpecs.isFloat = false;
+    m_declSpecs.isDouble = false;
 }
 
 types::Type* SemanticCheckVisitor::typeSpecsToType(astnodes::Node* decl)
@@ -1300,84 +1321,84 @@ types::Type* SemanticCheckVisitor::typeSpecsToType(astnodes::Node* decl)
     types::Type* result = NULL;
     
     // check for non-basic types
-    if (declSpecs.isAdvType && declSpecs.type != NULL)
+    if (this->m_declSpecs.isAdvType && this->m_declSpecs.type != NULL)
     {
-        result = declSpecs.type;
+        result = this->m_declSpecs.type;
     }
     // now check for all the basic types
-    else if (declSpecs.isVoid)
+    else if (this->m_declSpecs.isVoid)
     {
         result = new types::Void();
-        declSpecs.isVoid = false;
+        this->m_declSpecs.isVoid = false;
     }
-    else if (declSpecs.isFloat)
+    else if (this->m_declSpecs.isFloat)
     {
         result = new types::Float();
-        declSpecs.isFloat = false;
+        this->m_declSpecs.isFloat = false;
     }
-    else if (declSpecs.isDouble && declSpecs.isLong)
+    else if (this->m_declSpecs.isDouble && this->m_declSpecs.isLong)
     {
         result = new types::LongDouble();
-        declSpecs.isDouble = false;
-        declSpecs.isLong = false;
+        this->m_declSpecs.isDouble = false;
+        this->m_declSpecs.isLong = false;
     }
-    else if (declSpecs.isDouble)
+    else if (this->m_declSpecs.isDouble)
     {
         result = new types::Double();
-        declSpecs.isDouble = false;
+        this->m_declSpecs.isDouble = false;
     }
-    else if (declSpecs.isChar && declSpecs.isSigned)
+    else if (this->m_declSpecs.isChar && this->m_declSpecs.isSigned)
     {
         result = new types::SignedChar();
-        declSpecs.isSigned = false;
-        declSpecs.isChar = false;
+        this->m_declSpecs.isSigned = false;
+        this->m_declSpecs.isChar = false;
     }
-    else if (declSpecs.isChar)
+    else if (this->m_declSpecs.isChar)
     {
         result = new types::UnsignedChar();
-        declSpecs.isUnsigned = false;
-        declSpecs.isChar = false;
+        this->m_declSpecs.isUnsigned = false;
+        this->m_declSpecs.isChar = false;
     }
-    else if (declSpecs.isShort && declSpecs.isUnsigned)
+    else if (this->m_declSpecs.isShort && this->m_declSpecs.isUnsigned)
     {
         result = new types::UnsignedShort();
-        declSpecs.isUnsigned = false;
-        declSpecs.isShort = false;
-        declSpecs.isInt = false;
+        this->m_declSpecs.isUnsigned = false;
+        this->m_declSpecs.isShort = false;
+        this->m_declSpecs.isInt = false;
     }
-    else if (declSpecs.isShort)
+    else if (this->m_declSpecs.isShort)
     {
         result = new types::SignedShort();
-        declSpecs.isSigned = false;
-        declSpecs.isShort = false;
-        declSpecs.isInt = false;
+        this->m_declSpecs.isSigned = false;
+        this->m_declSpecs.isShort = false;
+        this->m_declSpecs.isInt = false;
     }
 
-    else if (declSpecs.isLong && declSpecs.isUnsigned)
+    else if (this->m_declSpecs.isLong && this->m_declSpecs.isUnsigned)
     {
         result = new types::UnsignedLong();
-        declSpecs.isUnsigned = false;
-        declSpecs.isLong = false;
-        declSpecs.isInt = false;
+        this->m_declSpecs.isUnsigned = false;
+        this->m_declSpecs.isLong = false;
+        this->m_declSpecs.isInt = false;
     }
-    else if (declSpecs.isLong)
+    else if (this->m_declSpecs.isLong)
     {
         result = new types::SignedLong();
-        declSpecs.isSigned = false;
-        declSpecs.isLong = false;
-        declSpecs.isInt = false;
+        this->m_declSpecs.isSigned = false;
+        this->m_declSpecs.isLong = false;
+        this->m_declSpecs.isInt = false;
     }
-    else if (declSpecs.isUnsigned)
+    else if (this->m_declSpecs.isUnsigned)
     {
         result = new types::UnsignedInt();
-        declSpecs.isUnsigned = false;
-        declSpecs.isInt = false;
+        this->m_declSpecs.isUnsigned = false;
+        this->m_declSpecs.isInt = false;
     }
-    else if (declSpecs.isInt)
+    else if (this->m_declSpecs.isInt)
     {
         result = new types::SignedInt();
-        declSpecs.isSigned = false;
-        declSpecs.isInt = false;
+        this->m_declSpecs.isSigned = false;
+        this->m_declSpecs.isInt = false;
     }
     else
     {
@@ -1386,15 +1407,15 @@ types::Type* SemanticCheckVisitor::typeSpecsToType(astnodes::Node* decl)
     }
     
     // if any of the bools are still set, we've got a conflict
-    if (   declSpecs.isVoid
-        || declSpecs.isChar
-        || declSpecs.isSigned
-        || declSpecs.isUnsigned
-        || declSpecs.isInt
-        || declSpecs.isLong
-        || declSpecs.isShort
-        || declSpecs.isFloat
-        || declSpecs.isDouble)
+    if (   this->m_declSpecs.isVoid
+        || this->m_declSpecs.isChar
+        || this->m_declSpecs.isSigned
+        || this->m_declSpecs.isUnsigned
+        || this->m_declSpecs.isInt
+        || this->m_declSpecs.isLong
+        || this->m_declSpecs.isShort
+        || this->m_declSpecs.isFloat
+        || this->m_declSpecs.isDouble)
     {
         addError(decl, ERR_CC_DECLSPEC_CONFL);
         return new types::InvalidType();
@@ -1416,62 +1437,62 @@ void SemanticCheckVisitor::visit(astnodes::TypeBaseSpecifier * typeBaseSpecifier
     switch(typeBaseSpecifier->token)
     {
         case VOID:
-            if (declSpecs.isVoid)
+            if (this->m_declSpecs.isVoid)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_VOID_DUPL);
             else
-                declSpecs.isVoid = true;
+                this->m_declSpecs.isVoid = true;
             break;
         case CHAR:
-            if (declSpecs.isChar)
+            if (this->m_declSpecs.isChar)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_CHAR_DUPL);
             else
-                declSpecs.isChar = true;
+                this->m_declSpecs.isChar = true;
             break;
         case SHORT:
-            if (declSpecs.isShort)
+            if (this->m_declSpecs.isShort)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_SHORT_DUPL);
             else
-                declSpecs.isShort = true;
+                this->m_declSpecs.isShort = true;
             break;
         case INT:
-            if (declSpecs.isInt)
+            if (this->m_declSpecs.isInt)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_INT_DUPL);
             else
-                declSpecs.isInt = true;
+                this->m_declSpecs.isInt = true;
             break;
         case LONG:
-            if (declSpecs.isLong)
+            if (this->m_declSpecs.isLong)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_LONG_DUPL);
             else
-                declSpecs.isLong = true;
+                this->m_declSpecs.isLong = true;
             break;
         case FLOAT:
-            if (declSpecs.isFloat)
+            if (this->m_declSpecs.isFloat)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_FLOAT_DUPL);
             else
-                declSpecs.isFloat = true;
+                this->m_declSpecs.isFloat = true;
             break;
         case DOUBLE:
-            if (declSpecs.isDouble)
+            if (this->m_declSpecs.isDouble)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_DOUBLE_DUPL);
             else
-                declSpecs.isDouble = true;
+                this->m_declSpecs.isDouble = true;
             break;
         case SIGNED:
-            if (declSpecs.isSigned)
+            if (this->m_declSpecs.isSigned)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_SIGNED_DUPL);
-            else if (declSpecs.isUnsigned)
+            else if (this->m_declSpecs.isUnsigned)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_CONFL_SIGNED);
             else
-                declSpecs.isSigned = true;
+                this->m_declSpecs.isSigned = true;
             break;
         case UNSIGNED:
-            if (declSpecs.isUnsigned)
+            if (this->m_declSpecs.isUnsigned)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_UNSIGNED_DUPL);
-            else if (declSpecs.isSigned)
+            else if (this->m_declSpecs.isSigned)
                 addError(typeBaseSpecifier, ERR_CC_DECLSPEC_CONFL_SIGNED);
             else
-                declSpecs.isUnsigned = true;
+                this->m_declSpecs.isUnsigned = true;
             break;
         default:
             throw new errors::InternalCompilerException("unkown type specifier encountered");
@@ -1482,8 +1503,95 @@ void SemanticCheckVisitor::visit(astnodes::TypeBaseSpecifier * typeBaseSpecifier
 
 void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpecifier)
 {
-    printAstName("StructUnionSpecifier");
-    structUnionSpecifier->allChildrenAccept(*this);
+    bool isUnion = false;
+    
+    types::StructUnionType* structType = NULL;
+    
+    bool isNewDeclaration = (structUnionSpecifier->declarations != NULL);
+    
+    if (isNewDeclaration)
+    {
+        switch (structUnionSpecifier->token)
+        {
+            case UNION:
+                structType = new types::StructUnionType(true);
+                isUnion = true;
+                break;
+            case STRUCT:
+                structType = new types::StructUnionType(false);
+                break;
+            default:
+                throw new errors::InternalCompilerException("invalid struct/union type");
+        }
+        
+        /* if the struct has a name, insert it into the symbol table */
+        if (structUnionSpecifier->hasName)
+        {
+            // insert tag into symboltable
+            std::string name = structUnionSpecifier->name;
+            if (this->m_symbolTable->getCurrentScope().containsTag(name))
+            {
+                addError(structUnionSpecifier, ERR_CC_REDECL, name);
+                return;
+            }
+            
+            if (isUnion)
+                this->m_symbolTable->getCurrentScope().insertTag(name, symboltable::UNION_TAG, structType);
+            else
+                this->m_symbolTable->getCurrentScope().insertTag(name, symboltable::STRUCT_TAG, structType);
+        }
+        
+        
+        // back up declaration state
+        DeclarationState_t oldDeclState = this->m_declState;
+        
+        // set declaration state to STRUCT
+        this->m_declState = DECLSTATE_STRUCT;
+        
+        // backup and set current struct to be processed
+        types::StructUnionType* oldStructType = this->m_curStructDecl;
+        this->m_curStructDecl = structType;
+        
+        // visit all declarations
+        structUnionSpecifier->allChildrenAccept(*this);
+        
+        // set struct to be complete now
+        structType->complete = true;
+        
+        // restore struct
+        this->m_curStructDecl = oldStructType;
+        
+        // restore declaration state 
+        this->m_declState = oldDeclState;
+    }
+    else
+    {
+        // get tag from symbol table
+        std::string name = structUnionSpecifier->name;
+        if (!this->m_symbolTable->getCurrentScope().containsTagRec(name))
+        {
+            addError(structUnionSpecifier, ERR_CC_STRUCT_NOT_FOUND, name);
+            return;
+        }
+        
+        // get type
+        types::Type* type = this->m_symbolTable->getTagType(name);
+        if (!types::IsTypeHelper::isStructUnionType(type))
+        {
+            addError(structUnionSpecifier, ERR_CC_NOT_A_STRUCT, name);
+            return;
+        }
+        
+        structType = types::IsTypeHelper::getStructUnionType(type);
+        if (structType->isUnion ^ isUnion)
+        {
+            addError(structUnionSpecifier, ERR_CC_STRUCT_UNION_CONFL, name);
+            return;
+        }
+    }
+    
+    this->m_declSpecs.isAdvType = true;
+    this->m_declSpecs.type = structType;
 }
 
 
@@ -1505,8 +1613,8 @@ void SemanticCheckVisitor::visit(astnodes::TypeNameSpecifier * typeNameSpecifier
         return;
     }
     
-    declSpecs.isAdvType = true;
-    declSpecs.type = type;
+    this->m_declSpecs.isAdvType = true;
+    this->m_declSpecs.type = type;
 }
 
 
@@ -1542,7 +1650,7 @@ void SemanticCheckVisitor::visit(astnodes::Identifier * identifier)
         return;
     }
     
-    // TODO enum types are constants!! 
+    // TODO enum types are constants!!
     
     types::Type* varType = this->m_symbolTable->getTypeOfVariable(identifier->name);
     if (varType == NULL)
@@ -1782,10 +1890,79 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
 
 void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structureResolutionOperator)
 {
-    // TODO FIXME TODO FIXME
-    // TODO implement structs properly
-    printAstName("StructureResolutionOperator");
+    // needs an LValue:
+    if (!structureResolutionOperator->isPointered)
+        structureResolutionOperator->lhsExpr->returnRValue = false;
+    
+    // check lhs
     structureResolutionOperator->allChildrenAccept(*this);
+    
+    types::StructUnionType* structType = NULL;
+    valuetypes::ValueType* valType = structureResolutionOperator->lhsExpr->valType;
+    types::Type* type = valType->type;
+    if (structureResolutionOperator->isPointered)
+    {
+        // needs to be a pointer to struct
+        if (!types::IsTypeHelper::isPointerType(type))
+        {
+            addError(structureResolutionOperator, ERR_CC_STRUCT_RESOL_NO_PTR);
+            structureResolutionOperator->valType = this->m_invalidValType;
+            return;
+        }
+        type = types::IsTypeHelper::getPointerType(type)->baseType;
+        
+        if (!types::IsTypeHelper::isStructUnionType(type))
+        {
+            addError(structureResolutionOperator, ERR_CC_STRUCT_RESOL_NO_PTR);
+            structureResolutionOperator->valType = this->m_invalidValType;
+            return;
+        }
+        
+    }
+    else
+    {
+        if (!valuetypes::IsValueTypeHelper::isLValue(valType)
+            || !types::IsTypeHelper::isStructUnionType(type))
+        {
+            addError(structureResolutionOperator, ERR_CC_STRUCT_RESOL_NO_LVALUE);
+            structureResolutionOperator->valType = this->m_invalidValType;
+            return;
+        }
+    }
+    
+    structType = types::IsTypeHelper::getStructUnionType(type);
+    
+    // try to get member
+    std::string fieldName = structureResolutionOperator->fieldName;
+    if(!structType->hasMember(fieldName))
+    {
+        addError(structureResolutionOperator, ERR_CC_STRUCT_NO_MEM, fieldName);
+        structureResolutionOperator->valType = this->m_invalidValType;
+        return;
+    }
+    
+    // get type and offset of the field 
+    types::Type* fieldType = structType->getMember(fieldName);
+    unsigned int offset = structType->getOffset(fieldName);
+    
+    // assign offset
+    structureResolutionOperator->offset = offset;
+    structureResolutionOperator->fieldSize = fieldType->getWordSize();
+    
+    // maybe resolve array
+    if (structureResolutionOperator->returnRValue)
+    {
+        if (types::IsTypeHelper::isArrayType(fieldType))
+        {
+            fieldType = types::IsTypeHelper::pointerFromArrayType(fieldType);
+            structureResolutionOperator->returnRValue = false;
+        }
+        structureResolutionOperator->valType = new valuetypes::RValue(fieldType);
+    }
+    else
+    {
+        structureResolutionOperator->valType = new valuetypes::LValue(fieldType);
+    }
 }
 
 
@@ -1916,6 +2093,7 @@ void SemanticCheckVisitor::visit(astnodes::DerefOperator * derefOperator)
     types::PointerType* ptrType = types::IsTypeHelper::getPointerType(type);
     types::Type* baseType = ptrType->baseType;
     
+    derefOperator->newSize = baseType->getWordSize();
     
     if (derefOperator->returnRValue)
     {
@@ -2530,6 +2708,10 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
 
 void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 {
+    if (!chainExpressions->returnRValue)
+        if (chainExpressions->exprs != NULL && chainExpressions->exprs->size() > 0)
+            chainExpressions->exprs->back()->returnRValue = false;
+    
     // analyse all children
     chainExpressions->allChildrenAccept(*this);
     
@@ -2541,6 +2723,7 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
         {
             if (!valuetypes::IsValueTypeHelper::isCValue((*i)->valType))
                 isCValue = false;
+            
             if (*i != chainExpressions->exprs->back())
             {
                 (*i)->returnValue = false;
@@ -2550,7 +2733,7 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
         if (isCValue)
             chainExpressions->valType = new valuetypes::CValue(chainExpressions->exprs->back()->valType->type);
         else
-            chainExpressions->valType = new valuetypes::RValue(chainExpressions->exprs->back()->valType->type);
+            chainExpressions->valType = chainExpressions->exprs->back()->valType;
     }
     else
     {

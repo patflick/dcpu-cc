@@ -19,6 +19,8 @@
 
 // include needed type classes
 #include "AggregateType.h"
+#include <map>
+#include <string>
 
 
 namespace dtcc
@@ -32,16 +34,30 @@ namespace dtcc
         ///
         class StructUnionType : public AggregateType
         {
+        private:
+            unsigned int size;
+            std::map<std::string, unsigned int> m_offsets;
+            std::map<std::string, types::Type*> m_types;
             
         public:
-
+            
+            const bool isUnion;
+            bool complete;
+            
             
         public:
             ///
             /// @brief      The constructor of the StructUnionType type class.
 
             ///
-            StructUnionType()  {}
+            StructUnionType(bool isUnion) : isUnion(isUnion), complete(false), size(0),
+            m_offsets(std::map<std::string, unsigned int>()), m_types(std::map<std::string, types::Type*>()) {}
+            
+            
+            void addMember(std::string name, types::Type* type);
+            bool hasMember(std::string name);
+            types::Type* getMember(std::string name);
+            unsigned int getOffset(std::string name);
             
             ///
             /// @brief          Returns the size of the type in words.
@@ -50,7 +66,7 @@ namespace dtcc
             /// This might return 0 if the type is not yet resolved
             /// (i.e. for structs).
             virtual uint16_t getWordSize();
-
+            
             ///
             /// @brief          Returns the size of the type in bytes.
             /// @return         The size of the type.

@@ -40,7 +40,7 @@ namespace dtcc
             /// @brief      The constructor of the Type type class.
 
             ///
-            Type()  {}
+            Type() : isConst(false), isVolatile(false) {}
             
             ///
             /// @brief          Returns the size of the type in words.

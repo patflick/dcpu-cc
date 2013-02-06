@@ -368,6 +368,14 @@ ArrayType* IsTypeHelper::getArrayType(Type* type)
         return NULL;
 }
 
+StructUnionType* IsTypeHelper::getStructUnionType(Type* type)
+{
+    if (IsTypeHelper::isStructUnionType(type))
+        return (StructUnionType*) type;
+    else
+        return NULL;
+}
+
 PointerType* IsTypeHelper::pointerFromArrayType(Type* type)
 {
     if (IsTypeHelper::isArrayType(type))

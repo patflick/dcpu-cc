@@ -24,14 +24,14 @@ extern dtcc::astnodes::Program* program;
 int main(int argc, char **argv) {
     if ( argc < 2)
     {
-        std::cout << "Usage dtcc2 <filename>" << std::endl;
+        std::cerr << "Usage dtcc2 <filename>" << std::endl;
         return 1;
     }
     
     char * filename = argv[1];
     
-    std::cout << "Compiling program:" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
+    std::cerr  << "Compiling program:" << std::endl;
+    std::cerr  << "---------------------------------------------------" << std::endl;
     
 
     // Parse C.
@@ -48,8 +48,6 @@ int main(int argc, char **argv) {
     if (yyin != stdin)
         fclose(yyin);
     
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "Resulting AST:" << std::endl;
     
     if (program == NULL)
     {
@@ -57,7 +55,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     
-    dtcc::visitor::PrintAstVisitor* printVisitor = new dtcc::visitor::PrintAstVisitor();
+    //dtcc::visitor::PrintAstVisitor* printVisitor = new dtcc::visitor::PrintAstVisitor();
     dtcc::visitor::SemanticCheckVisitor* semCheck = new dtcc::visitor::SemanticCheckVisitor();
     
     
@@ -66,7 +64,7 @@ int main(int argc, char **argv) {
         program->accept(*semCheck);
     } catch (dtcc::errors::InternalCompilerException*  e)
     {
-        std::cout << "INTERNAL COMPILER EXCEPTION: " << e->getMessage() << std::endl;
+        std::cerr  << "INTERNAL COMPILER EXCEPTION: " << e->getMessage() << std::endl;
     }
     
     if (semCheck->hasErrors())
@@ -75,7 +73,7 @@ int main(int argc, char **argv) {
     }
     else
     {
-        std::cout << "No Semantic errors, trying Code generation... " << std::endl;
+        std::cerr  << "No Semantic errors, trying Code generation... " << std::endl;
         // try to compile
         Assembler::loadAll();
         dtcc::codegen::DirectCodeGenVisitor* codegen = new dtcc::codegen::DirectCodeGenVisitor();
