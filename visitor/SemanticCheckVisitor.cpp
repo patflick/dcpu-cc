@@ -2334,13 +2334,14 @@ void SemanticCheckVisitor::visit(astnodes::ExplicitCastOperator * explicitCastOp
 
 void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
 {
-    // analyse both sub-expressions
+    // analyze both sub-expressions
     binaryOperator->allChildrenAccept(*this);
     
     valuetypes::ValueType* lhsVtype = binaryOperator->lhsExrp->valType;
     valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
     types::Type* lhsType = lhsVtype->type;
     types::Type* rhsType = rhsVtype->type;
+    
     
     switch(binaryOperator->optoken)
     {
@@ -2815,8 +2816,83 @@ void SemanticCheckVisitor::visit(astnodes::Enumerator * enumerator)
 
 void SemanticCheckVisitor::visit(astnodes::AssemblyStatement * assemblyStatement)
 {
-    printAstName("AssemblyStatement");
-    assemblyStatement->allChildrenAccept(*this);
+    // find all <variablename> tags in the asm:
+    size_t pos = 0;
+    size_t closing = 0;
+    std::string clone = assemblyStatement->asmString;
+    // using a for loop so that on "continue" the pos=closing will still be executed
+    for (pos = 0; (pos = clone.find("<", pos)) != std::string::npos; pos = closing)
+    {
+        closing = clone.find(">", pos);
+        if (closing == std::string::npos)
+        {
+            // there is no matching '>' to the last found '<'
+            addError(assemblyStatement, ERR_CC_MALFORMED_ASM_BLOCK);
+            return;
+        }
+        std::string varname = clone.substr(pos+1, closing-pos-1);
+        
+        // check that there actually is a variable name
+        if (varname.size() == 0)
+        {
+            addError(assemblyStatement, ERR_CC_VARIABLE_NOT_IN_SCOPE, "");
+            return;
+        }
+        
+        // check if the user tries to reference something
+        bool isReference = false;
+        if (varname[0] == '&')
+        {
+            isReference = true;
+            varname = varname.substr(1);
+        }
+        
+        // get position of variable from symbol table
+        symboltable::TypePosition typePos = m_symbolTable->getPositionOfVariable(varname);
+        
+        // check if there actually is a variable with the requested name
+        if (!typePos.isFound())
+        {
+            addError(assemblyStatement, ERR_CC_VARIABLE_NOT_IN_SCOPE, varname);
+            return;
+        }
+        
+        // if the coder tries to access the value of the function,
+        //  throw an error (this doesn't make any sense)
+        if((!isReference) && typePos.isFunction())
+        {
+            addError(assemblyStatement, ERR_CC_VALUE_OF_FUNCTION, varname);
+            return;
+        }
+        
+        if (isReference && (!typePos.isFunction()))
+        {
+            addError(assemblyStatement, ERR_CC_VAR_ASM_REF);
+            return;
+        }
+        
+        // check if we can get an atomic address of the variable
+        // (this is not possible of the variable is in a previous
+        // stack frame)
+        if (!typePos.isAtomiclyAddressable())
+        {
+            addError(assemblyStatement, ERR_CC_VAR_NOT_ATOMIC_ADR, varname);
+            return;
+        }
+        
+        // replace the <varname> tag in the asm block with the 
+        // address of the variable and dereference with [..]
+        // if the value and not the address was requested
+        std::string replaceWith;
+        if (isReference)
+            replaceWith = typePos.getAtomicAddress();
+        else
+            replaceWith = std::string("[") + typePos.getAtomicAddress() + "]";
+        clone.replace(pos, closing-pos+1, replaceWith);
+    }
+    
+    // save output
+    assemblyStatement->asmString = clone;
 }
 
 

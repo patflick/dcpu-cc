@@ -2389,8 +2389,7 @@ void DirectCodeGenVisitor::visit(astnodes::Enumerator * enumerator)
 
 void DirectCodeGenVisitor::visit(astnodes::AssemblyStatement * assemblyStatement)
 {
-    printAstName("AssemblyStatement");
-    assemblyStatement->allChildrenAccept(*this);
+    asm_current << assemblyStatement->asmString << std::endl;
 }
 
 

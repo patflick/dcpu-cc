@@ -13,6 +13,7 @@
 
 #include <sstream>
 #include "TypePosition.h"
+#include <errors/InternalCompilerException.h>
 
 using namespace dtcc::symboltable;
 
@@ -129,22 +130,24 @@ std::string TypePosition::getFunctionName()
     return this->m_Name;
 }
 
-/*
+
 std::string TypePosition::getAtomicAddress()
 {
+    // TODO this does not really belong here, and is only used in
+    // the _asm statement, i should redesign this part!
     std::stringstream sstr;
 
     if (!this->m_Found)
-        throw new CompilerException(0, "<internal>", "Attempted to get reference position of unknown type position result (internal error).");
+        throw new errors::InternalCompilerException("Attempted to get reference position of unknown type position result (internal error).");
 
     if (this->m_PreviousStackFrame)
-        throw new CompilerException(0, "<internal>", "Attempted to get reference position of previous Stack Frame");
+        throw new errors::InternalCompilerException("Attempted to get reference position of previous Stack Frame");
 
     if (this->m_Function)
-        sstr << "cfunc_" << this->m_FunctionName;
+        sstr << "cfunc_" << this->m_Name;
     else if (this->m_Global)
         // FIXME: once expressions are possible in the linker, we can do this!
-        throw new CompilerException(0, "<internal>", "Attempted to get reference position of global variable (will only be possible once expressions like '_DATA+1' are implemented in the linker)");
+        throw new errors::InternalCompilerException("Attempted to get reference position of global variable (will only be possible once expressions like '_DATA+1' are implemented in the linker)");
         //sstr << "_DATA+" << this->m_Position;
     else if (this->m_IsFunctionParameter)
         sstr << "Y+" << this->m_Position;
@@ -154,6 +157,8 @@ std::string TypePosition::getAtomicAddress()
     return sstr.str();
 }
 
+
+/*
 
 std::string TypePosition::pushAddress(char registr)
 {

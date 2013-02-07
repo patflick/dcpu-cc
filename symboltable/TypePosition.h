@@ -47,10 +47,10 @@ namespace dtcc
             bool isGlobal();
             std::string getGlobalVariableName();
             std::string getFunctionName();
-            /*
+            
             std::string getAtomicAddress();
-            std::string pushAddress(char registr);
-            */
+            //std::string pushAddress(char registr);
+            
         };
     } // namespace symboltable
 } // namespace dtcc
