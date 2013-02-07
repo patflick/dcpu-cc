@@ -64,13 +64,19 @@ unsigned int Int32::getWordSize()
 /// implements increase: B++
 void Int32::inc(AsmBlock& ass, ValuePosition* posB, int by)
 {
-    ass << "ADD " << posB->toAtomicOperand() << ", 0x" << std::hex << (0xffff & by) << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+
+    ass << "ADD " << lsb_B << ", 0x" << std::hex << (0xffff & by) << std::endl;
+    ass << "ADX " << msb_B << ", 0x" << std::hex << ((0xffff0000 & by) >> 16) <<< std::endl;
 }
 
 /// implements decrease: B--
 void Int32::dec(AsmBlock& ass, ValuePosition* posB, int by)
 {
-    ass << "SUB " << posB->toAtomicOperand() << ", 0x" << std::hex << (0xffff & by) << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+
+    ass << "SUB " << lsb_B << ", 0x" << std::hex << (0xffff & by) << std::endl;
+    ass << "SBX " << msb_B << ", 0x" << std::hex << ((0xffff0000 & by) >> 16) <<< std::endl;
 }
 
 
@@ -80,25 +86,37 @@ void Int32::dec(AsmBlock& ass, ValuePosition* posB, int by)
 /// implements arithmetic inverse: B = -B
 void Int32::ainv(AsmBlock& ass, ValuePosition* posB)
 {
-    ass << "SET PUSH ," << posB->toAtomicOperand() << std::endl;
-    ass << "SET " << posB->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "SUB " << posB->toAtomicOperand() << ", POP" << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "SET PUSH ," << lsb_B << std::endl;
+    ass << "SET " << lsb_B << ", 0x0" << std::endl;
+    ass << "SUB " << lsb_B << ", POP" << std::endl;
+
+    ass << "SET PUSH ," << msb_B << std::endl;
+    ass << "SET " << msb_B << ", 0x0" << std::endl;
+    ass << "SUB " << msb_B << ", POP" << std::endl;
 }
 
 /// implements binary inverse (not): B = ~B
 void Int32::binv(AsmBlock& ass, ValuePosition* posB)
 {
-    ass << "SET PUSH ," << posB->toAtomicOperand() << std::endl;
-    ass << "SET " << posB->toAtomicOperand() << ", 0xffff" << std::endl;
-    ass << "XOR " << posB->toAtomicOperand() << ", POP" << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+
+    ass << "XOR " << msb_B << ", 0xffff" << std::endl;
+    ass << "XOR " << msb_A << ", 0xffff" << std::endl;
 }
 
 /// implements logical inverse (not): C = ~B
+/// C is a 16 bit integer
 void Int32::linv(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB)
 {
+    GET_BYTES(posB, msb_B, lsb_B)
+
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "IFE " << posB->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+    ass << "IFE " << lsb_B << ", 0x0" << std::endl;
+    ass << "    IFE " << msb_B << ", 0x0" << std::endl;
+    ass << "        SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
 }
 
 
@@ -118,7 +136,11 @@ void Int32::add(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 /// implements subtraction: B = B - A
 void Int32::sub(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "SUB " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "SUB " << lsb_B << ", " << lsb_A << std::endl;
+    ass << "SBX " << msb_B << ", " << msb_A << std::endl;
 }
 
 
@@ -126,15 +148,25 @@ void Int32::sub(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 
 /// implements left shift: B = B << A
 void Int32::shl(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
-{
-    ass << "SHL " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
+{    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "SHL " << msb_B << ", " << posA->toAtomicOperand() << std::endl;
+    ass << "SHL " << lsb_B << ", " << posA->toAtomicOperand() << std::endl;
+    ass << "BOR " << msb_B << ", EX" << std::endl;
+
 }
 
 
 /// implements right shift: B = B >> A
 void Int32::shr(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "SHR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "SHR " << lsb_B << ", " << posA->toAtomicOperand() << std::endl;
+    ass << "SHL " << msb_B << ", " << posA->toAtomicOperand() << std::endl;
+    ass << "BOR " << lsb_B << ", EX" << std::endl;
 }
 
 
@@ -144,18 +176,26 @@ void Int32::shr(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 /// implements equality check: C = (B == A)
 void Int32::seq(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "IFE " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
-    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+    ass << "IFE " << lsb_B << ", " << lsb_A << std::endl;
+    ass << "    IFE " << msb_B << ", " << msb_A << std::endl;
+    ass << "        SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
 }
 
 
 /// implements not equal check: C = (B != A)
 void Int32::sne(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
     ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "IFN " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
-    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+    ass << "IFN " << lsb_B << ", " << lsb_A << std::endl;
+    ass << "    IFN " << msb_B << ", " << msb_A << std::endl;
+    ass << "        SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
 }
 
 
@@ -164,21 +204,33 @@ void Int32::sne(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePo
 /// implements binary and: B = B & A
 void Int32::band(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "AND " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "AND " << lsb_B << ", " << lsb_A << std::endl;
+    ass << "AND " << msb_B << ", " << msb_A << std::endl;
 }
 
 
 /// implements binary or: B = B | A
 void Int32::bor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "BOR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "BOR " << lsb_B << ", " << lsb_A << std::endl;
+    ass << "BOR " << msb_B << ", " << msb_A << std::endl;
 }
 
 
 /// implements binary xor: B = B ^ A
 void Int32::bxor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "XOR " << posB->toAtomicOperand() << ", " << posA->toAtomicOperand() << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "XOR " << lsb_B << ", " << lsb_A << std::endl;
+    ass << "XOR " << msb_B << ", " << msb_A << std::endl;
 }
 
 
@@ -188,41 +240,72 @@ void Int32::bxor(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 /// implements logical and: C = B && A
 void Int32::land(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "IFN " << posB->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "    IFN " << posA->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "        SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+    ass << "IFE " << msb_B << ", 0x0" << std::endl;
+    ass << "    IFE " << lsb_B << ", 0x0" << std::endl;
+    ass << "        SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
+
+    ass << "IFE " << msb_A << ", 0x0" << std::endl;
+    ass << "    IFE " << lsb_A << ", 0x0" << std::endl;
+    ass << "        SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
 }
 
 
 /// implements logical or: C = B || A
 void Int32::lor(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA)
 {
-    ass << "SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
-    ass << "IFE " << posB->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "    IFE " << posA->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "        SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+    GET_BYTES(posA, msb_A, lsb_A);
+
+    ass << "SET " << posC->toAtomicOperand() << ", 0x0" << std::endl;
+
+    ass << "IFN " << lsb_B << ", 0x0" << std::endl;
+    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+
+    ass << "IFN " << msb_B << ", 0x0" << std::endl;
+    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+
+    ass << "IFN " << lsb_A << ", 0x0" << std::endl;
+    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
+
+    ass << "IFN " << msb_A << ", 0x0" << std::endl;
+    ass << "    SET " << posC->toAtomicOperand() << ", 0x1" << std::endl;
 }
 
 /// implements IF A == 0: JUMP label
 void Int32::jmpeqz(AsmBlock& ass, ValuePosition* posA, std::string label)
 {
-    ass << "IFE " << posA->toAtomicOperand() << ", 0x0" << std::endl;
-    ass << "    SET PC, " << label << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+
+    ass << "IFE " << msb_B << ", 0x0" << std::endl;
+    ass << "    IFE " << lsb_B << ", 0x0" << std::endl;
+    ass << "        SET PC, " << label << std::endl;
+
 }
 
 /// implements IF A != 0: JUMP label
 void Int32::jmpneqz(AsmBlock& ass, ValuePosition* posA, std::string label)
 {
-    ass << "IFN " << posA->toAtomicOperand() << ", 0x0" << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+
+    ass << "IFN " << lsb_B << ", 0x0" << std::endl;
+    ass << "    SET PC, " << label << std::endl;
+
+    ass << "IFN " << msb_B << ", 0x0" << std::endl;
     ass << "    SET PC, " << label << std::endl;
 }
 
 /// implements IF A == constant: JUMP label
 void Int32::jmpneq(AsmBlock& ass, ValuePosition* posA, std::string label, long integralConst)
 {
-    ass << "IFE " << posA->toAtomicOperand() << ", " << printConstant(integralConst).front() << std::endl;
-    ass << "    SET PC, " << label << std::endl;
+    GET_BYTES(posB, msb_B, lsb_B);
+
+    ass << "IFE " << msb_B << printConstant(integralConst).front() << std::endl;
+    ass << "    IFE " << lsb_B << printConstant(integralConst).front() << std::endl;
+    ass << "        SET PC, " << label << std::endl;
 }
 
 /// implements IF A == constant: JUMP label
