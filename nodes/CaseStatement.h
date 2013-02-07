@@ -46,6 +46,8 @@ namespace dtcc
         public:
             Expression * constExpr;
             Statement * statement;
+            
+            std::string caselabel;
 
             
         public:

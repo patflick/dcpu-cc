@@ -456,11 +456,11 @@ void DirectCodeGenVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::CaseStatement * caseStatement)
 {
-    // TODO const expression evaluator
-    // TODO
-    // TODO the expression evaluator (first finish semantic check for expressions)
-    printAstName("CaseStatement");
-    caseStatement->allChildrenAccept(*this);
+    // output assigned label
+    asm_current << ":" << caseStatement->caselabel << std::endl;
+    
+    // then compile the children statements
+    caseStatement->statement->accept(*this);
 }
 
 
@@ -607,12 +607,58 @@ void DirectCodeGenVisitor::visit(astnodes::SwitchStatement * switchStatement)
     // Add file and line information.
     asm_current << this->getFileAndLineState(switchStatement);
     
-    // TODO TODO TODO
-    
-    // first evaluate the controlling expression
+    // first compile the controlling expression
     switchStatement->expr->accept(*this);
     
-    printAstName("SwitchStatement");
+    // get value position
+    ValuePosition* valPos = switchStatement->expr->valPos;
+    ValuePosition* readableVP = makeAtomicReadable(valPos);
+    
+    // get type implementation
+    TypeImplementation* typeImpl = getTypeImplementation(switchStatement->promotedType);
+    
+    // get a prefix label for the cases
+    std::string label_prefix = getRandomLabelName("case");
+    
+    std::map<long, astnodes::CaseStatement*>::iterator iter;
+    for (iter = switchStatement->cases.begin(); iter != switchStatement->cases.end(); ++iter)
+    {
+        long value = iter->first;
+        std::deque<std::string> valStrings = typeImpl->printConstant(value);
+        // collapse values
+        std::stringstream ss;
+        ss << label_prefix;
+        for (std::deque<std::string>::iterator it = valStrings.begin(); it != valStrings.end(); ++it)
+        {
+            ss << "_" << *it;
+        }
+        std::string caselabel = ss.str();
+        
+        iter->second->caselabel = caselabel;
+        
+        // implement the jump
+        typeImpl->jmpneq(asm_current, readableVP, caselabel, value);
+    }
+    
+    // after all cases have been handled, jump to the default label
+    // or to the very end, if none is present
+    std::string switchEndLbl = std::string("");
+    if (switchStatement->defaultLbl != NULL)
+    {
+        asm_current << "SET PC, " << switchStatement->defaultLbl->label << std::endl;
+    }
+    else
+    {
+        asm_current << "SET PC, " << switchStatement->endLbl->label << std::endl;
+    }
+    
+    maybeFreeTemporary(valPos);
+    
+    // compile the body of the switch statement
+    switchStatement->statement->accept(*this);
+    
+    // output the end label
+    asm_current << ":" << switchStatement->endLbl->label << std::endl;
 }
 
 
@@ -621,7 +667,7 @@ void DirectCodeGenVisitor::visit(astnodes::IfStatement * ifStatement)
     // Add file and line information.
     asm_current << this->getFileAndLineState(ifStatement);
     
-    // When an expression is evaluated, the result goes into the A register.
+    // compile the conditional expression
     ifStatement->condExpr->accept(*this);
     
     // get ValuePosition of the conditional expression

@@ -196,6 +196,19 @@ void Int16::jmpneqz(AsmBlock& ass, ValuePosition* posA, std::string label)
     ass << "    SET PC, " << label << std::endl;
 }
 
+/// implements IF A == constant: JUMP label
+void Int16::jmpneq(AsmBlock& ass, ValuePosition* posA, std::string label, long integralConst)
+{
+    ass << "IFE " << posA->toAtomicOperand() << ", " << printConstant(integralConst).front() << std::endl;
+    ass << "    SET PC, " << label << std::endl;
+}
+
+/// implements IF A == constant: JUMP label
+void Int16::jmpneq(AsmBlock& ass, ValuePosition* posA, std::string label, double floatConst)
+{
+    jmpneq(ass,  posA, label, (long) floatConst);
+}
+
 
 ///
 /// @}

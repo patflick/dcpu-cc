@@ -128,12 +128,19 @@ namespace dtcc
             virtual void lor(AsmBlock& ass, ValuePosition* posC, ValuePosition* posB, ValuePosition* posA);
             
             
-            /* is zero */
+            /* conditional jump instructions */
+            
             /// implements IF A == 0: JUMP label
             virtual void jmpeqz(AsmBlock& ass, ValuePosition* posA, std::string label);
             
             /// implements IF A != 0: JUMP label
             virtual void jmpneqz(AsmBlock& ass, ValuePosition* posA, std::string label);
+            
+            /// implements IF A == constant: JUMP label
+            virtual void jmpneq(AsmBlock& ass, ValuePosition* posA, std::string label, long integralConst);
+            
+            /// implements IF A == constant: JUMP label
+            virtual void jmpneq(AsmBlock& ass, ValuePosition* posA, std::string label, double floatConst);
         };
 
 

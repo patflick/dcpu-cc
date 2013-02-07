@@ -17,6 +17,8 @@
 // include needed nodes
 #include "Statement.h"
 #include "Expression.h"
+#include "CaseStatement.h"
+#include <map>
 
 
 namespace dtcc
@@ -49,7 +51,11 @@ namespace dtcc
             Statement * statement;
             
             LabelStatement* defaultLbl;
-            // TODO add stuff for case labels
+            LabelStatement* endLbl;
+            
+            /// the map that holds for each constant the case statement
+            /// this is filled during semantic analysis
+            std::map<long, CaseStatement*> cases;
 
             
         public:
@@ -59,7 +65,7 @@ namespace dtcc
             /// @param statement TODO: FILLOUT
 
             ///
-            SwitchStatement(Expression * expr, Statement * statement) : expr(expr), statement(statement), promotedType(NULL), defaultLbl(NULL) {}
+            SwitchStatement(Expression * expr, Statement * statement) : expr(expr), statement(statement), promotedType(NULL), defaultLbl(NULL), endLbl(NULL), cases(std::map<long, CaseStatement*>()) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

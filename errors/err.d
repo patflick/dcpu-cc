@@ -38,6 +38,9 @@ ERR_CC_EXPECTED_SCALAR_IF                            cc-expected-scalar-if      
 ERR_CC_EXPECTED_INTEGRAL_SWITCH                      cc-expected-integral-switch              "Expected integral type for controlling expression in switch statement"
 ERR_CC_DUPLICATE_LABEL                               cc-duplicate-label                       "duplicate label ‘%s’"
 
+ERR_CC_CASE_NO_CONSTANT                              cc-case-no-constant                      "case value is not a constant expression"
+ERR_CC_CASE_DOUBLE                                   cc-case-double                           "a case with the same value was already declared"
+
 ERR_CC_NOTE_DUPLICATE_LABEL                          cc-note-duplicate-label                  "NOTE: previous definition of ‘%s’ was here"
 ERR_CC_ARRAY_ACCESS_NO_POINTER                       cc-array-access-no-pointer               "subscripted value is neither array nor pointer."
 ERR_CC_DEREF_INCOMPLETE_TYPE                         cc-deref-incomplete-type                 "dereferencing pointer to incomplete type."

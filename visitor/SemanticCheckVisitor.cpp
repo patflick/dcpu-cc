@@ -429,6 +429,12 @@ void SemanticCheckVisitor::visit(astnodes::SwitchStatement * switchStatement)
     // push switch statement on switch-statement stack
     this->m_switchStack.push_back(switchStatement);
     
+    // get the end label
+    switchStatement->endLbl = getRandomLabel("switch_end");
+    
+    // push this loop on the loop stack, for the break statement
+    pushLoopStack(switchStatement->endLbl, NULL);
+    
     // now check the block statement
     switchStatement->statement->accept(*this);
     
@@ -528,10 +534,50 @@ void SemanticCheckVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 
 void SemanticCheckVisitor::visit(astnodes::CaseStatement * caseStatement)
 {
-    // TODO const expression evaluator
-    // TODO
-    // TODO the expression evaluator (first finish semantic check for expressions)
-    printAstName("CaseStatement");
+    // check that we are actually inside a switch statement
+    if (m_switchStack.empty())
+    {
+        addError(caseStatement, ERR_CC_CASE_OUTSIDE_OF_SWITCH);
+        // don't handle anything inside the case statement
+        return;
+    }
+    
+    // get the surrounding switch
+    astnodes::SwitchStatement* parentSwitch = m_switchStack.back();
+    
+    if (caseStatement->constExpr == NULL)
+    {
+        throw new errors::InternalCompilerException("case constExpr is NULL");
+    }
+    
+    // first visit the expression with this visitor
+    caseStatement->constExpr->accept(*this);
+    
+    // check for constant expression
+    if (! valuetypes::IsValueTypeHelper::isCValue(caseStatement->constExpr->valType))
+    {
+        addError(caseStatement, ERR_CC_CASE_NO_CONSTANT);
+        return;
+    }
+    
+    // evaluate the constant expression:
+    ConstExprEvalVisitor ceval;
+    caseStatement->constExpr->accept(ceval);
+    
+    long value = valuetypes::ConstHelper::getIntegralConst(caseStatement->constExpr->valType);
+    
+    // check if there already was a case value like this
+    if (parentSwitch->cases.find(value) != parentSwitch->cases.end())
+    {
+        addError(caseStatement, ERR_CC_CASE_DOUBLE);
+        // don't handle anything inside the case statement
+        return;
+    }
+    
+    // add the case to the switch case (which is responsible for generating the labels)
+    parentSwitch->cases[value] = caseStatement;
+
+    // now continue evaluating the children of this case
     caseStatement->allChildrenAccept(*this);
 }
 
