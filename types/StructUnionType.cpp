@@ -19,7 +19,10 @@ using namespace dtcc::types;
 
 void StructUnionType::addMember(std::string name, Type* type)
 {
-    m_offsets[name] = size;
+    if (isUnion)
+        m_offsets[name] = 0;
+    else
+        m_offsets[name] = size;
     m_types[name] = type;
     if (isUnion)
     {

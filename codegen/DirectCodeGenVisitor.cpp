@@ -1641,8 +1641,37 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
     // get lhs value position
     ValuePosition* lhsVP = structureResolutionOperator->lhsExpr->valPos;
     
+    ValuePosition* newVP = NULL;
+    if (structureResolutionOperator->offset > 0)
+    {
+        if (lhsVP->canAtomicDerefOffset())
+        {
+            newVP = lhsVP->newSizeOffset(structureResolutionOperator->fieldSize, structureResolutionOperator->offset);
+        }
+        else
+        {
+            newVP = getTmp(1);
+            // just copy the pointer:
+            copyValue(lhsVP->newSize(1), newVP);
+            if (newVP->canAtomicDerefOffset())
+            {
+                newVP = newVP->newSizeOffset(structureResolutionOperator->fieldSize, structureResolutionOperator->offset);
+            }
+            else
+            {
+                TypeImplementation* impl = getTypeImplementation(new types::UnsignedInt());
+                impl->add(asm_current, newVP, ValuePosition::createAtomicConstPos(structureResolutionOperator->offset));
+                newVP->newSize(structureResolutionOperator->fieldSize);
+            }
+        }
+    }
+    else
+    {
+        newVP = lhsVP->newSize(structureResolutionOperator->fieldSize);
+    }
+    
     // get new VP from old with offset and new size
-    ValuePosition* smallerVP = lhsVP->newSizeOffset(structureResolutionOperator->fieldSize, structureResolutionOperator->offset);
+    
     
     if (!structureResolutionOperator->returnValue)
     {
@@ -1653,11 +1682,11 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
     // deref if we have to:
     if (structureResolutionOperator->returnRValue)
     {
-        smallerVP = derefOperand(smallerVP, REG_TMP_L);
+        newVP = derefOperand(newVP, REG_TMP_L);
     }
     
     // set value position
-    structureResolutionOperator->valPos = smallerVP;
+    structureResolutionOperator->valPos = newVP;
 }
 
 
