@@ -70,9 +70,7 @@ void Int16::ainv(AsmBlock& ass, ValuePosition* posB)
 /// implements binary inverse (not): B = ~B
 void Int16::binv(AsmBlock& ass, ValuePosition* posB)
 {
-    ass << "SET PUSH ," << posB->toAtomicOperand() << std::endl;
-    ass << "SET " << posB->toAtomicOperand() << ", 0xffff" << std::endl;
-    ass << "XOR " << posB->toAtomicOperand() << ", POP" << std::endl;
+    ass << "XOR " << posB->toAtomicOperand() << ", 0xffff" << std::endl;
 }
 
 /// implements logical inverse (not): C = ~B
