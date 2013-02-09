@@ -748,17 +748,10 @@ void DirectCodeGenVisitor::visit(astnodes::LabelStatement * labelStatement)
 
 
 
-
-
 /*######################################*/
 /*        3.5 DECLARATIONS              */
 /*######################################*/
 
-
-
-// TODO TODO FIXME TODO TODO FIXME
-// implement declarators ;)
-// first now implementing expressions
 
 void DirectCodeGenVisitor::visit(astnodes::Declaration * declaration)
 {

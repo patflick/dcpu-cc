@@ -19,8 +19,6 @@ bison_target(libdcpu-ci-lang-c-parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parse
 flex_target(libdcpu-ci-lang-c-lexer lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp COMPILE_FLAGS \"--header-file=${CMAKE_CURRENT_BINARY_DIR}/lexer.hpp\")
 add_flex_bison_dependency(libdcpu-ci-lang-c-lexer libdcpu-ci-lang-c-parser)
 
-FILE(GLOB nodesSrc nodes/*.cpp)
-FILE(GLOB nodesHdr nodes/*.h)
 FILE(GLOB typesSrc types/*.cpp)
 FILE(GLOB typesHrd types/*.h)
 FILE(GLOB symboltableSrc symboltable/*.cpp)
@@ -32,18 +30,14 @@ include_directories(
     ${FLEX_UNISTD_INCLUDE}
 )
 
-add_subdirectory(nodes)
+add_subdirectory(astnodes)
 add_subdirectory(visitor)
 add_subdirectory(types)
 add_subdirectory(errors)
 add_subdirectory(codegen)
+add_subdirectory(valuetypes)
 
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/tool-errgen ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
-    COMMENT "Generating error definition files..."
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d
-    )
+
 
 add_executable(dtcc2tests
     main.cpp
@@ -51,24 +45,12 @@ add_executable(dtcc2tests
     ${BISON_libdcpu-ci-lang-c-parser_OUTPUTS}
     parser.y
     lexer.l
-    errors/derr.defs.h
-    errors/derr.defs.cpp
-    errors/ErrorList.cpp
-    errors/ErrorList.h
-    valuetypes/LValue.h
-    valuetypes/LValue.cpp
-    valuetypes/RValue.h
-    valuetypes/CValue.h
-    valuetypes/ValueType.h
-    valuetypes/FunctionDesignator.h
-    valuetypes/IsValueTypeHelper.h
-    valuetypes/IsValueTypeHelper.cpp
-    valuetypes/PromotionHelper.h
-    valuetypes/PromotionHelper.cpp
-    valuetypes/ConstHelper.cpp
-    valuetypes/ConstHelper.h
-    ${nodesHdr}
-    ${nodesSrc}
+    ${ERRORS_HEADER}
+    ${ERRORS_SOURCE}
+    ${VALUETYPES_HEADER}
+    ${VALUETYPES_SOURCE}
+    ${NODES_HEADERS}
+    ${NODES_SOURCE}
     ${VISITOR_HEADER}
     ${VISITOR_SOURCE}
     ${typesHdr}
