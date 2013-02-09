@@ -108,6 +108,7 @@ ERR_CC_STRUCT_NO_MEM                                 cc-struct-no-mem           
 ERR_CC_STRUCT_NOT_FOUND                              cc-struct-not-found                      "a structure or union with name `%s` was not found in the current scope."
 ERR_CC_NOT_A_STRUCT                                  cc-not-a-struct                          "the tag with name `%s` is not a struct or union."
 ERR_CC_STRUCT_UNION_CONFL                            cc-struct-union-confl                    "conflicting declaration of `%s` as struct/union"
+ERR_CC_GOTO_NO_LABEL                                 cc-goto-no-label                         "no label with name `%s` was found."
 
 ERR_CC_PARAMTER_FUNCTION_TYPE                        cc-parameter-function-type               "a parameter cannot be of function type."
 ERR_CC_INIT_FOR_FUNCTION                             cc-init-for-function                     "invalid initialization for function `%s`. Function types can not be initialized."

@@ -19,6 +19,7 @@
 #include <valuetypes/ConstHelper.h>
 #include <errors/InternalCompilerException.h>
 
+using namespace dtcc;
 using namespace dtcc::visitor;
 
 
@@ -410,6 +411,22 @@ void ConstExprEvalVisitor::visit(astnodes::ChainExpressions * chainExpressions)
     else
         valuetypes::ConstHelper::setIntegralConst(chainExpressions->valType, valuetypes::ConstHelper::getIntegralConst(chainExpressions->exprs->back()->valType));
 }
+
+
+void ConstExprEvalVisitor::visit(astnodes::TypeConversionOperator * typeConv)
+{
+    
+    // analyse children
+    typeConv->expr->accept(*this);
+    
+    bool floatOp = types::IsTypeHelper::isFloatType(typeConv->toType);
+    
+    if (floatOp)
+        valuetypes::ConstHelper::setFloatConst(typeConv->valType, valuetypes::ConstHelper::getFloatConst(typeConv->expr->valType));
+    else
+        valuetypes::ConstHelper::setIntegralConst(typeConv->valType, valuetypes::ConstHelper::getIntegralConst(typeConv->expr->valType));
+}
+
 
 
 

@@ -18,6 +18,7 @@
 #include <symboltable/SymbolTable.h>
 #include <errors/ErrorList.h>
 #include <errors/derr.defs.h>
+#include <visitor/GotoResolvalVisitor.h>
 #include <deque>
 #include <set>
 #include <string>
@@ -33,6 +34,9 @@ namespace dtcc
         ///
         class SemanticCheckVisitor : public Visitor
         {
+            
+            friend class GotoResolvalVisitor;
+            
         private:
             /* errors and warnings */
             errors::ErrorList m_errorList;

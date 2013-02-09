@@ -21,8 +21,6 @@ add_flex_bison_dependency(libdcpu-ci-lang-c-lexer libdcpu-ci-lang-c-parser)
 
 FILE(GLOB nodesSrc nodes/*.cpp)
 FILE(GLOB nodesHdr nodes/*.h)
-FILE(GLOB visitorSrc visitor/*.cpp)
-FILE(GLOB visitorHrd visitor/*.h)
 FILE(GLOB typesSrc types/*.cpp)
 FILE(GLOB typesHrd types/*.h)
 FILE(GLOB symboltableSrc symboltable/*.cpp)
@@ -71,8 +69,8 @@ add_executable(dtcc2tests
     valuetypes/ConstHelper.h
     ${nodesHdr}
     ${nodesSrc}
-    ${visitorHdr}
-    ${visitorSrc}
+    ${VISITOR_HEADER}
+    ${VISITOR_SOURCE}
     ${typesHdr}
     ${typesSrc}
     ${symboltableHrd}

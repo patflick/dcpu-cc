@@ -222,6 +222,11 @@ namespace dtcc
             /// @param chainExpressions    The node to visit this visitor
             virtual void visit(astnodes::ChainExpressions * chainExpressions);
             
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param typeConv    The node to visit this visitor
+            virtual void visit(astnodes::TypeConversionOperator * typeConv);
 
         };
         

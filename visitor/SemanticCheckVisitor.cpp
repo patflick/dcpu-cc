@@ -274,7 +274,9 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     functionDefinition->stackSize = funScope->getLocalStackSize();
     functionDefinition->paramSize = funScope->getParameterStackSize();
     
-    // TODO call goto label resolval visitor here:
+    // call goto label resolval visitor here:
+    GotoResolvalVisitor gotoResolv(this);
+    functionDefinition->block->acceptPostRecursive(gotoResolv);
     
     // clear labels
     m_funcLabels.clear();
@@ -2915,7 +2917,7 @@ void SemanticCheckVisitor::visit(astnodes::ChainExpressions * chainExpressions)
 
 void SemanticCheckVisitor::visit(astnodes::TypeConversionOperator * typeConv)
 {
-    typeConv->valType = new valuetypes::RValue(typeConv->toType);
+    typeConv->valType = valuetypes::IsValueTypeHelper::toCorRValue(typeConv->toType, typeConv->expr->valType);
 }
 
 
