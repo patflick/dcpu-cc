@@ -89,13 +89,14 @@ void Int32::ainv(AsmBlock& ass, ValuePosition* posB)
     GET_BYTES(posB, msb_B, lsb_B);
     GET_BYTES(posA, msb_A, lsb_A);
 
-    ass << "SET PUSH ," << lsb_B << std::endl;
-    ass << "SET " << lsb_B << ", 0x0" << std::endl;
-    ass << "SUB " << lsb_B << ", POP" << std::endl;
-
     ass << "SET PUSH ," << msb_B << std::endl;
+    ass << "SET PUSH ," << lsb_B << std::endl;
+    
     ass << "SET " << msb_B << ", 0x0" << std::endl;
-    ass << "SUB " << msb_B << ", POP" << std::endl;
+    ass << "SET " << lsb_B << ", 0x0" << std::endl;
+    
+    ass << "SUB " << lsb_B << ", POP" << std::endl;
+    ass << "SBX " << msb_B << ", POP" << std::endl;
 }
 
 /// implements binary inverse (not): B = ~B
@@ -104,7 +105,7 @@ void Int32::binv(AsmBlock& ass, ValuePosition* posB)
     GET_BYTES(posB, msb_B, lsb_B);
 
     ass << "XOR " << msb_B << ", 0xffff" << std::endl;
-    ass << "XOR " << msb_A << ", 0xffff" << std::endl;
+    ass << "XOR " << lsb_B << ", 0xffff" << std::endl;
 }
 
 /// implements logical inverse (not): C = ~B
@@ -148,13 +149,13 @@ void Int32::sub(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 
 /// implements left shift: B = B << A
 void Int32::shl(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
-{    GET_BYTES(posB, msb_B, lsb_B);
+{
+    GET_BYTES(posB, msb_B, lsb_B);
     GET_BYTES(posA, msb_A, lsb_A);
 
     ass << "SHL " << msb_B << ", " << posA->toAtomicOperand() << std::endl;
     ass << "SHL " << lsb_B << ", " << posA->toAtomicOperand() << std::endl;
     ass << "BOR " << msb_B << ", EX" << std::endl;
-
 }
 
 
@@ -304,7 +305,7 @@ void Int32::jmpneq(AsmBlock& ass, ValuePosition* posA, std::string label, long i
     GET_BYTES(posB, msb_B, lsb_B);
 
     ass << "IFE " << msb_B << printConstant(integralConst).front() << std::endl;
-    ass << "    IFE " << lsb_B << printConstant(integralConst).front() << std::endl;
+    ass << "    IFE " << lsb_B << printConstant(integralConst).back() << std::endl;
     ass << "        SET PC, " << label << std::endl;
 }
 
