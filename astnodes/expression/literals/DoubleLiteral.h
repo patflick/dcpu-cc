@@ -9,13 +9,13 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_DOUBLELITERAL_H
 #define __DCPU_CC_AST_NODES_DOUBLELITERAL_H
 
 // include needed nodes
-#include "Expression.h"
+#include <astnodes/expression/Expression.h>
 
 
 namespace dtcc

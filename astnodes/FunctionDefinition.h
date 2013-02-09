@@ -9,16 +9,16 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_FUNCTIONDEFINITION_H
 #define __DCPU_CC_AST_NODES_FUNCTIONDEFINITION_H
 
 // include needed nodes
-#include "ExternalDeclaration.h"
-#include "BlockStatement.h"
-#include "DeclarationSpecifiers.h"
-#include "Declarator.h"
+#include "declaration/ExternalDeclaration.h"
+#include "statement/BlockStatement.h"
+#include "declaration/DeclarationSpecifiers.h"
+#include "declaration/Declarator.h"
 
 
 namespace dtcc

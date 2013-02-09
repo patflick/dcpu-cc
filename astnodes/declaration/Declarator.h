@@ -9,14 +9,14 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_DECLARATOR_H
 #define __DCPU_CC_AST_NODES_DECLARATOR_H
 
 // include needed nodes
-#include "Node.h"
-#include "Expressions.h"
+#include <astnodes/Node.h>
+#include <astnodes/expression/Expressions.h>
 #include "Pointers.h"
 #include <cstdlib>
 

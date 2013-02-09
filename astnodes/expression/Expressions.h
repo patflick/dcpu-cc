@@ -12,8 +12,8 @@
 #ifndef __DCPU_CC_AST_NODES_EXPRESSIONS_H
 #define __DCPU_CC_AST_NODES_EXPRESSIONS_H
 
-#include "Node.h"
-#include "Expression.h"
+#include <astnodes/Node.h>
+#include <astnodes/expression/Expression.h>
 #include <vector>
 
 namespace dtcc

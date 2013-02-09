@@ -12,7 +12,7 @@
 #ifndef __DCPU_CC_AST_NODES_POINTERS_H
 #define __DCPU_CC_AST_NODES_POINTERS_H
 
-#include "Node.h"
+#include <astnodes/Node.h>
 #include "Pointer.h"
 #include <vector>
 

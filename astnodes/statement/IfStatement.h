@@ -9,7 +9,7 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_IFSTATEMENT_H
 #define __DCPU_CC_AST_NODES_IFSTATEMENT_H
@@ -17,7 +17,7 @@
 // include needed nodes
 #include "Statement.h"
 #include "LabelStatement.h"
-#include "Expression.h"
+#include <astnodes/expression/Expression.h>
 
 
 namespace dtcc

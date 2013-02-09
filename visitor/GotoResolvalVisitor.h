@@ -13,7 +13,7 @@
 #define __DCPU_CC_VISITOR_GOTORESOLVAL_VISITOR_H
 
 // include all AST nodes
-#include <nodes/allnodes.h>
+#include <astnodes/allnodes.h>
 #include "EmptyVisitor.h"
 #include <string>
 #include <vector>

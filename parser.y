@@ -16,7 +16,7 @@
 
 #include <string>
 // include all nodes
-#include <nodes/allnodes.h>
+#include <astnodes/allnodes.h>
 
 using namespace dtcc::astnodes;
 

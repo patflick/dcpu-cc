@@ -9,7 +9,7 @@
 /// @author     Patrick Flick
 ///
 
-#include "Expression.h"
+#include <astnodes/expression/Expression.h>
 
 using namespace dtcc::astnodes;
 

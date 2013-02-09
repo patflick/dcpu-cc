@@ -9,14 +9,14 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_SWITCHSTATEMENT_H
 #define __DCPU_CC_AST_NODES_SWITCHSTATEMENT_H
 
 // include needed nodes
 #include "Statement.h"
-#include "Expression.h"
+#include <astnodes/expression/Expression.h>
 #include "CaseStatement.h"
 #include <map>
 

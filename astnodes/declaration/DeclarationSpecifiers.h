@@ -12,7 +12,7 @@
 #ifndef __DCPU_CC_AST_NODES_DECLARATIONSPECIFIERS_H
 #define __DCPU_CC_AST_NODES_DECLARATIONSPECIFIERS_H
 
-#include "Node.h"
+#include <astnodes/Node.h>
 #include "StorageSpecifier.h"
 #include "TypeSpecifier.h"
 #include "TypeQualifier.h"

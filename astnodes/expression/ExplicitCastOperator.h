@@ -9,14 +9,14 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_EXPLICITCASTOPERATOR_H
 #define __DCPU_CC_AST_NODES_EXPLICITCASTOPERATOR_H
 
 // include needed nodes
-#include "Expression.h"
-#include "TypeName.h"
+#include <astnodes/expression/Expression.h>
+#include <astnodes/declaration/TypeName.h>
 
 
 namespace dtcc

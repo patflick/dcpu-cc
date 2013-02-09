@@ -12,7 +12,7 @@
 #ifndef __DCPU_CC_AST_NODES_ENUMERATORS_H
 #define __DCPU_CC_AST_NODES_ENUMERATORS_H
 
-#include "Node.h"
+#include <astnodes/Node.h>
 #include "Enumerator.h"
 #include <vector>
 

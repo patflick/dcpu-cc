@@ -9,7 +9,7 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_CONTINUESTATEMENT_H
 #define __DCPU_CC_AST_NODES_CONTINUESTATEMENT_H

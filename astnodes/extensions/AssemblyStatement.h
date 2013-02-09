@@ -9,13 +9,13 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
+#include <astnodes/Node.h>
 
 #ifndef __DCPU_CC_AST_NODES_ASSEMBLYSTATEMENT_H
 #define __DCPU_CC_AST_NODES_ASSEMBLYSTATEMENT_H
 
 // include needed nodes
-#include "Statement.h"
+#include <astnodes/statement/Statement.h>
 #include <string>
 
 namespace dtcc

@@ -24,7 +24,7 @@
  */
 
 // first include Node.h
-#include "Node.h"
+#include <astnodes/Node.h>
 
 // then all other nodes:
 #include "declaration/ArrayDeclarator.h"

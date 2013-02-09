@@ -9,14 +9,13 @@
 /// @author     Patrick Flick
 ///
 
-#include "Node.h"
-
+#include <astnodes/Node.h>
 #ifndef __DCPU_CC_AST_NODES_ENUMERATOR_H
 #define __DCPU_CC_AST_NODES_ENUMERATOR_H
 
 // include needed nodes
-#include "Node.h"
-#include "Expression.h"
+#include <astnodes/Node.h>
+#include <astnodes/expression/Expression.h>
 #include <string>
 
 namespace dtcc

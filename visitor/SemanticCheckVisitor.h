@@ -13,7 +13,7 @@
 #define __DCPU_CC_VISITOR_SEMANTIC_CHECK_VISITOR_H
 
 // include all AST nodes
-#include <nodes/allnodes.h>
+#include <astnodes/allnodes.h>
 #include "Visitor.h"
 #include <symboltable/SymbolTable.h>
 #include <errors/ErrorList.h>

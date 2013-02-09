@@ -5,7 +5,7 @@
 //#include <lexfix.h>
 
 #include <string>
-#include <nodes/allnodes.h>
+#include <astnodes/allnodes.h>
 #include <set>
 using namespace dtcc::astnodes;
 

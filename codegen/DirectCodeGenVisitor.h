@@ -17,7 +17,7 @@
 #define MIN_SIZE_LOOP_COPY 10
 
 // include all AST nodes
-#include <nodes/allnodes.h>
+#include <astnodes/allnodes.h>
 #include <visitor/Visitor.h>
 #include <symboltable/SymbolTable.h>
 #include <errors/ErrorList.h>
