@@ -166,7 +166,7 @@ void Int32::shr(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
     GET_BYTES(posA, msb_A, lsb_A);
 
     ass << "SHR " << lsb_B << ", " << posA->toAtomicOperand() << std::endl;
-    ass << "SHL " << msb_B << ", " << posA->toAtomicOperand() << std::endl;
+    ass << "SHR " << msb_B << ", " << posA->toAtomicOperand() << std::endl;
     ass << "BOR " << lsb_B << ", EX" << std::endl;
 }
 
