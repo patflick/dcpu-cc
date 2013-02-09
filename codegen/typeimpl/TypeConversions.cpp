@@ -71,6 +71,23 @@ bool TypeConversions::isSigned(types::Type* type)
 }
 
 
+/// Returns whether a type conversion has to be executed
+bool TypeConversions::needsConvert(types::Type* from, types::Type* to)
+{
+    int toNr = typeToNr(to);
+    int fromNr = typeToNr(from);
+    bool sign = isSigned(to);
+    
+    if (toNr < 4 && fromNr < 4)
+        return false;
+    else if (toNr == fromNr)
+        return false;
+    else if (toNr >= 5 && fromNr >= 5)
+        return false;
+    else
+        return true;
+}
+
 void TypeConversions::convert(types::Type* from, types::Type* to, AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {
     /* 

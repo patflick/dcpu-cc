@@ -2360,6 +2360,18 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             }
             binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
             binaryOperator->commonType = binaryOperator->valType->type;
+            // type conversion:
+            if (binaryOperator->commonType != rhsType)
+            {
+                binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                binaryOperator->rhsExpr->accept(*this);
+            }
+            if (binaryOperator->commonType != lhsType)
+            {
+                binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                binaryOperator->lhsExrp->accept(*this);
+            }
+            
             break;
         case MOD_OP:
             // check that the expression type is a integral type
@@ -2372,6 +2384,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             }
             binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
             binaryOperator->commonType = binaryOperator->valType->type;
+            // type conversion:
+            if (binaryOperator->commonType != rhsType)
+            {
+                binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                binaryOperator->rhsExpr->accept(*this);
+            }
+            if (binaryOperator->commonType != lhsType)
+            {
+                binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                binaryOperator->lhsExrp->accept(*this);
+            }
             break;
         
             
@@ -2385,15 +2408,28 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // promote:
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
                 binaryOperator->commonType = binaryOperator->valType->type;
+                // type conversion:
+                if (binaryOperator->commonType != rhsType)
+                {
+                    binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                    binaryOperator->rhsExpr->accept(*this);
+                }
+                if (binaryOperator->commonType != lhsType)
+                {
+                    binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                    binaryOperator->lhsExrp->accept(*this);
+                }
             }
             else if(((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isIntegralType(rhsType)))
 
             {
                 // pointer op
-                binaryOperator->rhsPtr = true;
+                binaryOperator->lhsPtr = true;
                 binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
-                binaryOperator->commonType = types::IntegralPromotion::promote(rhsType);
+                binaryOperator->commonType = new types::UnsignedInt();
+                binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                binaryOperator->rhsExpr->accept(*this);
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
             }
             else if ((types::IsTypeHelper::isIntegralType(lhsType))
@@ -2402,7 +2438,9 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // pointer op
                 binaryOperator->rhsPtr = true;
                 binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(rhsType);
-                binaryOperator->commonType = types::IntegralPromotion::promote(lhsType);
+                binaryOperator->commonType = new types::UnsignedInt();
+                binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                binaryOperator->lhsExrp->accept(*this);
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(rhsType, lhsVtype, rhsVtype);
             }
             else
@@ -2420,6 +2458,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // promote:
                 binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
                 binaryOperator->commonType = binaryOperator->valType->type;
+                // type conversion:
+                if (binaryOperator->commonType != rhsType)
+                {
+                    binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                    binaryOperator->rhsExpr->accept(*this);
+                }
+                if (binaryOperator->commonType != lhsType)
+                {
+                    binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                    binaryOperator->lhsExrp->accept(*this);
+                }
             } else if((binaryOperator->optoken == SUB_OP)
                 && (types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
@@ -2443,6 +2492,8 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 binaryOperator->lhsPtr = true;
                 binaryOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
                 binaryOperator->commonType = new types::UnsignedInt();
+                binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                binaryOperator->rhsExpr->accept(*this);
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(lhsType, lhsVtype, rhsVtype);
             }
             else
@@ -2470,6 +2521,8 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             }
             
             binaryOperator->commonType = valuetypes::PromotionHelper::promote(lhsVtype)->type;
+            binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, new types::UnsignedInt());
+            binaryOperator->rhsExpr->accept(*this);
             binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(binaryOperator->commonType, lhsVtype, rhsVtype);
             break;
             
@@ -2485,6 +2538,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // promote:
                 binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
+                // type conversion:
+                if (binaryOperator->commonType != rhsType)
+                {
+                    binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                    binaryOperator->rhsExpr->accept(*this);
+                }
+                if (binaryOperator->commonType != lhsType)
+                {
+                    binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                    binaryOperator->lhsExrp->accept(*this);
+                }
             } else if((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
             {
@@ -2523,6 +2587,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
                 // promote:
                 binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
                 binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
+                // type conversion:
+                if (binaryOperator->commonType != rhsType)
+                {
+                    binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                    binaryOperator->rhsExpr->accept(*this);
+                }
+                if (binaryOperator->commonType != lhsType)
+                {
+                    binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                    binaryOperator->lhsExrp->accept(*this);
+                }
             } else if((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
             {
@@ -2568,6 +2643,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             
             binaryOperator->valType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype);
             binaryOperator->commonType = binaryOperator->valType->type;
+            // type conversion:
+            if (binaryOperator->commonType != rhsType)
+            {
+                binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, binaryOperator->commonType);
+                binaryOperator->rhsExpr->accept(*this);
+            }
+            if (binaryOperator->commonType != lhsType)
+            {
+                binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, binaryOperator->commonType);
+                binaryOperator->lhsExrp->accept(*this);
+            }
             break;
             
             
@@ -2587,6 +2673,17 @@ void SemanticCheckVisitor::visit(astnodes::BinaryOperator * binaryOperator)
             }
 
             binaryOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+            // type conversion:
+            if (rhsType->getWordSize() > 1)
+            {
+                binaryOperator->rhsExpr = new astnodes::TypeConversionOperator(binaryOperator->rhsExpr , rhsType, new types::UnsignedInt());
+                binaryOperator->rhsExpr->accept(*this);
+            }
+            if (lhsType->getWordSize() > 1)
+            {
+                binaryOperator->lhsExrp = new astnodes::TypeConversionOperator(binaryOperator->lhsExrp , lhsType, new types::UnsignedInt());
+                binaryOperator->lhsExrp->accept(*this);
+            }
             binaryOperator->valType = valuetypes::IsValueTypeHelper::toCorRValue(new types::SignedInt(), lhsVtype, rhsVtype);
             break;
             
@@ -2652,7 +2749,10 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
                 // both are arithmetic types
                 // promote:
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                //assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, lhsType);
+                assignmentOperator->rhsExpr->accept(*this);
             }
             else if((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isPointerType(rhsType))
@@ -2688,7 +2788,10 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
                 // both are arithmetic types
                 // promote:
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                //assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, lhsType);
+                assignmentOperator->rhsExpr->accept(*this);
             }
             else if(((types::IsTypeHelper::isPointerType(lhsType))
                 && types::IsTypeHelper::isIntegralType(rhsType)))
@@ -2699,6 +2802,8 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
                 assignmentOperator->commonType = new types::UnsignedInt();
                 assignmentOperator->pointerSize = types::IsTypeHelper::getPointerBaseSize(lhsType);
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, assignmentOperator->commonType);
+                assignmentOperator->rhsExpr->accept(*this);
             }
             else
             {
@@ -2716,7 +2821,11 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
                 // both are arithmetic types
                 // promote:
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                // assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, lhsType);
+                assignmentOperator->rhsExpr->accept(*this);
+                
             }
             else
             {
@@ -2738,7 +2847,10 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
                 // both are arithmetic types
                 // promote:
                 assignmentOperator->valType = new valuetypes::RValue(lhsType);
-                assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                //assignmentOperator->commonType = valuetypes::PromotionHelper::commonType(lhsVtype, rhsVtype)->type;
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, lhsType);
+                assignmentOperator->rhsExpr->accept(*this);
             }
             else
             {

@@ -2352,8 +2352,16 @@ void DirectCodeGenVisitor::visit(astnodes::TypeConversionOperator* typeConversio
     
     types::Type* from = typeConversionOperator->fromType;
     types::Type* to = typeConversionOperator->toType;
-    
     ValuePosition* fromValPos = typeConversionOperator->expr->valPos;
+    
+    // only convert if we really need to
+    if (!TypeConversions::needsConvert(from, to))
+    {
+        typeConversionOperator->valPos = fromValPos;
+        return;
+    }
+    
+    
     // default to in-place conversion
     ValuePosition* toValPos = fromValPos;
     bool delTemp = false;

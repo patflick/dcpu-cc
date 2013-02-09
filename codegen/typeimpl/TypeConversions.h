@@ -56,6 +56,9 @@ namespace dtcc
             /// Returns the conversion function for casting from `from` to `to`.
             static void convert(types::Type* from, types::Type* to, AsmBlock& ass, ValuePosition* posB, ValuePosition* posA);
             
+            /// Returns whether a type conversion has to be executed
+            static bool needsConvert(types::Type* from, types::Type* to);
+            
             /// implements conversion char -> short
             static void char2short(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA, bool isSigned);
             
