@@ -28,7 +28,7 @@ ERR_CC_INC_DEC_CONST                                 cc-inc-dec-const           
 ERR_CC_MULTIPLE_DEFAULT                              cc-multiple-default                      "Invalid multiple default statements within switch statement."
 ERR_CC_INVALID_UNARY_OPERAND                         cc-invalid-unary-operand                 "Invalid operand to unary operation. (have '%s')"
 ERR_CC_MALFORMED_ASM_BLOCK                           cc-malformed-asm-block                   "Malformed assembler in inline asm, check that every '<' is accompanied by another '>'."
-ERR_CC_VAR_NOT_ATOMIC_ADR                            cc-var-not-atomic-adr                    "Cannot get atomic adress of '%s'. Make sure that only variables in the local scope are accessed."
+ERR_CC_VAR_NOT_ATOMIC_ADR                            cc-var-not-atomic-adr                    "Cannot get atomic address of '%s'. Make sure that only variables in the local scope are accessed."
 ERR_CC_VAR_ASM_REF                                   cc-var-asm-ref                           "Cannot reference a local variable in __asm."
 ERR_CC_EXPECTED_SCALAR_FOR                           cc-expected-scalar-for                   "Expected scalar type for conditinal expression in for statement"
 ERR_CC_EXPECTED_SCALAR_WHILE                         cc-expected-scalar-while                 "Expected scalar type for conditinal expression in while statement"
