@@ -2225,11 +2225,7 @@ void SemanticCheckVisitor::visit(astnodes::UnaryOperator * unaryOperator)
 
 void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
 {
-    // this needs an LValue (if possible) to keep arrays
-    sizeOfOperator->expr->returnRValue = false;
-    
-    // analyse the expression inside the sizeof operator
-    sizeOfOperator->allChildrenAccept(*this);
+
     
     // set return type as a CValue (constant RValue)
     sizeOfOperator->valType = new valuetypes::CValue(new types::UnsignedInt());
@@ -2237,6 +2233,12 @@ void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
     types::Type* type = NULL;
     if (sizeOfOperator->expr != NULL)
     {
+        // this needs an LValue (if possible) to keep arrays
+        sizeOfOperator->expr->returnRValue = false;
+        
+        // analyse the expression inside the sizeof operator
+        sizeOfOperator->expr->accept(*this);
+        
         // get the size of the expression type 
         // check it is not a function type
         if (valuetypes::IsValueTypeHelper::isFunctionDesignator(sizeOfOperator->expr->valType))
@@ -2248,6 +2250,8 @@ void SemanticCheckVisitor::visit(astnodes::SizeOfOperator * sizeOfOperator)
     }
     else if (sizeOfOperator->typeName != NULL)
     {
+        // analyse the expression inside the sizeof operator
+        sizeOfOperator->typeName->accept(*this);
         type = sizeOfOperator->typeName->type;
     }
     else
