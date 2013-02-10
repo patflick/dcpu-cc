@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8.5)
-project(libdcpu-cc)
 
 # Set header .h files
 SET (NODES_STMT_HEADERS
