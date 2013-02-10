@@ -1009,7 +1009,7 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
         types::ArrayType* arrType = types::IsTypeHelper::getArrayType(type);
         if (identifierDeclarator->initializers != NULL)
         {
-            if (identifierDeclarator->initializers->size() > arrType->size)
+            if (identifierDeclarator->initializers->size() > (size_t)arrType->size)
             {
                 addWarning(identifierDeclarator, WARN_CC_INIT_LIST_TOO_LONG, identifierDeclarator->name);
             }
@@ -1921,10 +1921,12 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
         }
         else
         {
-            types::Type* to = (*funType->paramTypes)[i];
+            
             // make sure all the parameter types match
             // TODO check that they are assignable (see assignment operator)
             // TODO FIXME TODO FIXME
+            
+            // types::Type* to = (*funType->paramTypes)[i];
         }
     }
     

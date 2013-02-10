@@ -191,7 +191,6 @@ int DirectCodeGenVisitor::getTempStack(int size)
     // or append that many bits
     // returns offset from temp stack (not including the local stack offset from FP)
     int pos;
-    bool found;
     for (std::vector<bool>::iterator it = m_tempStackAlloc.begin(); it != m_tempStackAlloc.end(); ++it)
     {
         if (!*it)
@@ -1415,7 +1414,7 @@ ValuePosition* DirectCodeGenVisitor::derefOperand(ValuePosition* operandVP, ValP
     return newVP;
 }
 
-ValuePosition* DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
+void DirectCodeGenVisitor::pushToStack(ValuePosition* valPos)
 {
     if (valPos->getWordSize() == 1)
     {
@@ -1533,6 +1532,10 @@ ValuePosition* DirectCodeGenVisitor::getTmp(int size)
         // get temp on temporary stack
         int pos = getTempStack(size);
         return ValuePosition::createTempStack(-m_currentFunctionTempStackOffset-pos-1, size);
+    }
+    else
+    {
+        throw new errors::InternalCompilerException("getTmp of size 0 not possible");
     }
 }
 

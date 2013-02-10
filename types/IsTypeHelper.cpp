@@ -14,6 +14,7 @@
 #include "TypeVisitor.h"
 #include <errors/InternalCompilerException.h>
 
+using namespace dtcc;
 using namespace dtcc::types;
     
 
@@ -71,7 +72,7 @@ bool IsTypeHelper::isFloat(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -85,7 +86,7 @@ bool IsTypeHelper::isDouble(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -99,7 +100,7 @@ bool IsTypeHelper::isLongDouble(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -132,7 +133,7 @@ bool IsTypeHelper::isSignedChar(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -146,7 +147,7 @@ bool IsTypeHelper::isUnsignedChar(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -160,7 +161,7 @@ bool IsTypeHelper::isSignedShort(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -174,7 +175,7 @@ bool IsTypeHelper::isUnsignedShort(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -188,7 +189,7 @@ bool IsTypeHelper::isSignedInt(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -202,7 +203,7 @@ bool IsTypeHelper::isUnsignedInt(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -216,7 +217,7 @@ bool IsTypeHelper::isSignedLong(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -230,7 +231,7 @@ bool IsTypeHelper::isUnsignedLong(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -244,7 +245,7 @@ bool IsTypeHelper::isEnumType(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -258,7 +259,7 @@ bool IsTypeHelper::isPointerType(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -272,7 +273,7 @@ bool IsTypeHelper::isFunctionType(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -298,7 +299,7 @@ bool IsTypeHelper::isArrayType(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -312,7 +313,7 @@ bool IsTypeHelper::isStructUnionType(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -326,7 +327,7 @@ bool IsTypeHelper::isVoid(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 
@@ -340,7 +341,7 @@ bool IsTypeHelper::isInvalidType(Type * type)
             return true;
         }
     } tv;
-    type->accept(tv);
+    return type->accept(tv);
 }
 
 

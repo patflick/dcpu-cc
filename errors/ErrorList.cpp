@@ -61,7 +61,7 @@ void ErrorList::addFatalError(int line, std::string file, int errid, std::string
 
 void ErrorList::printall()
 {
-    std::cout << " printing all errors: " << this->m_list.size() << std::endl;
+    std::cerr << " printing all errors: " << this->m_list.size() << std::endl;
     
     std::vector<Error>::iterator it;
     for (it = this->m_list.begin(); it != this->m_list.end(); it++)

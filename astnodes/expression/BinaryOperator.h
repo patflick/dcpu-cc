@@ -65,7 +65,7 @@ namespace dtcc
             ///
             BinaryOperator(Expression * lhsExrp, int optoken, Expression * rhsExpr) :
                 lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr),
-                commonType(NULL), lhsPtr(false), rhsPtr(false), pointerSize(0) {}
+                lhsPtr(false), rhsPtr(false), pointerSize(0), commonType(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

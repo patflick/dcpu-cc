@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     
 
     // Parse C.
-    yyout = stderr;
+    yyout = NULL;
     yyin = fopen(filename, "r");
     if (yyin == NULL)
     {

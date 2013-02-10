@@ -46,9 +46,9 @@ namespace dtcc
             void allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor);
             
         public:
-            types::Type* promotedType;
             Expression * expr;
             Statement * statement;
+            types::Type* promotedType;
             
             LabelStatement* defaultLbl;
             LabelStatement* endLbl;

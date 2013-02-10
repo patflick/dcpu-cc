@@ -18,15 +18,15 @@ using namespace dtcc::codegen;
 
 
 ValuePosition::ValuePosition() : 
-posType(REG), size(0), isDeref(false), isAdr(false),
+posType(REG), regist(REG_A), size(0), isDeref(false), isAdr(false),
 isTemp(false), offset(0), constValue(std::string("")), labelName(std::string(""))
 {
 
 }
 
 ValuePosition::ValuePosition(ValuePosition& vp) : 
-posType(vp.posType), size(vp.size), isDeref(vp.isDeref), isAdr(vp.isAdr),
-isTemp(vp.isTemp), offset(vp.offset), constValue(vp.constValue), labelName(vp.labelName), regist(vp.regist)
+posType(vp.posType), regist(vp.regist), size(vp.size), isDeref(vp.isDeref), isAdr(vp.isAdr),
+isTemp(vp.isTemp), offset(vp.offset), constValue(vp.constValue), labelName(vp.labelName)
 {
     
 }
@@ -167,6 +167,8 @@ std::string ValuePosition::registerToString(ValPosRegister regist)
             return std::string("Y");
         case REG_Z:
             return std::string("Z");
+        default:
+            throw new errors::InternalCompilerException("Unknown Register encountered");
     }
 }
 

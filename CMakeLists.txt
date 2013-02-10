@@ -3,6 +3,7 @@ project(dtcc2tests)
 
 #SET(CMAKE_C_COMPILER "clang")
 #SET(CMAKE_CXX_COMPILER "clang")
+set(CMAKE_CXX_FLAGS "-g -Wall")
 
 if(NOT DEFINED FLEX_EXECUTABLE)
     find_program(FLEX_EXECUTABLE NAMES flex.exe flex)
@@ -19,10 +20,6 @@ bison_target(libdcpu-ci-lang-c-parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parse
 flex_target(libdcpu-ci-lang-c-lexer lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp COMPILE_FLAGS \"--header-file=${CMAKE_CURRENT_BINARY_DIR}/lexer.hpp\")
 add_flex_bison_dependency(libdcpu-ci-lang-c-lexer libdcpu-ci-lang-c-parser)
 
-FILE(GLOB typesSrc types/*.cpp)
-FILE(GLOB typesHrd types/*.h)
-FILE(GLOB symboltableSrc symboltable/*.cpp)
-FILE(GLOB symboltableHrd symboltable/*.h)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -35,11 +32,13 @@ add_subdirectory(visitor)
 add_subdirectory(types)
 add_subdirectory(errors)
 add_subdirectory(codegen)
+add_subdirectory(symboltable)
 add_subdirectory(valuetypes)
 
 
 
 add_executable(dtcc2tests
+    Compiler.cpp
     main.cpp
     ${FLEX_libdcpu-ci-lang-c-lexer_OUTPUTS}
     ${BISON_libdcpu-ci-lang-c-parser_OUTPUTS}
@@ -53,10 +52,10 @@ add_executable(dtcc2tests
     ${NODES_SOURCE}
     ${VISITOR_HEADER}
     ${VISITOR_SOURCE}
-    ${typesHdr}
-    ${typesSrc}
-    ${symboltableHrd}
-    ${symboltableSrc}
+    ${TYPES_HEADER}
+    ${TYPES_SOURCE}
+    ${SYMBOLTABLE_HEADER}
+    ${SYMBOLTABLE_SOURCE}
     ${CODEGEN_HEADER}
     ${CODEGEN_SOURCE}
 )

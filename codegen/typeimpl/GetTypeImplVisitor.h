@@ -18,10 +18,11 @@ namespace dtcc
         class GetTypeImplVisitor : public dtcc::types::TypeVisitor
         {
         private:
+            /// holds the resolved type implementation after visiting a type
+            TypeImplementation* typeImpl;
+            // type implementations to be returned:
             SignedInt16* sint16;
             UnsignedInt16* uint16;
-            
-            TypeImplementation* typeImpl;
             
         public:
             

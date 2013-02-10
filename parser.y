@@ -129,6 +129,15 @@ void checkForTypedefs(Declaration * declaration);
 %type <enumerator> enumerator
 %type <enumerators> enumerator_list
 
+
+/*
+ * Solving the shift/reduce conflict because of dangling `else` in
+ * if statement, source:
+ * http://stackoverflow.com/questions/1737460/how-to-find-shift-reduce-conflict-in-this-yacc-file
+ */
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
 /* Start point of parsing */
 %start program
 
@@ -1134,7 +1143,10 @@ cond_expression_statement
         ;
 
 selection_statement
-        : IF CURVED_OPEN expression CURVED_CLOSE statement
+        // LOWER_THAN_ELSE gives this expression lower precedence thatn the 
+        // one with the else part. This way the shift/reduce conflict is solved
+        // source: http://stackoverflow.com/questions/1737460/how-to-find-shift-reduce-conflict-in-this-yacc-file
+        : IF CURVED_OPEN expression CURVED_CLOSE statement %prec LOWER_THAN_ELSE
         {
             $$ = new IfStatement($3, $5, NULL);
         }

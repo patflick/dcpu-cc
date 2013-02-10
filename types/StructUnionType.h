@@ -50,8 +50,10 @@ namespace dtcc
             /// @brief      The constructor of the StructUnionType type class.
 
             ///
-            StructUnionType(bool isUnion) : isUnion(isUnion), complete(false), size(0),
-            m_offsets(std::map<std::string, unsigned int>()), m_types(std::map<std::string, types::Type*>()) {}
+            StructUnionType(bool isUnion)
+            : size(0), m_offsets(std::map<std::string, unsigned int>()),
+            m_types(std::map<std::string, types::Type*>()), isUnion(isUnion),
+            complete(false) {}
             
             
             void addMember(std::string name, types::Type* type);

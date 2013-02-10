@@ -84,7 +84,7 @@ namespace dtcc
             ValuePosition* makeAtomicDerefable(ValuePosition* operandVP, ValPosRegister regist);
             ValuePosition* derefOperand(ValuePosition* operand, ValPosRegister tmpRegist);
             TypeImplementation* getTypeImplementation(types::Type* type);
-            ValuePosition* pushToStack(ValuePosition* valPos);
+            void pushToStack(ValuePosition* valPos);
             ValuePosition* getTmpCopy(ValuePosition* from);
             void copyValue(ValuePosition* from, ValuePosition* to);
             ValuePosition* getTmp(int size);

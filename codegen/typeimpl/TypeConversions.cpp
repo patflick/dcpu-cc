@@ -55,6 +55,7 @@ int TypeConversions::typeToNr(types::Type* type)
     {
         return 7;
     }
+    throw new errors::InternalCompilerException("unknown basic type encountered");
 }
 
 bool TypeConversions::isSigned(types::Type* type)
@@ -76,7 +77,6 @@ bool TypeConversions::needsConvert(types::Type* from, types::Type* to)
 {
     int toNr = typeToNr(to);
     int fromNr = typeToNr(from);
-    bool sign = isSigned(to);
     
     if (toNr < 4 && fromNr < 4)
         return false;

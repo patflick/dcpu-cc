@@ -31,7 +31,7 @@ namespace dtcc
             bool varArgs;
             
         public:
-            ParameterDeclarations() : varArgs(false), declarations(std::vector<Declaration*>()) {}
+            ParameterDeclarations() : declarations(std::vector<Declaration*>()), varArgs(false) {}
             ~ParameterDeclarations() {}
         };
         

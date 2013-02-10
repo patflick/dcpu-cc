@@ -226,12 +226,6 @@ void ConstExprEvalVisitor::visit(astnodes::BinaryOperator * binaryOperator)
     // analyse both sub-expressions
     binaryOperator->allChildrenAccept(*this);
     
-    valuetypes::ValueType* lhsVtype = binaryOperator->lhsExrp->valType;
-    valuetypes::ValueType* rhsVtype = binaryOperator->rhsExpr->valType;
-    types::Type* lhsType = lhsVtype->type;
-    types::Type* rhsType = rhsVtype->type;
-    
-    
     bool floatOp = types::IsTypeHelper::isFloatType(binaryOperator->commonType);
     double lhsFloatConst = valuetypes::ConstHelper::getFloatConst(binaryOperator->lhsExrp->valType);
     long lhsIntegralConst = valuetypes::ConstHelper::getIntegralConst(binaryOperator->lhsExrp->valType);

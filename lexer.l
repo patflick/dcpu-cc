@@ -29,6 +29,7 @@ extern std::set<std::string> activeTypedef;
 %}
 
 %option yylineno
+%option nounput
 
 D                       [0-9]
 O                       [0-7]
@@ -91,13 +92,11 @@ U                       (u|U)
     /* Inline assembly */
 "__asm"                 { count(); BEGIN(AT_ASM); }
 <AT_ASM>\{              { count(); BEGIN(IN_ASM_BLOCK); string_return = AT_ASM; }
-<AT_ASM>\n              { }
+<AT_ASM>\n              { count(); }
 <AT_ASM>[ \t]+          /* ignore whitespace */;
 <AT_ASM>[^\{]           { count(); return ERROR; }
 <IN_ASM_BLOCK>\}        { count(); BEGIN(INITIAL); string_return = INITIAL; }
 <IN_ASM_BLOCK>[^\}]*    { count(); yylval.string = new std::string(yytext); return ASSEMBLY; }
-<IN_ASM_BLOCK>\n        { }
-<IN_ASM_BLOCK>[ \t]+    /* ignore whitespace */;
 
 
     /* Identifier or possibly typedef */
@@ -237,10 +236,12 @@ loop:
 
 star_loop:
     if ((c = yyinput()) != '/' && c != 0 && c != EOF)
+    {
         if (c == '*')
             goto star_loop;
         else
             goto loop;
+    }
     
     if (c == EOF)
         return false;
@@ -272,8 +273,6 @@ void count()
                         yycolumn += 8 - (yycolumn % 8);
                 else
                         yycolumn++;
-
-        ECHO;
 }
 
 
