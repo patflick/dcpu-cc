@@ -102,6 +102,9 @@ void Compiler::compile(std::string& input)
         return;
     }
     
+    // load assembler information
+    Assembler::loadAll();
+    
     // Do semantic checks
     dcpucc::visitor::SemanticCheckVisitor* semCheck = new dcpucc::visitor::SemanticCheckVisitor();
     program->accept(*semCheck);

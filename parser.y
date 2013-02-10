@@ -1285,7 +1285,7 @@ void yyerror(const char *str)
         file = "<unknown>";
     else
         file = std::string(*yyfilename);
-    errorlist.addError(yylineno, yycolumn, file, std::string(str));
+    errorlist.addError(yylineno, yycolumn, file, std::string(str)+"\n");
     // add current line to lines
     yylines.push_back(yycurline);
 }
