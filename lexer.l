@@ -30,7 +30,7 @@ std::string yycurline;
 extern int string_return;
 extern std::set<std::string> activeTypedef;
 extern dcpucc::Compiler* compiler;
-
+bool handle_lineinfo();
 
 #define YY_INPUT(buf,result,max_size) \
 { \
@@ -64,6 +64,9 @@ U                       (u|U)
 %x IN_COMMENT_LINE
 
 %%
+
+\#                      { if(!handle_lineinfo()) return ERROR; }
+
 "//"                    { count(); BEGIN(IN_COMMENT_LINE); }
 <IN_COMMENT_LINE>\n     { count(); BEGIN(INITIAL); }
 <IN_COMMENT_LINE>.      { count(); }
@@ -269,6 +272,27 @@ star_loop:
     
     if (c == EOF)
         return false;
+    return true;
+}
+
+bool handle_lineinfo()
+{
+    std::string line;
+    char c;
+    while ((c = yyinput()) != '\n' && c != 0 && c != EOF)
+        line += c;
+
+    std::istringstream iss(line);
+    int lineno;
+    if (!(iss >> std::ws >> lineno >> std::ws )) { return false; } // error
+
+    std::string filename( (std::istreambuf_iterator<char>( iss )),
+                            (std::istreambuf_iterator<char>()) );
+    
+    yyfilename = new std::string(filename);
+// TODO distinguish between pp lines and raw lines (for error display)
+    yylineno = lineno;
+
     return true;
 }
 
