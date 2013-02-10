@@ -45,7 +45,7 @@ add_subdirectory(errors/errgen)
 # build command for generating errors
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
-    COMMAND ${ERRGEN_BIN_PATH}/dcpucc-errgen ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
+    COMMAND dcpucc-errgen ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
     COMMENT "Generating error definition files..."
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d dcpucc-errgen
     )
