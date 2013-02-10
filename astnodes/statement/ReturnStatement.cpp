@@ -33,8 +33,8 @@ void ReturnStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & 
 void ReturnStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
-    this->expr->accept(visitor);
-
+    if (this->expr != NULL)
+        this->expr->accept(visitor);
 }
 
 // implements the visitor pattern
