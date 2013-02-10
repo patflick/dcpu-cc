@@ -111,7 +111,8 @@ std::string ErrorList::errToStr(Error err)
     
     std::stringstream ss;
     ss  << err.file << ":" << err.line << ":" << err.col << ": " << errwar << ": " << err.errmsg;
-    ss << yylines[err.line-1] << std::endl;
+    // TODO do this with raw lines
+    //ss << yylines[err.line-1] << std::endl;
     ss << std::setw(err.col) << "^" << std::endl;
     return ss.str();
 }
