@@ -8,7 +8,7 @@
 #include <astnodes/allnodes.h>
 #include <set>
 #include <Compiler.h>
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 #include "parser.hpp"
 
@@ -29,7 +29,7 @@ std::vector<std::string> yylines;
 std::string yycurline;
 extern int string_return;
 extern std::set<std::string> activeTypedef;
-extern dtcc::Compiler* compiler;
+extern dcpucc::Compiler* compiler;
 
 
 #define YY_INPUT(buf,result,max_size) \

@@ -33,11 +33,23 @@ flex_target(dcpu-cc-lexer lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp COMPILE_
 add_flex_bison_dependency(dcpu-cc-lexer dcpu-cc-parser)
 
 
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${FLEX_UNISTD_INCLUDE}
 )
+
+add_subdirectory(errors/errgen)
+
+# build command for generating errors
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/errors/errgen/dcpucc-errgen ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.h ${CMAKE_CURRENT_SOURCE_DIR}/errors/derr.defs.cpp
+    COMMENT "Generating error definition files..."
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/errors/err.d dcpucc-errgen
+    )
+
 
 add_subdirectory(astnodes)
 add_subdirectory(visitor)
@@ -46,8 +58,6 @@ add_subdirectory(errors)
 add_subdirectory(codegen)
 add_subdirectory(symboltable)
 add_subdirectory(valuetypes)
-
-
 
 add_library(libdcpu-cc
     Compiler.cpp
@@ -71,13 +81,9 @@ add_library(libdcpu-cc
     ${CODEGEN_SOURCE}
 )
 
+add_dependencies(libdcpu-cc
+    errors/derr.defs.h
+    )
+
 # to avoid double "liblib"
 set_target_properties(libdcpu-cc PROPERTIES PREFIX "")
-
-add_executable(dtcc2tests
-    main.cpp
-)
-
-target_link_libraries(dtcc2tests
-    libdcpu-cc
-)

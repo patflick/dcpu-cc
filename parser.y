@@ -18,7 +18,7 @@
 // include all nodes
 #include <astnodes/allnodes.h>
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // Turn on verbose error messages.
 #define YYERROR_VERBOSE
@@ -1269,7 +1269,7 @@ extern std::string yycurline;
 void checkForTypedefs(Declaration * declaration)
 {
     // create the CheckTypeDefVisitor and let it do its job
-    dtcc::visitor::CheckTypedefVisitor typedefChecker;
+    dcpucc::visitor::CheckTypedefVisitor typedefChecker;
     declaration->acceptPreRecursive(typedefChecker);
 
     if (typedefChecker.isTypedef)
