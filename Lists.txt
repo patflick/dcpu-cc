@@ -1,8 +1,0 @@
-Statements = vector<Statement*>
-Declarations  = vector<Declaration*>
-Expressions = vector<Expression*>
-ParameterDeclarations = vector<Declaration> with additionally .setVarArg (so subclass not typedef)
-DeclarationSpecifiers with addTypeSpecifier, addTypeQualifier
-TypeQualifiers = vector<TypeQualifier*>
-Pointers = vector<Pointer>
-Declarators = vector<Declarator>
