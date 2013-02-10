@@ -57,7 +57,7 @@ void generate_errors(std::istream& err_defs, std::ostream& out_hdr, std::ostream
     out_hdr << "#define _ERR_COUNT " << warn_count << std::endl;
     out_hdr << "#define _WARN_COUNT (_ERR_COUNT - _WARN_OFFSET)" << std::endl;
     out_hdr << "extern const char* dcpucc_derrstr[" << warn_count << "];" << std::endl;
-    out_hdr << "extern struct dcpucc_warnpolicy dwarnpolicy[" << warn_count-error_count << "];" << std::endl;
+    out_hdr << "extern struct dcpucc_warnpolicy dcpucc_dwarnpolicy[" << warn_count-error_count << "];" << std::endl;
     out_hdr << "#endif" << std::endl;
     
     
@@ -74,7 +74,7 @@ void generate_errors(std::istream& err_defs, std::ostream& out_hdr, std::ostream
         out_src << "    \"" << it->msg << "\\n\","<< std::endl;
     }
     out_src << "};" << std::endl;
-    out_src << "struct warnpolicy dcpucc_dwarnpolicy[" << warn_count-error_count <<  "] =" << std::endl;
+    out_src << "struct dcpucc_warnpolicy dcpucc_dwarnpolicy[" << warn_count-error_count <<  "] =" << std::endl;
     out_src << "{" << std::endl;
     for (std::list<ErrDef>::iterator it = warnings.begin(); it != warnings.end(); ++it)
     {
