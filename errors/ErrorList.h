@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <list>
 
 namespace dtcc
 {
@@ -23,17 +24,17 @@ namespace dtcc
         class Error
         {
         public:
+            int col;
             int line;
             std::string file;
-            int errid;
-            std::string errdata;
+            std::string errmsg;
             int warnErr;
             
-            Error(int line, std::string file, int errid, std::string errdata, int warnErr) :
+            Error(int line, int col, std::string file, std::string errmsg, int warnErr) :
+                col(col),
                 line(line),
                 file(file),
-                errid(errid),
-                errdata(errdata),
+                errmsg(errmsg),
                 warnErr(warnErr) {}
         };
 
@@ -43,6 +44,8 @@ namespace dtcc
             std::vector<Error> m_list;
             bool m_hasWarnings;
             bool m_hasErrors;
+            
+            std::string errToStr(Error err);
         public:
             static const int ERROR_LIST_WARNING = 0;
             static const int ERROR_LIST_ERROR = 1;
@@ -50,15 +53,22 @@ namespace dtcc
 
             ErrorList() : m_list(std::vector<Error>()), m_hasWarnings(false), m_hasErrors(false) {}
             
-            void addWarning(int line, std::string file, int errid);
-            void addWarning(int line, std::string file, int errid, std::string errdata);
-            void addError(int line, std::string file, int errid);
-            void addError(int line, std::string file, int errid, std::string errdata);
-            void addFatalError(int line, std::string file, int errid);
-            void addFatalError(int line, std::string file, int errid, std::string errdata);
+            void addWarning(int line, int col, std::string file, std::string errmsg);
+            void addWarning(int line, int col, std::string file, int errid);
+            void addWarning(int line, int col, std::string file, int errid, std::string errdata);
+            void addError(int line, int col, std::string file, std::string errmsg);
+            void addError(int line, int col, std::string file, int errid);
+            void addError(int line, int col, std::string file, int errid, std::string errdata);
+            void addFatalError(int line, int col, std::string file, std::string errmsg);
+            void addFatalError(int line, int col, std::string file, int errid);
+            void addFatalError(int line, int col, std::string file, int errid, std::string errdata);
             
             bool hasWarnings();
             bool hasErrors();
+            
+            std::list<std::string> getWarnings();
+            std::list<std::string> getErrors();
+            std::list<std::string> getWarningsAndErrors();
             
             void printall();
         };

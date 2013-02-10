@@ -39,7 +39,6 @@ namespace dtcc
             
         private:
             /* errors and warnings */
-            errors::ErrorList m_errorList;
             void addError(astnodes::Node* node, int errid);
             void addError(astnodes::Node* node, int errid, std::string msg);
             void addWarning(astnodes::Node* node, int errid);
@@ -115,17 +114,6 @@ namespace dtcc
         public:
             
             SemanticCheckVisitor();
-            
-            // TODO do this properly
-            void printErrorsAndWarnings()
-            {
-                this->m_errorList.printall();
-            }
-            // TODO do this properly
-            bool hasErrors()
-            {
-                return this->m_errorList.hasErrors();
-            }
             
             ///
             /// @brief      Visit function of the visitor pattern.

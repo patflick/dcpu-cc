@@ -18,51 +18,143 @@
 
 
 #include "Compiler.h"
+#include <visitor/SemanticCheckVisitor.h>
+#include <errors/ErrorList.h>
+
+// declare the parser and lexer variables
+extern int yyparse();
+extern FILE* yyin, *yyout;
+extern dtcc::astnodes::Program* program;
+
+// global variables that are used by the parser and semantic check
+// visitor to add error messages
+Compiler* compiler = NULL;
+errors::ErrorList errorlist;
+
+int input_type;
+std::string input_str;
+unsigned int input_str_ctr;
+std::string m_asmOutput;
 
 Compiler::Compiler()
+: input_type(DTCC_COMPILER_INPUT_STRING), input_str(std::string("")),
+input_str_ctr(0), m_asmOutput(std::string(""))
 {
 
 }
 
-Compiler::Compiler(const Compiler& other)
-{
-
-}
 
 
 /// @brief Input function for the lexer.
-void Compiler::getInput(char*, int&, int)
+bool Compiler::getInput(char* buf, int& result, int max_size)
 {
-    
+    if (this->input_type == DTCC_COMPILER_INPUT_STRING)
+    {
+        if (this->input_str_ctr < this->input_str.size())
+        {
+            buf[0] = this->input_str[this->input_str_ctr++];
+            result = 1;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    // TODO implement other cases
+    return false;
 }
 
-void Compiler::compile(std::string input)
+
+void Compiler::compile(std::istream& input)
 {
+    // read stream into string
+    std::string str( (std::istreambuf_iterator<char>( input )),
+                   (std::istreambuf_iterator<char>()) );
+    this->compile(str);
+}
+
+
+void Compiler::compile(std::string& input)
+{
+    // set input string, and its options
+    this->input_type = DTCC_COMPILER_INPUT_STRING;
+    this->input_str = input;
+    this->input_str_ctr = 0;
     
+    // set compiler, so the lexer can use the getInput method to get input
+    compiler = this;
+    
+    // create errorlist
+    errorlist = errors::ErrorList();
+    
+    // disable yy output
+    yyout = NULL;
+    yyin = NULL;
+    // parse C AST
+    yyparse();
+    
+    if (program == NULL)
+    {
+        // errors have been added
+        return;
+    }
+    
+    // Do semantic checks
+    dtcc::visitor::SemanticCheckVisitor* semCheck = new dtcc::visitor::SemanticCheckVisitor();
+    program->accept(*semCheck);
+    
+    if (errorlist.hasErrors())
+    {
+        // don't generate code in this case
+        return;
+    }
+    
+    // generate code
+    dtcc::codegen::DirectCodeGenVisitor* codegen = new dtcc::codegen::DirectCodeGenVisitor();
+    program->accept(*codegen);
+    
+    // get output
+    this->m_asmOutput = codegen->getAssembly();
+    
+    // cleanup
+    delete program;
+    program = NULL;
 }
 
 bool Compiler::hasErrors()
 {
-    // TODO
-    return false;
+    return errorlist.hasErrors();
+}
+
+bool Compiler::hasWarnings()
+{
+    return errorlist.hasWarnings();
+}
+
+std::list<std::string> Compiler::getWarnings()
+{
+    return errorlist.getWarnings();
 }
 
 std::list<std::string> Compiler::getErrors()
 {
-    // TODO
-    std::list<std::string> result;
-    return result;
+    return errorlist.getErrors();
+}
+
+std::list<std::string> Compiler::getWarningsAndErrors()
+{
+    return errorlist.getWarningsAndErrors();
 }
 
 void Compiler::printErrors()
 {
-    
+    errorlist.printall();
 }
 
 std::string Compiler::getAssembler()
 {
-    // TODO
-    return std::string("");
+    return this->m_asmOutput;
 }
 
 Compiler::~Compiler()

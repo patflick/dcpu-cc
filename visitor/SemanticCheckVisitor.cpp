@@ -36,7 +36,6 @@ SemanticCheckVisitor::SemanticCheckVisitor()
 {
     this->m_loopStack = std::deque<std::pair<astnodes::LabelStatement*, astnodes::LabelStatement*> >();
     this->m_symbolTable = new symboltable::SymbolTable();
-    this->m_errorList = errors::ErrorList();
     this->m_AutomaticLabels = std::set<std::string>();
     this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
     this->m_funcLabels = std::map<std::string, astnodes::LabelStatement*>();
@@ -133,24 +132,26 @@ std::string SemanticCheckVisitor::getRandomString(std::string::size_type sz)
 /* error & warning management */
 /******************************/
 
+extern errors::ErrorList errorlist;
+
 void SemanticCheckVisitor::addError(astnodes::Node* node, int errid)
 {
-    this->m_errorList.addError(node->line, node->file, errid);
+    errorlist.addError(node->line, node->col, node->file, errid);
 }
 
 void SemanticCheckVisitor::addError(astnodes::Node* node, int errid, std::string msg)
 {
-    this->m_errorList.addError(node->line, node->file, errid, msg);
+    errorlist.addError(node->line, node->col, node->file, errid, msg);
 }
 
 void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid)
 {
-    this->m_errorList.addWarning(node->line, node->file, errid);
+    errorlist.addWarning(node->line, node->col, node->file, errid);
 }
 
 void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid, std::string msg)
 {
-    this->m_errorList.addWarning(node->line, node->file, errid, msg);
+    errorlist.addWarning(node->line, node->col, node->file, errid, msg);
 }
 
 
@@ -416,6 +417,9 @@ void SemanticCheckVisitor::visit(astnodes::SwitchStatement * switchStatement)
 {
     // first evaluate the controlling expression
     switchStatement->expr->accept(*this);
+    
+    if (types::IsTypeHelper::isInvalidType(switchStatement->expr->valType->type))
+        return;
     
     // check for integral type
     if(!types::IsTypeHelper::isIntegralType(switchStatement->expr->valType->type))

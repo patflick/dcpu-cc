@@ -7,6 +7,7 @@
 #include <string>
 #include <astnodes/allnodes.h>
 #include <set>
+#include <Compiler.h>
 using namespace dtcc::astnodes;
 
 #include "parser.hpp"
@@ -24,8 +25,22 @@ bool comment();
 bool comment_line();
 int check_type();
 std::string* yyfilename = new std::string("<fixmefile>");
+std::vector<std::string> yylines;
+std::string yycurline;
 extern int string_return;
 extern std::set<std::string> activeTypedef;
+extern dtcc::Compiler* compiler;
+
+
+#define YY_INPUT(buf,result,max_size) \
+{ \
+    if (!compiler->getInput(buf, result, max_size))\
+    { \
+        result = YY_NULL;\
+    } \
+}
+
+
 %}
 
 %option yylineno
@@ -45,10 +60,17 @@ U                       (u|U)
 %x IN_STRING
 %x AT_ASM
 %x IN_ASM_BLOCK
+%x IN_COMMENT
+%x IN_COMMENT_LINE
 
 %%
-"/*"                    { if (!comment()) return ERROR; }
-"//"                    { if (!comment_line()) return ERROR; }
+"//"                    { count(); BEGIN(IN_COMMENT_LINE); }
+<IN_COMMENT_LINE>\n     { count(); BEGIN(INITIAL); }
+<IN_COMMENT_LINE>.      { count(); }
+"/*"                    { count(); BEGIN(IN_COMMENT); }
+<IN_COMMENT>"*/"        { count(); BEGIN(INITIAL); }
+<IN_COMMENT>.           { count(); }
+
 
     /* C keywords */
 "auto"                  { count(); return yylval.token = AUTO; }
@@ -232,11 +254,13 @@ bool comment()
     char c;
 
 loop:
-    while ((c = yyinput()) != '*' && c != 0 && c != EOF);
+    while ((c = yyinput()) != '*' && c != 0 && c != EOF)
+        count();
 
 star_loop:
     if ((c = yyinput()) != '/' && c != 0 && c != EOF)
     {
+        count();
         if (c == '*')
             goto star_loop;
         else
@@ -264,15 +288,28 @@ int yycolumn = 0;
 
 void count()
 {
-        int i;
+    int i;
 
-        for (i = 0; yytext[i] != '\0'; i++)
-                if (yytext[i] == '\n')
-                        yycolumn = 0;
-                else if (yytext[i] == '\t')
-                        yycolumn += 8 - (yycolumn % 8);
-                else
-                        yycolumn++;
+    for (i = 0; yytext[i] != '\0'; i++)
+    {
+        
+        if (yytext[i] == '\n')
+        {
+            yycolumn = 0;
+            yylines.push_back(yycurline);
+            yycurline = std::string("");
+        }
+        else if (yytext[i] == '\t')
+        {
+            yycurline += yytext[i];
+            yycolumn += 8 - (yycolumn % 8);
+        }
+        else
+        {
+            yycurline += yytext[i];
+            yycolumn++;
+        }
+    }
 }
 
 

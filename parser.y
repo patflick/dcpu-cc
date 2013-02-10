@@ -1256,10 +1256,15 @@ program
 #include <cassert>
 #include <visitor/CheckTypedefVisitor.h>
 #include <set>
+#include <errors/ErrorList.h>
+
 
 extern int yycolumn;
 extern char * yytext;
 extern std::set<std::string> activeTypedef;
+extern errors::ErrorList errorlist;
+extern std::vector<std::string> yylines;
+extern std::string yycurline;
 
 void checkForTypedefs(Declaration * declaration)
 {
@@ -1275,13 +1280,13 @@ void checkForTypedefs(Declaration * declaration)
 
 void yyerror(const char *str)
 {
-    fflush(stdout);
-    printf("\n%*s\n%*s\n", yycolumn, "^", yycolumn, str);
-/*
+    std::string file;
     if (yyfilename == NULL)
-        fprintf(stderr, "error at line %i of '%s': %s\n", yylineno, "<unknown>", str);
+        file = "<unknown>";
     else
-        fprintf(stderr, "error at line %i of '%s': %s\n", yylineno, yyfilename->data, str);
-*/
+        file = std::string(*yyfilename);
+    errorlist.addError(yylineno, yycolumn, file, std::string(str));
+    // add current line to lines
+    yylines.push_back(yycurline);
 }
 

@@ -15,48 +15,105 @@
 
 #include <errors/derr.defs.h>
 
-#include <cstdio>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <cstdio>
 
 using namespace dtcc::errors;
 
-void ErrorList::addWarning(int line, std::string file, int errid)
-{
-    this->addWarning(line, file, errid, std::string(""));
-}
+extern std::vector<std::string> yylines;
 
-void ErrorList::addWarning(int line, std::string file, int errid, std::string errdata)
+void ErrorList::addWarning(int line, int col, std::string file, std::string errmsg)
 {
-    Error err(line, file, errid, errdata, ErrorList::ERROR_LIST_WARNING);
+    Error err(line, col, file, errmsg, ErrorList::ERROR_LIST_WARNING);
     this->m_list.push_back(err);
     this->m_hasWarnings = true;
 }
 
-void ErrorList::addError(int line, std::string file, int errid)
+void ErrorList::addWarning(int line, int col, std::string file, int errid)
 {
-    this->addError(line, file, errid, std::string(""));
+    std::string errormsg(derrstr[errid]);
+    this->addWarning(line, col, file, errormsg);
 }
 
-void ErrorList::addError(int line, std::string file, int errid, std::string errdata)
+void ErrorList::addWarning(int line, int col, std::string file, int errid, std::string errdata)
 {
-    Error err(line, file, errid, errdata, ErrorList::ERROR_LIST_ERROR);
+    std::string errormsg(derrstr[errid]);
+    char buffer[256];
+    sprintf(buffer, errormsg.c_str(), errdata.c_str());
+    errormsg = std::string(buffer);
+    this->addWarning(line, col, file, errormsg);
+}
+
+void ErrorList::addError(int line, int col, std::string file, std::string errmsg)
+{
+    Error err(line, col, file, errmsg, ErrorList::ERROR_LIST_ERROR);
     this->m_list.push_back(err);
     this->m_hasErrors = true;
 }
 
-void ErrorList::addFatalError(int line, std::string file, int errid)
+void ErrorList::addError(int line, int col, std::string file, int errid)
 {
-    this->addFatalError(line, file, errid, std::string(""));
+    std::string errormsg(derrstr[errid]);
+    this->addError(line, col, file, errormsg);
 }
 
-void ErrorList::addFatalError(int line, std::string file, int errid, std::string errdata)
+void ErrorList::addError(int line, int col, std::string file, int errid, std::string errdata)
 {
-    Error err(line, file, errid, errdata, ErrorList::ERROR_LIST_FATAL_ERROR);
+    std::string errormsg(derrstr[errid]);
+    char buffer[256];
+    sprintf(buffer, errormsg.c_str(), errdata.c_str());
+    errormsg = std::string(buffer);
+    this->addError(line, col, file, errormsg);
+}
+
+void ErrorList::addFatalError(int line, int col, std::string file, std::string errmsg)
+{
+    Error err(line, col, file, errmsg, ErrorList::ERROR_LIST_FATAL_ERROR);
     this->m_list.push_back(err);
     this->m_hasErrors = true;
+}
+
+void ErrorList::addFatalError(int line, int col, std::string file, int errid)
+{
+    std::string errormsg(derrstr[errid]);
+    this->addFatalError(line, col, file, errormsg);
+}
+
+void ErrorList::addFatalError(int line, int col, std::string file, int errid, std::string errdata)
+{
+    std::string errormsg(derrstr[errid]);
+    char buffer[256];
+    sprintf(buffer, errormsg.c_str(), errdata.c_str());
+    errormsg = std::string(buffer);
+    this->addFatalError(line, col, file, errormsg);
     
     // TODO 
     // FIXME stop execution right away via dhalt
+}
+
+std::string ErrorList::errToStr(Error err)
+{
+    std::string errwar;
+    switch (err.warnErr)
+    {
+        case ErrorList::ERROR_LIST_WARNING:
+            errwar = "warning";
+            break;
+        case ErrorList::ERROR_LIST_ERROR:
+            errwar = "error";
+            break;
+        case ErrorList::ERROR_LIST_FATAL_ERROR:
+            errwar = "error";
+            break;
+    }
+    
+    std::stringstream ss;
+    ss  << err.file << ":" << err.line << ":" << err.col << ": " << errwar << ": " << err.errmsg;
+    ss << yylines[err.line-1] << std::endl;
+    ss << std::setw(err.col) << "^" << std::endl;
+    return ss.str();
 }
 
 void ErrorList::printall()
@@ -66,30 +123,7 @@ void ErrorList::printall()
     std::vector<Error>::iterator it;
     for (it = this->m_list.begin(); it != this->m_list.end(); it++)
     {
-        std::string errwar;
-        switch (it->warnErr)
-        {
-            case ErrorList::ERROR_LIST_WARNING:
-                errwar = "[WARNING]";
-                break;
-            case ErrorList::ERROR_LIST_ERROR:
-                errwar = "[ERROR]";
-                break;
-            case ErrorList::ERROR_LIST_FATAL_ERROR:
-                errwar = "[FATAL ERROR]";
-                break;
-        }
-        
-        std::string errormsg(derrstr[it->errid]);
-        
-        if (it->errdata != std::string(""))
-        {
-            char buffer[256];
-            sprintf(buffer, errormsg.c_str(), it->errdata.c_str());
-            errormsg = std::string(buffer);
-        }
-        
-        std::cerr  << it->file << ":" << it->line << " " << errwar << " " << errormsg << std::endl;
+        std::cerr << errToStr(*it);
     }
 }
 
@@ -101,6 +135,41 @@ bool ErrorList::hasWarnings()
 bool ErrorList::hasErrors()
 {
     return this->m_hasErrors;
+}
+
+std::list<std::string> ErrorList::getWarnings()
+{
+    std::vector<Error>::iterator it;
+    std::list<std::string> result;
+    for (it = this->m_list.begin(); it != this->m_list.end(); it++)
+    {
+        if (it->warnErr == ErrorList::ERROR_LIST_WARNING)
+            result.push_back(errToStr(*it));
+    }
+    return result;
+}
+
+std::list<std::string> ErrorList::getErrors()
+{
+    std::vector<Error>::iterator it;
+    std::list<std::string> result;
+    for (it = this->m_list.begin(); it != this->m_list.end(); it++)
+    {
+        if (it->warnErr != ErrorList::ERROR_LIST_WARNING)
+            result.push_back(errToStr(*it));
+    }
+    return result;
+}
+
+std::list<std::string> ErrorList::getWarningsAndErrors()
+{
+    std::vector<Error>::iterator it;
+    std::list<std::string> result;
+    for (it = this->m_list.begin(); it != this->m_list.end(); it++)
+    {
+        result.push_back(errToStr(*it));
+    }
+    return result;
 }
 
 
