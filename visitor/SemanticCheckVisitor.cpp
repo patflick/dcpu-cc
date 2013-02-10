@@ -166,12 +166,12 @@ void SemanticCheckVisitor::visit(astnodes::Program * program)
     // set declarations to global
     this->m_declState = DECLSTATE_GLOBAL;
     
+    // analyse everything
+    program->allChildrenAccept(*this);
+    
     // set functions that were only declared but not defined,
     // so that CodeGen can create the appropriate .IMPORT for the linker
     program->functionDecls = this->m_symbolTable->getFunctionDeclarations();
-    
-    // analyse everything
-    program->allChildrenAccept(*this);
 }
 
 
