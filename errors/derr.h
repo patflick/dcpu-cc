@@ -12,14 +12,14 @@
  * 
  **/
 
-#ifndef __DCPU_ASM_AERR_H
-#define __DCPU_ASM_AERR_H
+#ifndef __DCPUCC_AERR_H
+#define __DCPUCC_AERR_H
 
 #include <stdint.h>
 #include <stdlib.h>
 
 // Structure for holding warning policy information
-struct warnpolicy
+struct dcpucc_warnpolicy
 {
     int errid;
     const char* name;
@@ -29,14 +29,6 @@ struct warnpolicy
 
 // Error codes
 #include "derr.defs.h"
-
-// Structure for holding error information
-struct errinfo
-{
-    int errid;
-    const char* errdata;
-};
-
 
 
 #endif

@@ -33,13 +33,13 @@ void ErrorList::addWarning(int line, int col, std::string file, std::string errm
 
 void ErrorList::addWarning(int line, int col, std::string file, int errid)
 {
-    std::string errormsg(derrstr[errid]);
+    std::string errormsg(dcpucc_derrstr[errid]);
     this->addWarning(line, col, file, errormsg);
 }
 
 void ErrorList::addWarning(int line, int col, std::string file, int errid, std::string errdata)
 {
-    std::string errormsg(derrstr[errid]);
+    std::string errormsg(dcpucc_derrstr[errid]);
     char buffer[256];
     sprintf(buffer, errormsg.c_str(), errdata.c_str());
     errormsg = std::string(buffer);
@@ -55,13 +55,13 @@ void ErrorList::addError(int line, int col, std::string file, std::string errmsg
 
 void ErrorList::addError(int line, int col, std::string file, int errid)
 {
-    std::string errormsg(derrstr[errid]);
+    std::string errormsg(dcpucc_derrstr[errid]);
     this->addError(line, col, file, errormsg);
 }
 
 void ErrorList::addError(int line, int col, std::string file, int errid, std::string errdata)
 {
-    std::string errormsg(derrstr[errid]);
+    std::string errormsg(dcpucc_derrstr[errid]);
     char buffer[256];
     sprintf(buffer, errormsg.c_str(), errdata.c_str());
     errormsg = std::string(buffer);
@@ -77,13 +77,13 @@ void ErrorList::addFatalError(int line, int col, std::string file, std::string e
 
 void ErrorList::addFatalError(int line, int col, std::string file, int errid)
 {
-    std::string errormsg(derrstr[errid]);
+    std::string errormsg(dcpucc_derrstr[errid]);
     this->addFatalError(line, col, file, errormsg);
 }
 
 void ErrorList::addFatalError(int line, int col, std::string file, int errid, std::string errdata)
 {
-    std::string errormsg(derrstr[errid]);
+    std::string errormsg(dcpucc_derrstr[errid]);
     char buffer[256];
     sprintf(buffer, errormsg.c_str(), errdata.c_str());
     errormsg = std::string(buffer);
