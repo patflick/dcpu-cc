@@ -753,7 +753,7 @@ void SemanticCheckVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifier
     // add pointers
     noIdentifierDeclarator->allChildrenAccept(*this);
     
-    if (m_declState == DECLSTATE_PARAM)
+    if (m_declState == DECLSTATE_PARAM && !types::IsTypeHelper::isVoid(this->m_curDeclType))
     {
         addError(noIdentifierDeclarator, ERR_CC_FUNC_PARAM_NO_NAME);
     }
