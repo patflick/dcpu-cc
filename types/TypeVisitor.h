@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "alltypes.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace types
     {

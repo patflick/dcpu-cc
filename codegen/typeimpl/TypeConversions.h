@@ -15,7 +15,7 @@
 #include <types/alltypes.h>
 #include "../ValuePosition.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace codegen
     {;
@@ -105,6 +105,6 @@ namespace dtcc
 
 
     } // namespace codegen
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif

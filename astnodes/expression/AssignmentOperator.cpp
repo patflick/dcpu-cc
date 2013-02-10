@@ -11,10 +11,10 @@
 
 #include "AssignmentOperator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void AssignmentOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void AssignmentOperator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExrp != NULL)
         this->lhsExrp->acceptPreRecursive(visitor);
@@ -23,7 +23,7 @@ void AssignmentOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void AssignmentOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void AssignmentOperator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExrp != NULL)
         this->lhsExrp->acceptPostRecursive(visitor);
@@ -32,7 +32,7 @@ void AssignmentOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor &
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void AssignmentOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void AssignmentOperator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExrp != NULL)
         this->lhsExrp->accept(visitor);
@@ -41,20 +41,20 @@ void AssignmentOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void AssignmentOperator::accept(dtcc::visitor::Visitor & visitor)
+void AssignmentOperator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void AssignmentOperator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void AssignmentOperator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void AssignmentOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void AssignmentOperator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

@@ -11,7 +11,7 @@
 
 #include <astnodes/expression/Expression.h>
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // implements the destructor, which deletes all children
 Expression::~Expression()

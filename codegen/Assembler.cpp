@@ -17,7 +17,7 @@
 #include "Assembler.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc;
+using namespace dcpucc;
 
 // We haven't initially loaded anything.
 bool Assembler::m_HasLoaded = false;

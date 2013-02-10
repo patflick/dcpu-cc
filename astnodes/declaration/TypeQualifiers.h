@@ -16,7 +16,7 @@
 #include "TypeQualifier.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -25,7 +25,7 @@ namespace dtcc
         ///
         /// This is a std::vector of TypeQualifier.
         typedef std::vector<TypeQualifier*> TypeQualifiers;
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

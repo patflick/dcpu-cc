@@ -11,10 +11,10 @@
 
 #include "ArrayAccessOperator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void ArrayAccessOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ArrayAccessOperator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExpr != NULL)
         this->lhsExpr->acceptPreRecursive(visitor);
@@ -24,7 +24,7 @@ void ArrayAccessOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor &
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void ArrayAccessOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ArrayAccessOperator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExpr != NULL)
         this->lhsExpr->acceptPostRecursive(visitor);
@@ -34,27 +34,27 @@ void ArrayAccessOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor 
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void ArrayAccessOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void ArrayAccessOperator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     this->lhsExpr->accept(visitor);
     this->rhsExpr->accept(visitor);
 }
 
 // implements the visitor pattern
-void ArrayAccessOperator::accept(dtcc::visitor::Visitor & visitor)
+void ArrayAccessOperator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void ArrayAccessOperator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ArrayAccessOperator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void ArrayAccessOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ArrayAccessOperator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

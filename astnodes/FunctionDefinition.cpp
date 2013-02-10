@@ -11,10 +11,10 @@
 
 #include "FunctionDefinition.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void FunctionDefinition::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDefinition::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     // TODO do we have to visit DeclarationSpecifiers??
     //if (this->declSpecifiers != NULL)
@@ -27,7 +27,7 @@ void FunctionDefinition::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void FunctionDefinition::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDefinition::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     // TODO do we have to visit DeclarationSpecifiers??
     //if (this->declSpecifiers != NULL)
@@ -40,7 +40,7 @@ void FunctionDefinition::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor &
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void FunctionDefinition::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void FunctionDefinition::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO do we have to visit DeclarationSpecifiers??
     // this->declSpecifiers->accept(visitor);
@@ -51,20 +51,20 @@ void FunctionDefinition::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void FunctionDefinition::accept(dtcc::visitor::Visitor & visitor)
+void FunctionDefinition::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void FunctionDefinition::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDefinition::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void FunctionDefinition::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDefinition::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

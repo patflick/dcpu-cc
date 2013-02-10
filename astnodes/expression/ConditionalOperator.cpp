@@ -11,10 +11,10 @@
 
 #include "ConditionalOperator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void ConditionalOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ConditionalOperator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->condExpr != NULL)
         this->condExpr->acceptPreRecursive(visitor);
@@ -26,7 +26,7 @@ void ConditionalOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor &
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void ConditionalOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ConditionalOperator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->condExpr != NULL)
         this->condExpr->acceptPostRecursive(visitor);
@@ -38,7 +38,7 @@ void ConditionalOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor 
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void ConditionalOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void ConditionalOperator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
     this->condExpr->accept(visitor);
@@ -48,20 +48,20 @@ void ConditionalOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void ConditionalOperator::accept(dtcc::visitor::Visitor & visitor)
+void ConditionalOperator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void ConditionalOperator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ConditionalOperator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void ConditionalOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ConditionalOperator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

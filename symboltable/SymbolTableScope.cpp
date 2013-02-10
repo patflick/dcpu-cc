@@ -14,7 +14,7 @@
 #include <utility>
 #include <iostream>
 
-using namespace dtcc::symboltable;
+using namespace dcpucc::symboltable;
 
 bool SymbolTableScope::isGlobalScope()
 {

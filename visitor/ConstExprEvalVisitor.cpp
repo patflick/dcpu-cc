@@ -19,8 +19,8 @@
 #include <valuetypes/ConstHelper.h>
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc;
-using namespace dtcc::visitor;
+using namespace dcpucc;
+using namespace dcpucc::visitor;
 
 
 /*######################################*/

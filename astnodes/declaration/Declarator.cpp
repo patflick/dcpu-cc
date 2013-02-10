@@ -11,10 +11,10 @@
 
 #include "Declarator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void Declarator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void Declarator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
@@ -25,7 +25,7 @@ void Declarator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void Declarator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void Declarator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
@@ -46,7 +46,7 @@ void Declarator::setPointers(Pointers* pointers)
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void Declarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void Declarator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
@@ -57,20 +57,20 @@ void Declarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void Declarator::accept(dtcc::visitor::Visitor & visitor)
+void Declarator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void Declarator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void Declarator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void Declarator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void Declarator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

@@ -16,7 +16,7 @@
 #include "Declaration.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -35,7 +35,7 @@ namespace dtcc
             ~ParameterDeclarations() {}
         };
         
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

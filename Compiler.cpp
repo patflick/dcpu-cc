@@ -24,7 +24,9 @@
 // declare the parser and lexer variables
 extern int yyparse();
 extern FILE* yyin, *yyout;
-extern dtcc::astnodes::Program* program;
+extern dcpucc::astnodes::Program* program;
+
+using namespace dcpucc;
 
 // global variables that are used by the parser and semantic check
 // visitor to add error messages
@@ -101,7 +103,7 @@ void Compiler::compile(std::string& input)
     }
     
     // Do semantic checks
-    dtcc::visitor::SemanticCheckVisitor* semCheck = new dtcc::visitor::SemanticCheckVisitor();
+    dcpucc::visitor::SemanticCheckVisitor* semCheck = new dcpucc::visitor::SemanticCheckVisitor();
     program->accept(*semCheck);
     
     if (errorlist.hasErrors())
@@ -111,7 +113,7 @@ void Compiler::compile(std::string& input)
     }
     
     // generate code
-    dtcc::codegen::DirectCodeGenVisitor* codegen = new dtcc::codegen::DirectCodeGenVisitor();
+    dcpucc::codegen::DirectCodeGenVisitor* codegen = new dcpucc::codegen::DirectCodeGenVisitor();
     program->accept(*codegen);
     
     // get output

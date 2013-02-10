@@ -17,8 +17,8 @@
 #include <iostream>
 #include <string>
 
-using namespace dtcc;
-using namespace dtcc::visitor;
+using namespace dcpucc;
+using namespace dcpucc::visitor;
 
 
 void GotoResolvalVisitor::visit(astnodes::GotoStatement * gotoStatement)

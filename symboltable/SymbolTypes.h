@@ -13,7 +13,7 @@
 #ifndef __DCPU_CC_SYMBOLTABLE_SYMBOLTYPES_H
 #define __DCPU_CC_SYMBOLTABLE_SYMBOLTYPES_H
 
-namespace dtcc
+namespace dcpucc
 {
     namespace symboltable
     {
@@ -23,7 +23,7 @@ namespace dtcc
         enum TagType {STRUCT_TAG, UNION_TAG, ENUM_TAG, TYPEDEF_TAG};
         
     } // namespace symboltable
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

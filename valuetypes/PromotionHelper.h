@@ -18,7 +18,7 @@
 #include "LValue.h"
 #include "FunctionDesignator.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace valuetypes
     {
@@ -57,7 +57,7 @@ namespace dtcc
         };
         
     } // namespace types
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

@@ -24,8 +24,8 @@
 #include <iostream>
 
 
-using namespace dtcc::types;
-using namespace dtcc::valuetypes;
+using namespace dcpucc::types;
+using namespace dcpucc::valuetypes;
 
 ValueType* PromotionHelper::promote(ValueType* type)
 {

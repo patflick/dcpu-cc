@@ -12,7 +12,7 @@
 #include "EmptyVisitor.h"
 #include <iostream>
 #include <string>
-using namespace dtcc::visitor;
+using namespace dcpucc::visitor;
 
 void EmptyVisitor::visit(astnodes::FunctionDefinition * functionDefinition)
 {

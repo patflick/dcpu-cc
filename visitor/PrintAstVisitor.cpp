@@ -1,7 +1,7 @@
 #include "PrintAstVisitor.h"
 #include <iostream>
 #include <string>
-using namespace dtcc::visitor;
+using namespace dcpucc::visitor;
 
 
 void PrintAstVisitor::printAstName(const char * name)

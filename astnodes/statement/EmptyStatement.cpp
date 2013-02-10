@@ -11,42 +11,42 @@
 
 #include "EmptyStatement.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void EmptyStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void EmptyStatement::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void EmptyStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void EmptyStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
 
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void EmptyStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void EmptyStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
 
 }
 
 // implements the visitor pattern
-void EmptyStatement::accept(dtcc::visitor::Visitor & visitor)
+void EmptyStatement::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void EmptyStatement::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void EmptyStatement::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void EmptyStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void EmptyStatement::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

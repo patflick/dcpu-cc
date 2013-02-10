@@ -19,7 +19,7 @@
 #include <vector>
 #include <visitor/SemanticCheckVisitor.h>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace visitor
     {
@@ -56,7 +56,7 @@ namespace dtcc
             
         };
         
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

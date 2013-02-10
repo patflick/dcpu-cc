@@ -16,7 +16,7 @@
 
 #include <deque>
 
-using namespace dtcc::codegen;
+using namespace dcpucc::codegen;
 
 /* arithmetic binary operations */
 

@@ -16,7 +16,7 @@
 
 #include <deque>
 
-using namespace dtcc::codegen;
+using namespace dcpucc::codegen;
 
 
 std::deque<std::string> Int16::printConstant(double value)

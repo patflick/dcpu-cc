@@ -16,7 +16,7 @@
 #include <astnodes/expression/Expression.h>
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -25,7 +25,7 @@ namespace dtcc
         ///
         /// This is a std::vector of Expression.
         typedef std::vector<Expression*> Expressions;
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

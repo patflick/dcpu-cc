@@ -19,7 +19,7 @@
 #include <types/Type.h>
 
 
-namespace dtcc
+namespace dcpucc
 {
     namespace symboltable
     {
@@ -85,7 +85,7 @@ namespace dtcc
         };
 
     } // namespace symboltable
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

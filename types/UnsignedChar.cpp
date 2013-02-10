@@ -11,7 +11,7 @@
 
 #include "UnsignedChar.h"
 
-using namespace dtcc::types;
+using namespace dcpucc::types;
 
 // returns the word size of this type
 uint16_t UnsignedChar::getWordSize()

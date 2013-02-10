@@ -11,7 +11,7 @@
 
 #include "Float.h"
 
-using namespace dtcc::types;
+using namespace dcpucc::types;
 
 // returns the word size of this type
 uint16_t Float::getWordSize()

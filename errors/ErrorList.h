@@ -17,7 +17,7 @@
 #include <iostream>
 #include <list>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace errors
     {

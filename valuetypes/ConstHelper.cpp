@@ -14,7 +14,7 @@
 #include "IsValueTypeHelper.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc::valuetypes;
+using namespace dcpucc::valuetypes;
 
 void ConstHelper::setFloatConst(ValueType* type, double floatConst)
 {

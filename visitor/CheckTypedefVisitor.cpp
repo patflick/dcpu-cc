@@ -17,7 +17,7 @@
 #include <iostream>
 #include <string>
 
-using namespace dtcc::visitor;
+using namespace dcpucc::visitor;
 
 
 void CheckTypedefVisitor::visit(astnodes::Declaration * declaration)

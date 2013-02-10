@@ -12,8 +12,8 @@
 #include "LValue.h"
 #include <types/IsTypeHelper.h>
 
-using namespace dtcc;
-using namespace dtcc::valuetypes;
+using namespace dcpucc;
+using namespace dcpucc::valuetypes;
 
 LValue::LValue(types::Type* type) : ValueType(type, LVALUE)
 {

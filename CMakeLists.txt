@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 2.8.5)
-project(dtcc2tests)
+project(libdcpu-cc)
 
-#SET(CMAKE_C_COMPILER "clang")
-#SET(CMAKE_CXX_COMPILER "clang")
-set(CMAKE_CXX_FLAGS "-g -Wall")
+
+# set warning level to Wall or /W4
+if(MSVC)
+  # Force to always compile with W4
+  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+  endif()
+elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  # Update if necessary
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+endif()
+
 
 if(NOT DEFINED FLEX_EXECUTABLE)
     find_program(FLEX_EXECUTABLE NAMES flex.exe flex)
@@ -16,9 +27,10 @@ endif()
 find_package(FLEX)
 find_package(BISON)
 
-bison_target(libdcpu-ci-lang-c-parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS "-d -y")
-flex_target(libdcpu-ci-lang-c-lexer lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp COMPILE_FLAGS \"--header-file=${CMAKE_CURRENT_BINARY_DIR}/lexer.hpp\")
-add_flex_bison_dependency(libdcpu-ci-lang-c-lexer libdcpu-ci-lang-c-parser)
+# build parser and lexer using flex and bison
+bison_target(dcpu-cc-parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS "-d -y")
+flex_target(dcpu-cc-lexer lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp COMPILE_FLAGS \"--header-file=${CMAKE_CURRENT_BINARY_DIR}/lexer.hpp\")
+add_flex_bison_dependency(dcpu-cc-lexer dcpu-cc-parser)
 
 
 include_directories(
@@ -37,11 +49,10 @@ add_subdirectory(valuetypes)
 
 
 
-add_executable(dtcc2tests
+add_library(libdcpu-cc
     Compiler.cpp
-    main.cpp
-    ${FLEX_libdcpu-ci-lang-c-lexer_OUTPUTS}
-    ${BISON_libdcpu-ci-lang-c-parser_OUTPUTS}
+    ${FLEX_dcpu-cc-lexer_OUTPUTS}
+    ${BISON_dcpu-cc-parser_OUTPUTS}
     parser.y
     lexer.l
     ${ERRORS_HEADER}
@@ -58,4 +69,15 @@ add_executable(dtcc2tests
     ${SYMBOLTABLE_SOURCE}
     ${CODEGEN_HEADER}
     ${CODEGEN_SOURCE}
+)
+
+# to avoid double "liblib"
+set_target_properties(libdcpu-cc PROPERTIES PREFIX "")
+
+add_executable(dtcc2tests
+    main.cpp
+)
+
+target_link_libraries(dtcc2tests
+    libdcpu-cc
 )

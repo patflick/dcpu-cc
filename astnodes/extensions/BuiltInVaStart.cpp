@@ -11,10 +11,10 @@
 
 #include "BuiltInVaStart.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void BuiltInVaStart::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void BuiltInVaStart::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->vaListID != NULL)
         this->vaListID->acceptPreRecursive(visitor);
@@ -24,7 +24,7 @@ void BuiltInVaStart::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visi
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void BuiltInVaStart::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void BuiltInVaStart::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->vaListID != NULL)
         this->vaListID->acceptPostRecursive(visitor);
@@ -34,7 +34,7 @@ void BuiltInVaStart::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & vis
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void BuiltInVaStart::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void BuiltInVaStart::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
     this->vaListID->accept(visitor);
@@ -43,20 +43,20 @@ void BuiltInVaStart::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void BuiltInVaStart::accept(dtcc::visitor::Visitor & visitor)
+void BuiltInVaStart::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void BuiltInVaStart::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void BuiltInVaStart::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void BuiltInVaStart::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void BuiltInVaStart::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

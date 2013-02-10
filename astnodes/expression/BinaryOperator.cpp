@@ -11,10 +11,10 @@
 
 #include "BinaryOperator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void BinaryOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void BinaryOperator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExrp != NULL)
         this->lhsExrp->acceptPreRecursive(visitor);
@@ -23,7 +23,7 @@ void BinaryOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visi
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void BinaryOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void BinaryOperator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExrp != NULL)
         this->lhsExrp->acceptPostRecursive(visitor);
@@ -32,7 +32,7 @@ void BinaryOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & vis
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void BinaryOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void BinaryOperator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->lhsExrp != NULL)
         this->lhsExrp->accept(visitor);
@@ -41,20 +41,20 @@ void BinaryOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void BinaryOperator::accept(dtcc::visitor::Visitor & visitor)
+void BinaryOperator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void BinaryOperator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void BinaryOperator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void BinaryOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void BinaryOperator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

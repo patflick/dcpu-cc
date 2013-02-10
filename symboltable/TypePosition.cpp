@@ -15,7 +15,7 @@
 #include "TypePosition.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc::symboltable;
+using namespace dcpucc::symboltable;
 
 TypePosition::TypePosition(bool isFound, bool isGlobal, bool isFunctionParameter, bool previousStackFrame, uint16_t position)
 {

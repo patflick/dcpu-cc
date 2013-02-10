@@ -11,10 +11,10 @@
 
 #include "DoWhileStatement.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void DoWhileStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void DoWhileStatement::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->statement != NULL)
         this->statement->acceptPreRecursive(visitor);
@@ -24,7 +24,7 @@ void DoWhileStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & vi
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void DoWhileStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void DoWhileStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->statement != NULL)
         this->statement->acceptPostRecursive(visitor);
@@ -34,7 +34,7 @@ void DoWhileStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & v
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void DoWhileStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void DoWhileStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
     this->statement->accept(visitor);
@@ -43,20 +43,20 @@ void DoWhileStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void DoWhileStatement::accept(dtcc::visitor::Visitor & visitor)
+void DoWhileStatement::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void DoWhileStatement::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void DoWhileStatement::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void DoWhileStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void DoWhileStatement::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

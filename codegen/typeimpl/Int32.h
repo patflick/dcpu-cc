@@ -15,7 +15,7 @@
 #include "TypeImplementation.h"
 #include <deque>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace codegen
     {
@@ -145,6 +145,6 @@ namespace dtcc
 
 
     } // namespace codegen
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif

@@ -16,7 +16,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace errors
     {
@@ -53,6 +53,6 @@ namespace dtcc
         };
 
     } // namespace errors
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif

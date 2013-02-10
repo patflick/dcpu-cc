@@ -30,7 +30,7 @@
 
 #include "typeimpl/GetTypeImplVisitor.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace codegen
     {
@@ -552,7 +552,7 @@ namespace dtcc
             virtual void visit(astnodes::TypeConversionOperator * typeConversionOperator);
         };
         
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

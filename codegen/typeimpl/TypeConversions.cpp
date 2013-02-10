@@ -14,8 +14,8 @@
 #include <errors/InternalCompilerException.h>
 #include <types/alltypes.h>
 
-using namespace dtcc;
-using namespace dtcc::codegen;
+using namespace dcpucc;
+using namespace dcpucc::codegen;
 
 void TypeConversions::copyIfDifferent(AsmBlock& ass, ValuePosition* posB, ValuePosition* posA)
 {

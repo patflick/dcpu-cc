@@ -15,7 +15,7 @@
 // include all AST nodes
 #include <astnodes/allnodes.h>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace visitor
     {
@@ -465,7 +465,7 @@ namespace dtcc
             virtual void visit(astnodes::TypeConversionOperator * typeConversionOperator) = 0;
         };
         
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

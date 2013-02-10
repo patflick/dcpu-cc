@@ -11,10 +11,10 @@
 
 #include "ForStatement.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void ForStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ForStatement::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->initExpr != NULL)
         this->initExpr->acceptPreRecursive(visitor);
@@ -28,7 +28,7 @@ void ForStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visito
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void ForStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ForStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->initExpr != NULL)
         this->initExpr->acceptPostRecursive(visitor);
@@ -42,7 +42,7 @@ void ForStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visit
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void ForStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void ForStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
     this->initExpr->accept(visitor);
@@ -53,20 +53,20 @@ void ForStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void ForStatement::accept(dtcc::visitor::Visitor & visitor)
+void ForStatement::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void ForStatement::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ForStatement::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void ForStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ForStatement::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

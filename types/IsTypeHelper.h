@@ -17,7 +17,7 @@
 // include needed nodes
 #include "alltypes.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace types
     {
@@ -258,7 +258,7 @@ namespace dtcc
         };
         
     } // namespace types
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

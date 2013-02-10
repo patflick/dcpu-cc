@@ -20,7 +20,7 @@
 #include <codegen/ValuePosition.h>
 
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -59,7 +59,7 @@ namespace dtcc
             ///
             /// This is a non recursive version of accept, which calls
             /// only visit(this) and then returns.
-            virtual void accept(dtcc::visitor::Visitor & visitor) = 0;
+            virtual void accept(dcpucc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief          The accept method of the Visitor pattern.
@@ -69,7 +69,7 @@ namespace dtcc
             /// This is a post recursive version of accept, meaning that
             /// it first calls visit(this) and then accept(visitor) for
             /// all its children nodes.
-            virtual void acceptPostRecursive(dtcc::visitor::Visitor & visitor) = 0;
+            virtual void acceptPostRecursive(dcpucc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief          The accept method of the Visitor pattern.
@@ -79,13 +79,13 @@ namespace dtcc
             /// This is a pre recursive version of accept, meaning that
             /// it first calls accept(visitor) for
             /// all its children nodes and only then visit(this).
-            virtual void acceptPreRecursive(dtcc::visitor::Visitor & visitor) = 0;
+            virtual void acceptPreRecursive(dcpucc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief          Calls accept(visitor) on all children nodes.
             /// @param visitor  The visitor to be accepted.
             ///
-            virtual void allChildrenAccept(dtcc::visitor::Visitor & visitor) = 0;
+            virtual void allChildrenAccept(dcpucc::visitor::Visitor & visitor) = 0;
             
             ///
             /// @brief      The destructor of the Expression AST node.
@@ -93,7 +93,7 @@ namespace dtcc
             virtual ~Expression();
         };
 
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

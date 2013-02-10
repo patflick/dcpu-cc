@@ -11,10 +11,10 @@
 
 #include "StructUnionSpecifier.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void StructUnionSpecifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void StructUnionSpecifier::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->declarations != NULL)
         for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
@@ -22,7 +22,7 @@ void StructUnionSpecifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void StructUnionSpecifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void StructUnionSpecifier::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->declarations != NULL)
         for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
@@ -30,7 +30,7 @@ void StructUnionSpecifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void StructUnionSpecifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void StructUnionSpecifier::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->declarations != NULL)
         for (Declarations::iterator i = this->declarations->begin(); i != this->declarations->end(); ++i)
@@ -38,20 +38,20 @@ void StructUnionSpecifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void StructUnionSpecifier::accept(dtcc::visitor::Visitor & visitor)
+void StructUnionSpecifier::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void StructUnionSpecifier::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void StructUnionSpecifier::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void StructUnionSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void StructUnionSpecifier::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

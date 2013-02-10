@@ -14,7 +14,7 @@
 #include "UnsignedInt16.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc::codegen;
+using namespace dcpucc::codegen;
 
 bool GetTypeImplVisitor::visit(Type * type)
 {

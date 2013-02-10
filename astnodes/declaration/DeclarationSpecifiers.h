@@ -18,7 +18,7 @@
 #include "TypeQualifier.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -43,7 +43,7 @@ namespace dtcc
             ~DeclarationSpecifiers() {}
         };
         
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

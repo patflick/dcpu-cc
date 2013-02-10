@@ -20,7 +20,7 @@
 #include "ValueType.h"
 #include <types/FunctionType.h>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace valuetypes
     {
@@ -50,7 +50,7 @@ namespace dtcc
         };
         
     } // namespace valuetypes
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

@@ -12,8 +12,8 @@
 #include "ValuePosition.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc;
-using namespace dtcc::codegen;
+using namespace dcpucc;
+using namespace dcpucc::codegen;
 
 
 

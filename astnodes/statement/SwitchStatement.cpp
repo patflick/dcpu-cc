@@ -11,10 +11,10 @@
 
 #include "SwitchStatement.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void SwitchStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void SwitchStatement::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->expr != NULL)
         this->expr->acceptPreRecursive(visitor);
@@ -24,7 +24,7 @@ void SwitchStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & vis
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void SwitchStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void SwitchStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->expr != NULL)
         this->expr->acceptPostRecursive(visitor);
@@ -34,7 +34,7 @@ void SwitchStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & vi
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void SwitchStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void SwitchStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
     this->expr->accept(visitor);
@@ -43,20 +43,20 @@ void SwitchStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void SwitchStatement::accept(dtcc::visitor::Visitor & visitor)
+void SwitchStatement::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void SwitchStatement::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void SwitchStatement::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void SwitchStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void SwitchStatement::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

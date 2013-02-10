@@ -11,10 +11,10 @@
 
 #include "ExplicitCastOperator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void ExplicitCastOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ExplicitCastOperator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->typeName != NULL)
         this->typeName->acceptPreRecursive(visitor);
@@ -24,7 +24,7 @@ void ExplicitCastOperator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void ExplicitCastOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ExplicitCastOperator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->typeName != NULL)
         this->typeName->acceptPostRecursive(visitor);
@@ -34,7 +34,7 @@ void ExplicitCastOperator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void ExplicitCastOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void ExplicitCastOperator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
     this->typeName->accept(visitor);
@@ -43,20 +43,20 @@ void ExplicitCastOperator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void ExplicitCastOperator::accept(dtcc::visitor::Visitor & visitor)
+void ExplicitCastOperator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void ExplicitCastOperator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ExplicitCastOperator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void ExplicitCastOperator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ExplicitCastOperator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

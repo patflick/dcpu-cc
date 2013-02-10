@@ -13,8 +13,8 @@
 #include "IsTypeHelper.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc;
-using namespace dtcc::types;
+using namespace dcpucc;
+using namespace dcpucc::types;
 
 
 IntegralType* IntegralPromotion::promote(Type* type)

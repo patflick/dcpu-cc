@@ -15,7 +15,7 @@
 #include "Type.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace types
     {
@@ -25,7 +25,7 @@ namespace dtcc
         /// This is a std::vector of Declaration.
         typedef std::vector<Type*> ParameterTypeList;
     } // namespace types
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

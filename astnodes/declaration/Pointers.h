@@ -16,7 +16,7 @@
 #include "Pointer.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -25,7 +25,7 @@ namespace dtcc
         ///
         /// This is a std::vector of Pointer.
         typedef std::vector<Pointer*> Pointers;
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

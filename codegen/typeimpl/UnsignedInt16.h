@@ -14,7 +14,7 @@
 
 #include "Int16.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace codegen
     {
@@ -65,6 +65,6 @@ namespace dtcc
 
 
     } // namespace codegen
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif

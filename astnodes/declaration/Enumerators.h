@@ -16,7 +16,7 @@
 #include "Enumerator.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -25,7 +25,7 @@ namespace dtcc
         ///
         /// This is a std::vector of Enumerator.
         typedef std::vector<Enumerator*> Enumerators;
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

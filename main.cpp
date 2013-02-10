@@ -6,7 +6,7 @@
 int main(int argc, char **argv) {
     if ( argc < 2)
     {
-        std::cerr << "Usage dtcc2 <filename>" << std::endl;
+        std::cerr << "Usage dcpucc2 <filename>" << std::endl;
         return 1;
     }
     
@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     
-    Compiler cc;
+    dcpucc::Compiler cc;
     
     // compile code
     cc.compile(ifs);

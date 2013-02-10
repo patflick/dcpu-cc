@@ -29,8 +29,8 @@
 #define YYSTYPE int
 #include <parser.hpp>
 
-using namespace dtcc;
-using namespace dtcc::codegen;
+using namespace dcpucc;
+using namespace dcpucc::codegen;
 
 
 /* constructor */
@@ -59,10 +59,10 @@ std::string DirectCodeGenVisitor::getAssembly()
 {
     std::stringstream ss;
     ss << "; ================================================" << std::endl;
-    ss << ";  dtcc2 - an ANSI C (C89) compiler for the DCPU"   << std::endl;
+    ss << ";  dcpucc2 - an ANSI C (C89) compiler for the DCPU"   << std::endl;
     ss << "; ================================================" << std::endl;
-    ss << ";  Repository: https://github.com/r4d2/dtcc2" << std::endl;
-    ss << ";  Bug reports and fixes to: https://github.com/r4d2/dtcc2/issues" << std::endl;
+    ss << ";  Repository: https://github.com/r4d2/dcpucc2" << std::endl;
+    ss << ";  Bug reports and fixes to: https://github.com/r4d2/dcpucc2/issues" << std::endl;
     ss << std::endl;
     ss << std::endl;
     ss << "; ------------------" << std::endl;

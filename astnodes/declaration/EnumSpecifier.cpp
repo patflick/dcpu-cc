@@ -11,10 +11,10 @@
 
 #include "EnumSpecifier.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void EnumSpecifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void EnumSpecifier::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->enums != NULL)
         for(Enumerators::iterator i = this->enums->begin(); i != this->enums->end(); ++i)
@@ -22,7 +22,7 @@ void EnumSpecifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visit
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void EnumSpecifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void EnumSpecifier::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->enums != NULL)
         for(Enumerators::iterator i = this->enums->begin(); i != this->enums->end(); ++i)
@@ -30,7 +30,7 @@ void EnumSpecifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visi
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void EnumSpecifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void EnumSpecifier::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->enums != NULL)
         for(Enumerators::iterator i = this->enums->begin(); i != this->enums->end(); ++i)
@@ -38,20 +38,20 @@ void EnumSpecifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void EnumSpecifier::accept(dtcc::visitor::Visitor & visitor)
+void EnumSpecifier::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void EnumSpecifier::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void EnumSpecifier::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void EnumSpecifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void EnumSpecifier::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

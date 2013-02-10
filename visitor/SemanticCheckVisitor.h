@@ -23,7 +23,7 @@
 #include <set>
 #include <string>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace visitor
     {
@@ -88,7 +88,7 @@ namespace dtcc
                 bool isDouble;
             } m_declSpecs;
             void resetDeclSpecs();
-            types::Type* typeSpecsToType(dtcc::astnodes::Node* decl);
+            types::Type* typeSpecsToType(dcpucc::astnodes::Node* decl);
             types::Type* declSpecsToType(astnodes::DeclarationSpecifiers* declSpecs);
             
             /* declaration handleing */
@@ -553,7 +553,7 @@ namespace dtcc
             virtual void visit(astnodes::TypeConversionOperator * typeConversionOperator);
         };
         
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

@@ -12,7 +12,7 @@
 #include "TypeVisitor.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc::types;
+using namespace dcpucc::types;
 
 bool TypeVisitor::visit(Type * type)
 {

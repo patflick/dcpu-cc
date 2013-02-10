@@ -14,8 +14,8 @@
 #include "TypeVisitor.h"
 #include <errors/InternalCompilerException.h>
 
-using namespace dtcc;
-using namespace dtcc::types;
+using namespace dcpucc;
+using namespace dcpucc::types;
     
 
 bool IsTypeHelper::isType(Type * type)

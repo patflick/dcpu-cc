@@ -10,12 +10,12 @@
 #include "SignedInt16.h"
 #include "UnsignedInt16.h"
 
-namespace dtcc
+namespace dcpucc
 {
     namespace codegen
     {
         using namespace types;
-        class GetTypeImplVisitor : public dtcc::types::TypeVisitor
+        class GetTypeImplVisitor : public dcpucc::types::TypeVisitor
         {
         private:
             /// holds the resolved type implementation after visiting a type
@@ -172,7 +172,7 @@ namespace dtcc
             
         };
     } // namespace codegen
-} // namespace dtcc
+} // namespace dcpucc
 
 
 

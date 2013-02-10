@@ -26,8 +26,8 @@
 #define YYSTYPE int
 #include <parser.hpp>
 
-using namespace dtcc;
-using namespace dtcc::visitor;
+using namespace dcpucc;
+using namespace dcpucc::visitor;
 
 
 /* constructor */

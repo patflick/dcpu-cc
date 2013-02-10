@@ -11,10 +11,10 @@
 
 #include "FunctionDeclarator.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void FunctionDeclarator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDeclarator::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
@@ -30,7 +30,7 @@ void FunctionDeclarator::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void FunctionDeclarator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDeclarator::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
@@ -46,7 +46,7 @@ void FunctionDeclarator::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor &
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void FunctionDeclarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void FunctionDeclarator::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->pointers != NULL)
         for (Pointers::iterator i = this->pointers->begin(); i != this->pointers->end(); ++i)
@@ -62,20 +62,20 @@ void FunctionDeclarator::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void FunctionDeclarator::accept(dtcc::visitor::Visitor & visitor)
+void FunctionDeclarator::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void FunctionDeclarator::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDeclarator::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void FunctionDeclarator::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void FunctionDeclarator::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

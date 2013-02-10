@@ -13,8 +13,8 @@
 #include "SymbolTableScope.h"
 #include "SymbolTable.h"
 
-using namespace dtcc;
-using namespace dtcc::symboltable;
+using namespace dcpucc;
+using namespace dcpucc::symboltable;
 
 SymbolTable::SymbolTable()
 {

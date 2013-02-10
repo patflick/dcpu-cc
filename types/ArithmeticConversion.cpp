@@ -13,8 +13,8 @@
 #include "IsTypeHelper.h"
 #include "IntegralPromotion.h"
 
-using namespace dtcc;
-using namespace dtcc::types;
+using namespace dcpucc;
+using namespace dcpucc::types;
 
 ArithmeticType* ArithmeticConversion::commonType(ArithmeticType* t1, ArithmeticType* t2)
 {

@@ -11,42 +11,42 @@
 
 #include "ContinueStatement.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void ContinueStatement::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ContinueStatement::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
 
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void ContinueStatement::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ContinueStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
 
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void ContinueStatement::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void ContinueStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // TODO implement this to call .accept(visitor) for all children nodes
 
 }
 
 // implements the visitor pattern
-void ContinueStatement::accept(dtcc::visitor::Visitor & visitor)
+void ContinueStatement::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void ContinueStatement::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ContinueStatement::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void ContinueStatement::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ContinueStatement::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

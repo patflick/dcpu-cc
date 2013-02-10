@@ -11,10 +11,10 @@
 
 #include "ChainExpressions.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void ChainExpressions::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ChainExpressions::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->exprs != NULL)
         for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
@@ -22,7 +22,7 @@ void ChainExpressions::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & vi
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void ChainExpressions::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ChainExpressions::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     if (this->exprs != NULL)
         for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
@@ -30,7 +30,7 @@ void ChainExpressions::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & v
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void ChainExpressions::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void ChainExpressions::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     if (this->exprs != NULL)
         for (Expressions::iterator i = this->exprs->begin(); i != this->exprs->end(); ++i)
@@ -38,20 +38,20 @@ void ChainExpressions::allChildrenAccept(dtcc::visitor::Visitor & visitor)
 }
 
 // implements the visitor pattern
-void ChainExpressions::accept(dtcc::visitor::Visitor & visitor)
+void ChainExpressions::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void ChainExpressions::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void ChainExpressions::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void ChainExpressions::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void ChainExpressions::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

@@ -22,7 +22,7 @@
 #include <types/StructUnionType.h>
 #include <types/EnumType.h>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace symboltable
     {
@@ -63,7 +63,7 @@ namespace dtcc
         };
 
     } // namespace symboltable
-} // namespace dtcc
+} // namespace dcpucc
 
 
 #endif

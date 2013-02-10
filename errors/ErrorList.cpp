@@ -20,7 +20,7 @@
 #include <iomanip>
 #include <cstdio>
 
-using namespace dtcc::errors;
+using namespace dcpucc::errors;
 
 extern std::vector<std::string> yylines;
 

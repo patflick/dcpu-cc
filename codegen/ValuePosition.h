@@ -22,7 +22,7 @@
 #define REG_TMP_R REG_J
 
 
-namespace dtcc
+namespace dcpucc
 {
     namespace codegen
     {
@@ -116,7 +116,7 @@ namespace dtcc
         };
 
     } // namespace codegen
-} // namespace dtcc
+} // namespace dcpucc
 
 #endif
 

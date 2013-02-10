@@ -16,7 +16,7 @@
 #include "ExternalDeclaration.h"
 #include <vector>
 
-namespace dtcc
+namespace dcpucc
 {
     namespace astnodes
     {
@@ -25,7 +25,7 @@ namespace dtcc
         ///
         /// This is a std::vector of ExternalDeclaration.
         typedef std::vector<ExternalDeclaration*> ExternalDeclarations;
-    } // namespace dtcc
+    } // namespace dcpucc
 } // namespace astnode
 
 #endif

@@ -11,7 +11,7 @@
 
 
 #include "IsValueTypeHelper.h"
-using namespace dtcc::valuetypes;
+using namespace dcpucc::valuetypes;
 
 
 bool IsValueTypeHelper::isFunctionDesignator(ValueType* type)

@@ -11,7 +11,7 @@
 
 #include "Void.h"
 
-using namespace dtcc::types;
+using namespace dcpucc::types;
 
 // returns the word size of this type
 uint16_t Void::getWordSize()

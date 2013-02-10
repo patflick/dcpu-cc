@@ -11,38 +11,38 @@
 
 #include "SignedIntLiteral.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void SignedIntLiteral::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void SignedIntLiteral::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void SignedIntLiteral::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void SignedIntLiteral::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void SignedIntLiteral::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void SignedIntLiteral::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
 }
 
 // implements the visitor pattern
-void SignedIntLiteral::accept(dtcc::visitor::Visitor & visitor)
+void SignedIntLiteral::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void SignedIntLiteral::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void SignedIntLiteral::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void SignedIntLiteral::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void SignedIntLiteral::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);

@@ -11,41 +11,41 @@
 
 #include "TypeQualifier.h"
 
-using namespace dtcc::astnodes;
+using namespace dcpucc::astnodes;
 
 // calls acceptPreRecursive(visitor) for all children nodes of this AST node
-void TypeQualifier::allChildrenAcceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void TypeQualifier::allChildrenAcceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     // nothing to do here
 }
 
 // calls acceptPostRecursive(visitor) for all children nodes of this AST node
-void TypeQualifier::allChildrenAcceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void TypeQualifier::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     // nothing to do here
 }
 
 // calls accept(visitor) for all children nodes of this AST node
-void TypeQualifier::allChildrenAccept(dtcc::visitor::Visitor & visitor)
+void TypeQualifier::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
     // nothing to do here
 }
 
 // implements the visitor pattern
-void TypeQualifier::accept(dtcc::visitor::Visitor & visitor)
+void TypeQualifier::accept(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
 }
 
 // implements the post recursive visitor pattern
-void TypeQualifier::acceptPostRecursive(dtcc::visitor::Visitor & visitor)
+void TypeQualifier::acceptPostRecursive(dcpucc::visitor::Visitor & visitor)
 {
     visitor.visit(this);
     this->allChildrenAcceptPostRecursive(visitor);
 }
 
 // implements the pre recursive visitor pattern
-void TypeQualifier::acceptPreRecursive(dtcc::visitor::Visitor & visitor)
+void TypeQualifier::acceptPreRecursive(dcpucc::visitor::Visitor & visitor)
 {
     this->allChildrenAcceptPreRecursive(visitor);
     visitor.visit(this);
