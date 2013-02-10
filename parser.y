@@ -1247,6 +1247,10 @@ program
         {
             program = new Program($1);
         }
+        |
+        {
+            program = new Program(new ExternalDeclarations());
+        }
         ;
 
 %%
