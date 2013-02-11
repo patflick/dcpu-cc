@@ -4,6 +4,8 @@
 #include <deque>
 #include <utility>
 #include <algorithm>
+#include <locale>
+#include <iterator>
 
 #include <errors/derr.defs.h>
 #include <errors/InternalCompilerException.h>
@@ -540,6 +542,7 @@ void DirectCodeGenVisitor::visit(astnodes::ReturnStatement * returnStatement)
             ValuePosition* exprVP = returnStatement->expr->valPos;
             
             // get into register
+            returnAdrVP = returnAdrVP->atomicDeref();
             returnAdrVP = returnAdrVP->valToRegister(asm_current, REG_TMP_L);
             returnAdrVP = returnAdrVP->newSize(returnStatement->returnSize);
             
@@ -1612,8 +1615,6 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     // first compile lhs expression (i.e. the array)
     arrayAccessOperator->lhsExpr->accept(*this);
     
-    asm_current << " ; -- ArrayAccessOperator --" << std::endl;
-    
     ValuePosition* lhsVP = arrayAccessOperator->lhsExpr->valPos;
     
     // compile offset
@@ -1691,7 +1692,7 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
     else
     {
         // otherwise the return value is returned in the register A
-        returnValPos = ValuePosition::createRegisterPos(REG_A);
+        returnValPos = ValuePosition::createTmpRegisterPos(REG_A);
     }
     
     bool restoreA = false;
@@ -1761,6 +1762,11 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
         }
         asm_current << "SET A, POP" << std::endl;
     }
+    else if (methodCall->returnSize == 1 && methodCall->returnValue)
+    {
+        m_registersUsed[REG_A] = true;
+        m_registerWasUsed[REG_A] = true;
+    }
     
     if (!methodCall->returnValue)
         return;
@@ -1776,8 +1782,6 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
 {
     // get the lhs
     structureResolutionOperator->allChildrenAccept(*this);
-    
-    asm_current << " ; -- StructureResolutionOperator --" << std::endl;
     
     // get lhs value position
     ValuePosition* lhsVP = structureResolutionOperator->lhsExpr->valPos;

@@ -1,6 +1,8 @@
 #include "PrintAstVisitor.h"
 #include <iostream>
 #include <string>
+
+using namespace dcpucc;
 using namespace dcpucc::visitor;
 
 

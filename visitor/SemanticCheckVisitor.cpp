@@ -4,6 +4,8 @@
 #include <deque>
 #include <utility>
 #include <algorithm>
+#include <locale>
+#include <iterator>
 
 #include <errors/derr.defs.h>
 #include <errors/InternalCompilerException.h>

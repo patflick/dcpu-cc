@@ -12,6 +12,8 @@
 #include "EmptyVisitor.h"
 #include <iostream>
 #include <string>
+
+using namespace dcpucc;
 using namespace dcpucc::visitor;
 
 void EmptyVisitor::visit(astnodes::FunctionDefinition * functionDefinition)

@@ -284,16 +284,19 @@ void ValuePosition::adrToAtomicOperand(AsmBlock& ass, ValuePosition* atomicOpera
     ass << "SET " << atomicOperand->toAtomicOperand() << ", " << this->baseToString() << std::endl;
     
     // add offset if needed
-    switch (this->posType)
+    if (this->offset != 0)
     {
-        case LABEL_REL:
-        case FP_REL:
-        case STACK_REL:
-        case REG_REL:
-            ass << "ADD " << atomicOperand->toAtomicOperand() << ", 0x" << std::hex << (int16_t) this->offset << std::endl;
-            break;
-        default:
-            break;
+        switch (this->posType)
+        {
+            case LABEL_REL:
+            case FP_REL:
+            case STACK_REL:
+            case REG_REL:
+                ass << "ADD " << atomicOperand->toAtomicOperand() << ", 0x" << std::hex << (int16_t) this->offset << std::endl;
+                break;
+            default:
+                break;
+        }
     }
 }
 

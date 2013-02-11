@@ -11,6 +11,7 @@
 
 
 #include "IsValueTypeHelper.h"
+using namespace dcpucc;
 using namespace dcpucc::valuetypes;
 
 
