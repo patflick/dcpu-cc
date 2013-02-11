@@ -17,7 +17,7 @@
 // include needed nodes
 #include "Statement.h"
 #include <astnodes/expression/Expression.h>
-
+#include <symboltable/TypePosition.h>
 
 namespace dcpucc
 {
@@ -45,6 +45,9 @@ namespace dcpucc
             
         public:
             Expression * expr;
+            unsigned int returnSize;
+            std::string functionName;
+            symboltable::TypePosition typePos;
 
             
         public:
@@ -53,7 +56,7 @@ namespace dcpucc
             /// @param expr TODO: FILLOUT
 
             ///
-            ReturnStatement(Expression * expr) : expr(expr) {}
+            ReturnStatement(Expression * expr) : expr(expr), returnSize(0), functionName(std::string("")) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

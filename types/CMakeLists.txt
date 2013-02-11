@@ -20,6 +20,7 @@ SET (TYPES_HEADER
     types/LongDouble.h
     types/ParameterTypeList.h
     types/PointerType.h
+    types/NullPointer.h
     types/ScalarType.h
     types/SignedChar.h
     types/SignedInt.h
@@ -52,6 +53,7 @@ set (TYPES_SOURCE
     types/IsTypeHelper.cpp
     types/LongDouble.cpp
     types/PointerType.cpp
+    types/NullPointer.cpp
     types/ScalarType.cpp
     types/SignedChar.cpp
     types/SignedInt.cpp

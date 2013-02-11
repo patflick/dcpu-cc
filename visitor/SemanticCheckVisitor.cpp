@@ -222,10 +222,13 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     this->m_curDeclType = returnType;
     this->m_declState = DECLSTATE_FUNDEF;
     functionDefinition->declarator->accept(*this);
+    
     // get the function type
     types::Type* funType = this->m_curDeclType;
     // get name
     std::string name = this->m_functionName;
+    this->m_currentFunctionName = name;
+    
     
     // check that it is actually a function type
     if (! types::IsTypeHelper::isFunctionType(funType))
@@ -237,7 +240,6 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // end the parameter scope before checking for the function in the symbol table
     this->m_symbolTable->endScope();
     
-
     
     symboltable::SymbolObject obj;
     // search for functions only at global scope:
@@ -337,11 +339,70 @@ void SemanticCheckVisitor::visit(astnodes::ExternalDeclaration * externalDeclara
 
 void SemanticCheckVisitor::visit(astnodes::ReturnStatement * returnStatement)
 {
-    // first check the expression
-    returnStatement->allChildrenAccept(*this);
-    // then check if it is compatible with the function return value
-    // TODO TODO FIXME
-    // TODO  get the label to the end of the function to jump to
+    // get return type from symboltable
+    types::Type* functionReturnType = this->m_symbolTable->getTypeOfVariable("<returntype>");
+    types::Type* returnType = NULL;
+    
+    if (returnStatement->expr != NULL)
+    {
+        // first check the expression
+        returnStatement->expr->accept(*this);
+        returnType = returnStatement->expr->valType->type;
+    }
+    else
+    {
+        returnType = new types::Void();
+    }
+    
+    
+    
+    if (types::IsTypeHelper::isVoid(functionReturnType)
+        && types::IsTypeHelper::isVoid(returnType))
+    {
+        returnStatement->returnSize = 0;
+    }
+    else
+    {
+        if((types::IsTypeHelper::isArithmeticType(functionReturnType))
+            && types::IsTypeHelper::isArithmeticType(returnType))
+        {
+            // both are arithmetic types
+            // promote:
+            returnStatement->expr = new astnodes::TypeConversionOperator(returnStatement->expr , returnType, functionReturnType);
+            returnStatement->expr->accept(*this);
+        }
+        else if((types::IsTypeHelper::isPointerType(functionReturnType))
+            && types::IsTypeHelper::isPointerType(returnType))
+        {
+            // TODO properly check for compatible types pointed to
+        }
+        else if((types::IsTypeHelper::isStructUnionType(functionReturnType))
+            && types::IsTypeHelper::isStructUnionType(returnType))
+        {
+            // TODO properly check for compatible structs/unions
+            if (functionReturnType->getWordSize() != returnType->getWordSize())
+            {
+                addError(returnStatement, ERR_CC_RETURN_WRONG_TYPE);
+                return;
+            }
+        }
+        else
+        {
+            addError(returnStatement, ERR_CC_RETURN_WRONG_TYPE);
+            return;
+        }
+        
+        returnStatement->returnSize = functionReturnType->getWordSize();
+    }
+    
+    if (returnStatement->returnSize > 1)
+    {
+        // get the valueposition of the <returnadr>
+        returnStatement->typePos = m_symbolTable->getPositionOfVariable("<returnadr>");
+    }
+    
+    
+    returnStatement->functionName = m_currentFunctionName;
 }
 
 
@@ -1187,6 +1248,16 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDeclarator * functionDeclarat
         //  return value)
         // in that case, clear the current scope
         m_symbolTable->getCurrentScope().clearScope();
+        
+        // add return type to the scope
+        m_symbolTable->getCurrentScope().insertSymbol("<returntype>",dcpucc::symboltable::VARIABLE_DECL, returnType, dcpucc::symboltable::GLOBAL);
+        
+        // add return address to the parameter stack if the size of
+        // the return type is > 1
+        if (returnType->getWordSize() > 1)
+        {
+            m_symbolTable->getCurrentScope().insertSymbol("<returnadr>",dcpucc::symboltable::VARIABLE_DECL, new types::PointerType(returnType), dcpucc::symboltable::PARAMETER_STACK);
+        }
     }
     else
     {
@@ -1749,7 +1820,10 @@ void SemanticCheckVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
 
 void SemanticCheckVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
 {
-    signedIntLiteral->valType = new valuetypes::CValue(new types::SignedInt());
+    if (signedIntLiteral->literalValue == 0)
+        signedIntLiteral->valType = new valuetypes::CValue(new types::NullPointer());
+    else
+        signedIntLiteral->valType = new valuetypes::CValue(new types::SignedInt());
 }
 
 
@@ -1918,10 +1992,10 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
     {
         valuetypes::ValueType* from = (*methodCall->rhsExprs)[i]->valType;
         
-        
         if (i >= funType->paramTypes->size())
         {
             methodCall->varArgsSize += from->type->getWordSize();
+            methodCall->totalParamsSize += from->type->getWordSize();
         }
         else
         {
@@ -1930,13 +2004,15 @@ void SemanticCheckVisitor::visit(astnodes::MethodCall * methodCall)
             // TODO check that they are assignable (see assignment operator)
             // TODO FIXME TODO FIXME
             
-            // types::Type* to = (*funType->paramTypes)[i];
+            // 
+            types::Type* to = (*funType->paramTypes)[i];
+            methodCall->totalParamsSize += to->getWordSize();
         }
     }
     
     // get return type
-    
     methodCall->returnType = funType->returnType;
+    methodCall->returnSize = funType->returnType->getWordSize();
 }
 
 

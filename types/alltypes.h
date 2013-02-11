@@ -37,6 +37,7 @@
 #include "FunctionType.h"
 #include "IntegralType.h"
 #include "InvalidType.h"
+#include "NullPointer.h"
 #include "LongDouble.h"
 #include "ParameterTypeList.h"
 #include "ScalarType.h"

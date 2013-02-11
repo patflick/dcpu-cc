@@ -203,6 +203,19 @@ bool IsTypeHelper::isUnsignedInt(Type * type)
             return true;
         }
     } tv;
+    return type->accept(tv) || isNullPointer(type);
+}
+
+bool IsTypeHelper::isNullPointer(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(NullPointer * t)
+        {
+            return true;
+        }
+    } tv;
     return type->accept(tv);
 }
 
@@ -259,7 +272,7 @@ bool IsTypeHelper::isPointerType(Type * type)
             return true;
         }
     } tv;
-    return type->accept(tv);
+    return type->accept(tv) || isNullPointer(type);
 }
 
 
@@ -356,7 +369,13 @@ bool IsTypeHelper::isObjectType(Type* type)
 PointerType* IsTypeHelper::getPointerType(Type* type)
 {
     if (IsTypeHelper::isPointerType(type))
+    {
+        if (IsTypeHelper::isNullPointer(type))
+        {
+            return new PointerType(new Void());
+        }
         return (PointerType*) type;
+    }
     else
         return NULL;
 }
@@ -405,7 +424,7 @@ uint16_t IsTypeHelper::getPointerBaseSize(Type* type)
     if (!IsTypeHelper::isPointerType(type))
         throw new errors::InternalCompilerException("Cannot get size of base class of non pointer type");
         
-    ptr = (PointerType*) type;
+    ptr = IsTypeHelper::getPointerType(type);
     
     uint16_t size = ptr->baseType->getWordSize();
     if (size == 0)

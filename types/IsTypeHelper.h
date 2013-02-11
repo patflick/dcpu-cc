@@ -133,6 +133,12 @@ namespace dcpucc
             /// @returns        True if the type is UnsignedInt, false otherwise.
             static bool isUnsignedInt(Type * type);
             
+            ///
+            /// @brief          Returns whether the given type is a NullPointer.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is NullPointer, false otherwise.
+            static bool isNullPointer(Type * type);
+            
             
             ///
             /// @brief          Returns whether the given type is a SignedLong.

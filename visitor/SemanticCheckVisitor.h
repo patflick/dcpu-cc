@@ -98,6 +98,7 @@ namespace dcpucc
             astnodes::StorSpec_t m_curStorSpec;
             astnodes::Expressions* m_declarationInitializer;
             std::string m_functionName;
+            std::string m_currentFunctionName;
             types::StructUnionType* m_curStructDecl;
             
             //std::deque<types::Type*> m_declTypeStack;

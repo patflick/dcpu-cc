@@ -61,6 +61,7 @@ namespace dcpucc
             
             // free registers management
             std::map<int, bool> m_registersUsed;
+            std::map<int, bool> m_registerWasUsed;
             void initFreeRegisters();
             ValPosRegister getFreeRegister();
             void releaseRegister(ValPosRegister regist);

@@ -46,6 +46,8 @@ namespace dcpucc
             Expression * lhsExpr;
             Expressions * rhsExprs;
             unsigned int varArgsSize;
+            unsigned int totalParamsSize;
+            unsigned int returnSize;
             types::Type* returnType;
             
         public:
@@ -55,7 +57,9 @@ namespace dcpucc
             /// @param rhsExprs TODO: FILLOUT
 
             ///
-            MethodCall(Expression * lhsExpr, Expressions * rhsExprs) : lhsExpr(lhsExpr), rhsExprs(rhsExprs), varArgsSize(0), returnType(NULL) {}
+            MethodCall(Expression * lhsExpr, Expressions * rhsExprs) :
+            lhsExpr(lhsExpr), rhsExprs(rhsExprs), varArgsSize(0),
+            totalParamsSize(0), returnSize(0), returnType(NULL) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

@@ -113,6 +113,7 @@ ERR_CC_GOTO_NO_LABEL                                 cc-goto-no-label           
 ERR_CC_PARAMTER_FUNCTION_TYPE                        cc-parameter-function-type               "a parameter cannot be of function type."
 ERR_CC_INIT_FOR_FUNCTION                             cc-init-for-function                     "invalid initialization for function `%s`. Function types can not be initialized."
 ERR_CC_INIT_FOR_PARAM                                cc-init-for-function-param               "parameters can not be initialized."
+ERR_CC_RETURN_WRONG_TYPE                             cc-return-wrong-type                     "return expression has an incompatible type"
 
 WARN_CC_INIT_LIST_TOO_LONG                           cc-init-list-too-long                    "array initializer list of `%s` has too many elements."
 

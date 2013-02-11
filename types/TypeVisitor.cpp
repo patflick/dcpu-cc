@@ -73,6 +73,10 @@ bool TypeVisitor::visit(UnsignedInt * unsignedInt)
     return false;
 }
 
+bool TypeVisitor::visit(NullPointer * nullPointer)
+{
+    return false;
+}
 
 bool TypeVisitor::visit(SignedLong * signedLong)
 {

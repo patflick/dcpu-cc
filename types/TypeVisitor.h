@@ -83,6 +83,12 @@ namespace dcpucc
             /// @param unsignedInt    The node to visit this visitor
             virtual bool visit(UnsignedInt * unsignedInt);
             
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param nullPointer    The node to visit this visitor
+            virtual bool visit(NullPointer * nullPointer);
+            
             
             ///
             /// @brief      Visit function of the visitor pattern.

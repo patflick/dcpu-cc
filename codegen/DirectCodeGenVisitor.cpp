@@ -59,10 +59,13 @@ std::string DirectCodeGenVisitor::getAssembly()
 {
     std::stringstream ss;
     ss << "; ================================================" << std::endl;
-    ss << ";  dcpucc2 - an ANSI C (C89) compiler for the DCPU"   << std::endl;
+    ss << ";  libdcpu-cc - an ANSI C (C89) compiler for the DCPU"   << std::endl;
     ss << "; ================================================" << std::endl;
-    ss << ";  Repository: https://github.com/r4d2/dcpucc2" << std::endl;
-    ss << ";  Bug reports and fixes to: https://github.com/r4d2/dcpucc2/issues" << std::endl;
+    ss << ";  Repository: https://github.com/r4d2/dcpu-cc" << std::endl;
+    ss << ";  Bug reports and fixes to: https://github.com/r4d2/dcpu-cc/issues" << std::endl;
+    ss << std::endl;
+    ss << std::endl;
+    
     ss << std::endl;
     ss << std::endl;
     ss << "; ------------------" << std::endl;
@@ -109,10 +112,7 @@ std::string DirectCodeGenVisitor::getAssembly()
     ss << ";  Code (call stdlib_enter)" << std::endl;
     ss << "; --------------------------" << std::endl;
     ss << ".SECTION CODE" << std::endl;
-    ss << "    SET X, 0" << std::endl;
-    ss << "    SET Z, 0" << std::endl;
-    ss << "    JSR _stack_caller_init" << std::endl;
-    ss << "    SET PC, cfunc__stdlib_enter" << std::endl;
+    ss << "    JSR cfunc__stdlib_enter" << std::endl;
     ss << std::endl;
     ss << std::endl;
     ss << "; ------------------" << std::endl;
@@ -135,12 +135,15 @@ void DirectCodeGenVisitor::initFreeRegisters()
 {
     for (int r = REG_A; r <= REG_Z; r++)
     {
+        m_registerWasUsed[r] = false;
         m_registersUsed[r] = false;
     }
 
     m_registersUsed[REG_FRAME_POINTER] = true;
     m_registersUsed[REG_TMP_L] = true;
+    m_registerWasUsed[REG_TMP_L] = true;
     m_registersUsed[REG_TMP_R] = true;
+    m_registerWasUsed[REG_TMP_R] = true;
 }
 
 ValPosRegister DirectCodeGenVisitor::getFreeRegister()
@@ -150,6 +153,7 @@ ValPosRegister DirectCodeGenVisitor::getFreeRegister()
         if (!m_registersUsed[r])
         {
             m_registersUsed[r] = true;
+            m_registerWasUsed[r] = true;
             return (ValPosRegister)r;
         }
     }
@@ -364,12 +368,6 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // Output the leading information and immediate jump.
     asmStr <<  ":cfunc_" << functionDefinition->name << std::endl;
     
-    // TODO this is old calling convention 
-    asmStr <<  "    SET PC, cfunc_" << functionDefinition->name << "_actual" << std::endl;
-    asmStr <<  "    DAT " << functionDefinition->paramSize << std::endl;
-    asmStr <<  ":cfunc_" << functionDefinition->name << "_actual" << std::endl;
-    
-    
     // clear and set temp stack info
     m_currentFunctionTempStackOffset = functionDefinition->stackSize+2;
     m_tempStackAlloc.clear();
@@ -382,24 +380,50 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // Now compile the block.
     functionDefinition->block->accept(*this);
     
+    /* output preamble */
+    //    ???  use  SET A, SP \ SET PUSH, Y \ SET Y, A \ JSR cfunc_function (most optimal)
+    asmStr << "    SET PUSH, Y" << std::endl;
+    asmStr << "    SET Y, SP" << std::endl;
+    asmStr << "    ADD Y, 2" << std::endl;
+    
     // Allocate locals and temporaries
     unsigned int stacksize = functionDefinition->stackSize + m_tempStackMax;
     if (stacksize > 0)
         asmStr <<  "    SUB SP, 0x" << std::hex << stacksize << std::endl;
     
+    /* saving registers I,J,X,Z if they are used */
+    bool restoreX, restoreZ;
+    asmStr << "SET PUSH, I" << std::endl;
+    asmStr << "SET PUSH, J" << std::endl;
+    if ((restoreX = m_registerWasUsed[REG_X]))
+        asmStr << "SET PUSH, X" << std::endl;
+    if ((restoreZ = m_registerWasUsed[REG_Z]))
+        asmStr << "SET PUSH, Z" << std::endl;
+    
+    /* output function body */
+    
     asmStr << asm_current.str();
     
+    /* output function postamble */
+    
     // an end of function label, a return; jumps here after saving the result
-    asmStr <<  ":cfunc_" << functionDefinition->name << "_end" << std::endl;
+    asmStr <<  ":cfunc_" << functionDefinition->name << "_postamble" << std::endl;
+    
+    /* restoring registers I,J,X,Z if they are used */
+    if (restoreZ)
+        asmStr << "SET Z, POP" << std::endl;
+    if (restoreX)
+        asmStr << "SET X, POP" << std::endl;
+    asmStr << "SET J, POP" << std::endl;
+    asmStr << "SET I, POP" << std::endl;
     
     // Free locals and temporaries
     if (stacksize > 0)
         asmStr <<  "    ADD SP, 0x" << std::hex << stacksize << std::endl;
     
     // Return from this function.
-    asmStr <<  "    SET A, 0xFFFF" << std::endl;
-    asmStr <<  "    SET X, " << functionDefinition->paramSize << std::endl;
-    asmStr <<  "    SET PC, _stack_callee_return" << std::endl;
+    asmStr <<  "    SET Y, POP" << std::endl;
+    asmStr <<  "    SET PC, POP" << std::endl;
     
     // print function footer
     asmStr << std::endl;
@@ -487,10 +511,47 @@ void DirectCodeGenVisitor::visit(astnodes::ReturnStatement * returnStatement)
     // Add file and line information.
     asm_current << this->getFileAndLineState(returnStatement);
     
-    // first check the expression
-    returnStatement->allChildrenAccept(*this);
-    // then check if it is compatible with the function return value
-    // TODO TODO FIXME
+    if (returnStatement->returnSize > 0)
+    {
+        // first compile the expression
+        returnStatement->allChildrenAccept(*this);
+        
+        if (returnStatement->returnSize == 1)
+        {
+            // this is the easy part, return in register A
+            ValuePosition* regAVP = ValuePosition::createRegisterPos(REG_A);
+            
+            // get result valuePos
+            ValuePosition* exprVP = returnStatement->expr->valPos;
+            
+            // make readable
+            exprVP = makeAtomicReadable(exprVP);
+            
+            // copy over
+            copyValue(exprVP, regAVP);
+        }
+        else
+        {
+            // here we have to get the address from the top parameter
+            // (which is already given in the typeposition)
+            ValuePosition* returnAdrVP = typePositionToValuePosition(returnStatement->typePos, 1);
+            
+            // get result valuePos
+            ValuePosition* exprVP = returnStatement->expr->valPos;
+            
+            // get into register
+            returnAdrVP = returnAdrVP->valToRegister(asm_current, REG_TMP_L);
+            returnAdrVP = returnAdrVP->newSize(returnStatement->returnSize);
+            
+            // make readable
+            exprVP = makeAtomicReadable(exprVP, REG_TMP_R);
+            
+            // copy
+            copyValue(exprVP, returnAdrVP);
+        }
+    }
+    
+    asm_current << "    SET PC, cfunc_" << returnStatement->functionName << "_postamble" << std::endl;
 }
 
 
@@ -1110,7 +1171,7 @@ void DirectCodeGenVisitor::visit(astnodes::CharacterLiteral * characterLiteral)
 
 void DirectCodeGenVisitor::visit(astnodes::SignedIntLiteral * signedIntLiteral)
 {
-    TypeImplementation* typeImpl = getTypeImplementation(signedIntLiteral->valType->type);
+    TypeImplementation* typeImpl = getTypeImplementation(new types::SignedInt());
     signedIntLiteral->valPos = handleLiteral(typeImpl->printConstant(signedIntLiteral->literalValue));
 }
 
@@ -1619,14 +1680,34 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
     
     // reserve some space for the return value
     ValuePosition* returnValPos;
-    if (methodCall->returnValue)
-        returnValPos =  getTmp(methodCall->returnType->getWordSize());
     
+    if (methodCall->returnSize > 1)
+    {
+        // return types that are bigger than 1 are returned
+        // by reference, i.e. a reference to this temporary
+        // is passed as hidden parameter
+        returnValPos = getTmp(methodCall->returnType->getWordSize());
+    }
+    else
+    {
+        // otherwise the return value is returned in the register A
+        returnValPos = ValuePosition::createRegisterPos(REG_A);
+    }
     
+    bool restoreA = false;
+    bool restoreB = false;
+    bool restoreC = false;
+    
+    /* push registers A, B, C if they are used */
+    if ((restoreA = m_registersUsed[REG_A]))
+        asm_current << "SET PUSH, A" << std::endl;
+    if ((restoreB = m_registersUsed[REG_B]))
+        asm_current << "SET PUSH, B" << std::endl;
+    if ((restoreC = m_registersUsed[REG_C]))
+        asm_current << "SET PUSH, C" << std::endl;
     
     // compile and push on stack in reverse order
     unsigned int parametersize = 0;
-    std::string jmpback = getRandomLabelName("_function_call_return_");
     for (int i = methodCall->rhsExprs->size() - 1; i >= 0 ; i--)
     {
         astnodes::Expression* expr = (*methodCall->rhsExprs)[i];
@@ -1646,27 +1727,45 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
         parametersize += paramValPos->getWordSize();
     }
     
+    if (methodCall->returnSize > 1)
+    {
+        // if the return type is bigger than 1, push 
+        // the address to the return type to the stack
+        ValuePosition* tmpReg = returnValPos->adrToRegister(asm_current, REG_TMP_R);
+        tmpReg = tmpReg->newSize(1);
+        pushToStack(tmpReg);
+        parametersize += 1;
+    }
+    
     // get atomically readable variable
     lhsValPos = makeAtomicReadable(lhsValPos, REG_TMP_L);
     
-    // TODO for new call standard:
-    //      use  SET A, SP \ SET PUSH, Y \ SET Y, A \ JSR cfunc_function (most optimal)
+    /* JSR to function */
+    asm_current <<  "    JSR, " << lhsValPos->toAtomicOperand() << std::endl;
     
-    asm_current <<  "    SET Z, " << jmpback << std::endl;
-    asm_current <<  "    JSR _stack_caller_init_overlap" << std::endl;
-    asm_current <<  "    SET PC, " << lhsValPos->toAtomicOperand() << std::endl;
-    asm_current <<  ":" << jmpback << std::endl;
+    // clean up the stack after the call
+    asm_current << "    ADD SP, " << parametersize << std::endl;
     
-    if (methodCall->varArgsSize > 0)
+    if (restoreC)
+        asm_current << "SET C, POP" << std::endl;
+    if (restoreB)
+        asm_current << "SET B, POP" << std::endl;
+    if (restoreA)
     {
-        asm_current << "    ADD SP, " << methodCall->varArgsSize << std::endl;
+        if (methodCall->returnSize == 1 && methodCall->returnValue)
+        {
+            // store A in a new temporary first
+            ValuePosition* returnValCopy = getTmp(1);
+            copyValue(returnValPos, returnValCopy);
+            returnValPos = returnValCopy;
+        }
+        asm_current << "SET A, POP" << std::endl;
     }
     
     if (!methodCall->returnValue)
         return;
     
-    // TODO save return value (only when value is to be returned
-    
+    // return valPos
     methodCall->valPos = returnValPos;
 }
 
