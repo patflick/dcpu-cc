@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <locale>
 #include <iterator>
+#include <iomanip>
 
 #include <errors/derr.defs.h>
 #include <errors/InternalCompilerException.h>
@@ -67,18 +68,6 @@ std::string DirectCodeGenVisitor::getAssembly()
     ss << ";  Bug reports and fixes to: https://github.com/r4d2/dcpu-cc/issues" << std::endl;
     ss << std::endl;
     ss << std::endl;
-    
-    ss << std::endl;
-    ss << std::endl;
-    ss << "; ------------------" << std::endl;
-    ss << ";  Import Bootstrap" << std::endl;
-    ss << "; ------------------" << std::endl;
-    ss << ".IMPORT _stack_caller_init" << std::endl;
-    ss << ".IMPORT _stack_caller_init_overlap" << std::endl;
-    ss << ".IMPORT _stack_callee_return" << std::endl;
-    ss << ".IMPORT cfunc__stdlib_enter" << std::endl;
-    ss << std::endl;
-    ss << std::endl;
     ss << "; ---------------------" << std::endl;
     ss << ";  Extern Declarations" << std::endl;
     ss << "; ---------------------" << std::endl;
@@ -114,6 +103,7 @@ std::string DirectCodeGenVisitor::getAssembly()
     ss << ";  Code (call stdlib_enter)" << std::endl;
     ss << "; --------------------------" << std::endl;
     ss << ".SECTION CODE" << std::endl;
+    ss << ".IMPORT cfunc__stdlib_enter" << std::endl;
     ss << "    JSR cfunc__stdlib_enter" << std::endl;
     ss << std::endl;
     ss << std::endl;
