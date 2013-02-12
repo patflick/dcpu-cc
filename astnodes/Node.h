@@ -16,6 +16,7 @@
 #include <string>
 extern int yylineno;
 extern int yycolumn;
+extern int yylineno_offset;
 extern std::string* yyfilename;
 
 namespace dcpucc
@@ -37,15 +38,17 @@ namespace dcpucc
         class Node
         {
         public:
-            int line;
             int col;
+            int line;
+            int rawline;
             std::string file;
             
         protected:
             Node()
             {
                 this->col = yycolumn;
-                this->line = yylineno;
+                this->line = yylineno + yylineno_offset;
+                this->rawline = yylineno;
                 if (yyfilename == NULL)
                     this->file = "<unknown>";
                 else

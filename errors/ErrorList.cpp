@@ -24,70 +24,70 @@ using namespace dcpucc::errors;
 
 extern std::vector<std::string> yylines;
 
-void ErrorList::addWarning(int line, int col, std::string file, std::string errmsg)
+void ErrorList::addWarning(int line, int rawline, int col, std::string file, std::string errmsg)
 {
-    Error err(line, col, file, errmsg, ErrorList::ERROR_LIST_WARNING);
+    Error err(line, rawline, col, file, errmsg, ErrorList::ERROR_LIST_WARNING);
     this->m_list.push_back(err);
     this->m_hasWarnings = true;
 }
 
-void ErrorList::addWarning(int line, int col, std::string file, int errid)
+void ErrorList::addWarning(int line, int rawline, int col, std::string file, int errid)
 {
     std::string errormsg(dcpucc_derrstr[errid]);
-    this->addWarning(line, col, file, errormsg);
+    this->addWarning(line, rawline, col, file, errormsg);
 }
 
-void ErrorList::addWarning(int line, int col, std::string file, int errid, std::string errdata)
+void ErrorList::addWarning(int line, int rawline, int col, std::string file, int errid, std::string errdata)
 {
     std::string errormsg(dcpucc_derrstr[errid]);
     char buffer[256];
     sprintf(buffer, errormsg.c_str(), errdata.c_str());
     errormsg = std::string(buffer);
-    this->addWarning(line, col, file, errormsg);
+    this->addWarning(line, rawline, col, file, errormsg);
 }
 
-void ErrorList::addError(int line, int col, std::string file, std::string errmsg)
+void ErrorList::addError(int line, int rawline, int col, std::string file, std::string errmsg)
 {
-    Error err(line, col, file, errmsg, ErrorList::ERROR_LIST_ERROR);
+    Error err(line, rawline, col, file, errmsg, ErrorList::ERROR_LIST_ERROR);
     this->m_list.push_back(err);
     this->m_hasErrors = true;
 }
 
-void ErrorList::addError(int line, int col, std::string file, int errid)
+void ErrorList::addError(int line, int rawline, int col, std::string file, int errid)
 {
     std::string errormsg(dcpucc_derrstr[errid]);
-    this->addError(line, col, file, errormsg);
+    this->addError(line, rawline, col, file, errormsg);
 }
 
-void ErrorList::addError(int line, int col, std::string file, int errid, std::string errdata)
+void ErrorList::addError(int line, int rawline, int col, std::string file, int errid, std::string errdata)
 {
     std::string errormsg(dcpucc_derrstr[errid]);
     char buffer[256];
     sprintf(buffer, errormsg.c_str(), errdata.c_str());
     errormsg = std::string(buffer);
-    this->addError(line, col, file, errormsg);
+    this->addError(line, rawline, col, file, errormsg);
 }
 
-void ErrorList::addFatalError(int line, int col, std::string file, std::string errmsg)
+void ErrorList::addFatalError(int line, int rawline, int col, std::string file, std::string errmsg)
 {
-    Error err(line, col, file, errmsg, ErrorList::ERROR_LIST_FATAL_ERROR);
+    Error err(line, rawline, col, file, errmsg, ErrorList::ERROR_LIST_FATAL_ERROR);
     this->m_list.push_back(err);
     this->m_hasErrors = true;
 }
 
-void ErrorList::addFatalError(int line, int col, std::string file, int errid)
+void ErrorList::addFatalError(int line, int rawline, int col, std::string file, int errid)
 {
     std::string errormsg(dcpucc_derrstr[errid]);
-    this->addFatalError(line, col, file, errormsg);
+    this->addFatalError(line, rawline, col, file, errormsg);
 }
 
-void ErrorList::addFatalError(int line, int col, std::string file, int errid, std::string errdata)
+void ErrorList::addFatalError(int line, int rawline, int col, std::string file, int errid, std::string errdata)
 {
     std::string errormsg(dcpucc_derrstr[errid]);
     char buffer[256];
     sprintf(buffer, errormsg.c_str(), errdata.c_str());
     errormsg = std::string(buffer);
-    this->addFatalError(line, col, file, errormsg);
+    this->addFatalError(line, rawline, col, file, errormsg);
     
     // TODO 
     // FIXME stop execution right away via dhalt
@@ -111,8 +111,7 @@ std::string ErrorList::errToStr(Error err)
     
     std::stringstream ss;
     ss  << err.file << ":" << err.line << ":" << err.col << ": " << errwar << ": " << err.errmsg;
-    // TODO do this with raw lines
-    //ss << yylines[err.line-1] << std::endl;
+    ss << yylines[err.rawline-1] << std::endl;
     ss << std::setw(err.col) << "^" << std::endl;
     return ss.str();
 }

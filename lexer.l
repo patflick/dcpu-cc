@@ -12,14 +12,6 @@ using namespace dcpucc::astnodes;
 
 #include "parser.hpp"
 
-// only within toolchain
-/*
-extern "C"
-{
-    #include <rparse.h>
-}
-*/
-
 void count();
 bool comment();
 bool comment_line();
@@ -27,6 +19,7 @@ int check_type();
 std::string* yyfilename = new std::string("<fixmefile>");
 std::vector<std::string> yylines;
 std::string yycurline;
+int yylineno_offset;
 extern int string_return;
 extern std::set<std::string> activeTypedef;
 extern dcpucc::Compiler* compiler;
@@ -65,7 +58,7 @@ U                       (u|U)
 
 %%
 
-\#                      { if(!handle_lineinfo()) return ERROR; }
+\#                      { count(); if(!handle_lineinfo()) return ERROR; }
 
 "//"                    { count(); BEGIN(IN_COMMENT_LINE); }
 <IN_COMMENT_LINE>\n     { count(); BEGIN(INITIAL); }
@@ -236,7 +229,9 @@ U                       (u|U)
 "?"                     { count(); return yylval.token = TERNARY_IF; }
 
 [ \t\v\n\f]             { count(); }
-.                       { /* ignore bad characters */ }
+    /* ignore bad characters, and don't print them to stdout */
+.                       { count(); }
+<*>.|\n                 { count(); }
 
 %%
 
@@ -252,35 +247,15 @@ int yywrap()
 }
 
 
-bool comment()
-{
-    char c;
-
-loop:
-    while ((c = yyinput()) != '*' && c != 0 && c != EOF)
-        count();
-
-star_loop:
-    if ((c = yyinput()) != '/' && c != 0 && c != EOF)
-    {
-        count();
-        if (c == '*')
-            goto star_loop;
-        else
-            goto loop;
-    }
-    
-    if (c == EOF)
-        return false;
-    return true;
-}
-
 bool handle_lineinfo()
 {
     std::string line;
     char c;
     while ((c = yyinput()) != '\n' && c != 0 && c != EOF)
+    {
         line += c;
+    }
+    yylines.push_back(std::string(""));
 
     std::istringstream iss(line);
     int lineno;
@@ -290,23 +265,10 @@ bool handle_lineinfo()
                             (std::istreambuf_iterator<char>()) );
     
     yyfilename = new std::string(filename);
-// TODO distinguish between pp lines and raw lines (for error display)
-    yylineno = lineno;
+    yylineno_offset = lineno - yylineno;
 
     return true;
 }
-
-bool comment_line()
-{
-    char c;
-
-    while ((c = yyinput()) != '\n' && c != 0 && c != EOF) ;
-    
-    if (c == EOF)
-        return false;
-    return true;
-}
-
 
 int yycolumn = 0;
 

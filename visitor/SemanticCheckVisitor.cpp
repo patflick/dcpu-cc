@@ -112,22 +112,22 @@ extern errors::ErrorList errorlist;
 
 void SemanticCheckVisitor::addError(astnodes::Node* node, int errid)
 {
-    errorlist.addError(node->line, node->col, node->file, errid);
+    errorlist.addError(node->line, node->rawline, node->col, node->file, errid);
 }
 
 void SemanticCheckVisitor::addError(astnodes::Node* node, int errid, std::string msg)
 {
-    errorlist.addError(node->line, node->col, node->file, errid, msg);
+    errorlist.addError(node->line, node->rawline, node->col, node->file, errid, msg);
 }
 
 void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid)
 {
-    errorlist.addWarning(node->line, node->col, node->file, errid);
+    errorlist.addWarning(node->line, node->rawline, node->col, node->file, errid);
 }
 
 void SemanticCheckVisitor::addWarning(astnodes::Node* node, int errid, std::string msg)
 {
-    errorlist.addWarning(node->line, node->col, node->file, errid, msg);
+    errorlist.addWarning(node->line, node->rawline, node->col, node->file, errid, msg);
 }
 
 

@@ -1264,6 +1264,7 @@ program
 
 
 extern int yycolumn;
+extern int yylineno_offset;
 extern char * yytext;
 extern std::set<std::string> activeTypedef;
 extern errors::ErrorList errorlist;
@@ -1289,7 +1290,7 @@ void yyerror(const char *str)
         file = "<unknown>";
     else
         file = std::string(*yyfilename);
-    errorlist.addError(yylineno, yycolumn, file, std::string(str)+"\n");
+    errorlist.addError(yylineno+yylineno_offset, yylineno, yycolumn, file, std::string(str)+"\n");
     // add current line to lines
     yylines.push_back(yycurline);
 }
