@@ -58,8 +58,10 @@ add_subdirectory(errors)
 add_subdirectory(codegen)
 add_subdirectory(symboltable)
 add_subdirectory(valuetypes)
+add_subdirectory(helper)
 
 add_library(libdcpu-cc
+    helper/RandomStringHelper.cpp
     Compiler.cpp
     ${FLEX_dcpu-cc-lexer_OUTPUTS}
     ${BISON_dcpu-cc-parser_OUTPUTS}

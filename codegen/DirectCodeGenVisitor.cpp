@@ -4,8 +4,6 @@
 #include <deque>
 #include <utility>
 #include <algorithm>
-#include <locale>
-#include <iterator>
 #include <iomanip>
 
 #include <errors/derr.defs.h>
@@ -24,6 +22,8 @@
 #include <valuetypes/IsValueTypeHelper.h>
 #include <valuetypes/PromotionHelper.h>
 #include <valuetypes/ConstHelper.h>
+
+#include <helper/RandomStringHelper.h>
 
 #include "ValuePosition.h"
 #include "typeimpl/TypeConversions.h"
@@ -267,37 +267,6 @@ void DirectCodeGenVisitor::releaseRegister(ValPosRegister regist)
 {
     m_registersUsed[regist] = false;
 }
-
-
-std::string DirectCodeGenVisitor::getRandomLabelName(std::string prefix)
-{
-    std::string result = "";
-    
-    while ((result == "") || (this->m_AutomaticLabels.find(result) != this->m_AutomaticLabels.end()))
-        result = prefix + "_" + DirectCodeGenVisitor::getRandomString(10);
-    
-    return result;
-}
-
-// Generates a random character.
-char DirectCodeGenVisitor::getRandomCharacter()
-{
-    unsigned char c;
-    
-    while (!std::isalnum(c = static_cast<unsigned char>(rand() % 256))) ;
-    
-    return c;
-}
-
-// Generates a random string.
-std::string DirectCodeGenVisitor::getRandomString(std::string::size_type sz)
-{
-    std::string s;
-    s.reserve(sz);
-    std::generate_n(std::back_inserter(s), sz, DirectCodeGenVisitor::getRandomCharacter);
-    return s;
-}
-
 
 TypeImplementation* DirectCodeGenVisitor::getTypeImplementation(types::Type* type)
 {
@@ -671,7 +640,7 @@ void DirectCodeGenVisitor::visit(astnodes::SwitchStatement * switchStatement)
     TypeImplementation* typeImpl = getTypeImplementation(switchStatement->promotedType);
     
     // get a prefix label for the cases
-    std::string label_prefix = getRandomLabelName("case");
+    std::string label_prefix = helper::RandomStringHelper::getUniqueLabel("case");
     
     std::map<long, astnodes::CaseStatement*>::iterator iter;
     for (iter = switchStatement->cases.begin(); iter != switchStatement->cases.end(); ++iter)
@@ -1123,7 +1092,7 @@ ValuePosition* DirectCodeGenVisitor::handleLiteral(std::deque<std::string> vals)
 {
     if (vals.size() > 1)
     {
-        std::string label = getRandomLabelName("constant_");
+        std::string label = helper::RandomStringHelper::getUniqueLabel("constant");
         asm_Constants << label << ":" << std::endl;
         asm_Constants << "    DAT ";
         for (std::deque<std::string>::iterator it = vals.begin(); it != vals.end(); ++it)
@@ -1275,7 +1244,7 @@ void DirectCodeGenVisitor::visit(astnodes::StringLiteral * stringLiteral)
     outputstr << "\"";
     
     // add string constant to global string constants
-    std::string label = getRandomLabelName(std::string("string_const_"));
+    std::string label = helper::RandomStringHelper::getUniqueLabel(std::string("string_const"));
     asm_stringConstants << label << ":" << std::endl;
     asm_stringConstants << "    DAT " << outputstr.str() << ", 0x0" << std::endl;
     
@@ -2341,17 +2310,17 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
                 rhsValpos = makeAtomicModifyable(rhsValpos, REG_TMP_R);
                 typeImpl->mul(asm_current, rhsValpos, ValuePosition::createAtomicConstPos(assignmentOperator->pointerSize));
                 if (assignmentOperator->optoken == ADD_ASSIGN)
-                    typeImpl->add(asm_current, lhsOperandVP,rhsValpos);
+                    typeImpl->add(asm_current, lhsOperandVP, rhsValpos);
                 else
-                    typeImpl->sub(asm_current, lhsOperandVP,rhsValpos);
+                    typeImpl->sub(asm_current, lhsOperandVP, rhsValpos);
             }
             else
             {
                 rhsValpos = makeAtomicReadable(rhsValpos);
                 if (assignmentOperator->optoken == ADD_ASSIGN)
-                    typeImpl->add(asm_current, lhsOperandVP,rhsValpos);
+                    typeImpl->add(asm_current, lhsOperandVP, rhsValpos);
                 else
-                    typeImpl->sub(asm_current, lhsOperandVP,rhsValpos);
+                    typeImpl->sub(asm_current, lhsOperandVP, rhsValpos);
             }
             break;
             

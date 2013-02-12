@@ -90,16 +90,7 @@ namespace dcpucc
             void copyValue(ValuePosition* from, ValuePosition* to);
             ValuePosition* getTmp(int size);
             
-            ValuePosition* typePositionToValuePosition(symboltable::TypePosition typePos, unsigned int size);
-            
-            /* automatic/random label management */
-            // TODO this is still a duplicate from SemanticCheck Visitor
-            // TODO put this in some unified helper class
-            std::set<std::string> m_AutomaticLabels;
-            static char getRandomCharacter();
-            static std::string getRandomString(std::string::size_type sz);
-            std::string getRandomLabelName(std::string prefix);
-            
+            ValuePosition* typePositionToValuePosition(symboltable::TypePosition typePos, unsigned int size);            
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);

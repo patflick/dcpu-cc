@@ -56,10 +56,7 @@ namespace dcpucc
             astnodes::LabelStatement* getContinueLabel();
             
             /* automatic/random label management */
-            std::set<std::string> m_AutomaticLabels;
             astnodes::LabelStatement* getRandomLabel(std::string prefix);
-            static char getRandomCharacter();
-            static std::string getRandomString(std::string::size_type sz);
             
             /* general label management */
             std::map<std::string, astnodes::LabelStatement*> m_funcLabels;
@@ -101,11 +98,6 @@ namespace dcpucc
             std::string m_currentFunctionName;
             types::StructUnionType* m_curStructDecl;
             
-            //std::deque<types::Type*> m_declTypeStack;
-            //std::deque<std::string> m_declNameStack;
-            //std::deque<bool> m_declIsStored;
-            //std::deque<bool> m_saveParams;
-            //std::deque<astnodes::StorSpec_t> m_storSpecStack;
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);

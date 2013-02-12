@@ -4,8 +4,6 @@
 #include <deque>
 #include <utility>
 #include <algorithm>
-#include <locale>
-#include <iterator>
 
 #include <errors/derr.defs.h>
 #include <errors/InternalCompilerException.h>
@@ -24,6 +22,8 @@
 #include <valuetypes/PromotionHelper.h>
 #include <valuetypes/ConstHelper.h>
 
+#include <helper/RandomStringHelper.h>
+
 // only include the int tokens
 #define YYSTYPE int
 #include <parser.hpp>
@@ -38,7 +38,6 @@ SemanticCheckVisitor::SemanticCheckVisitor()
 {
     this->m_loopStack = std::deque<std::pair<astnodes::LabelStatement*, astnodes::LabelStatement*> >();
     this->m_symbolTable = new symboltable::SymbolTable();
-    this->m_AutomaticLabels = std::set<std::string>();
     this->m_switchStack = std::deque<astnodes::SwitchStatement*>();
     this->m_funcLabels = std::map<std::string, astnodes::LabelStatement*>();
     this->m_invalidValType = new valuetypes::RValue(new types::InvalidType());
@@ -101,34 +100,9 @@ astnodes::LabelStatement* SemanticCheckVisitor::getContinueLabel()
 // Generates a random, unique label for use in code.
 astnodes::LabelStatement* SemanticCheckVisitor::getRandomLabel(std::string prefix)
 {
-    std::string result = "";
-    
-    while ((result == "") || (this->m_AutomaticLabels.find(result) != this->m_AutomaticLabels.end()))
-        result = "__" + prefix + "_" + SemanticCheckVisitor::getRandomString(10);
-    
-    return new astnodes::LabelStatement(result, new astnodes::EmptyStatement());
+    std::string lbl = helper::RandomStringHelper::getUniqueLabel(prefix);
+    return new astnodes::LabelStatement(lbl, new astnodes::EmptyStatement());
 }
-
-// Generates a random character.
-char SemanticCheckVisitor::getRandomCharacter()
-{
-    unsigned char c;
-    
-    while (!std::isalnum(c = static_cast<unsigned char>(std::rand() % 256))) ;
-    
-    return c;
-}
-
-// Generates a random string.
-std::string SemanticCheckVisitor::getRandomString(std::string::size_type sz)
-{
-    std::string s;
-    s.reserve(sz);
-    std::generate_n(std::back_inserter(s), sz, SemanticCheckVisitor::getRandomCharacter);
-    return s;
-}
-
-
 
 /******************************/
 /* error & warning management */
@@ -1677,7 +1651,7 @@ void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpe
         types::StructUnionType* oldStructType = this->m_curStructDecl;
         this->m_curStructDecl = structType;
         
-        // visit all declarations
+        // visit all declarators
         structUnionSpecifier->allChildrenAccept(*this);
         
         // set struct to be complete now
