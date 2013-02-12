@@ -94,7 +94,7 @@ namespace dcpucc
             
             /* TODO this needs to be removed once work is done on this */
             void printAstName(const char * name);
-            std::string getFileAndLineState(astnodes::Node* node);
+            void outputFileAndLineState(astnodes::Node* node);
             
             ValuePosition* handleLiteral(std::deque<std::string> vals);
             std::string escapeChar(char c);

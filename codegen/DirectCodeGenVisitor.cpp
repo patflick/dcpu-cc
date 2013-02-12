@@ -50,12 +50,10 @@ void DirectCodeGenVisitor::printAstName(const char * name)
     std::cout << "TODO implement code gen for node '" << name << "'." << std::endl;
 }
 
-std::string DirectCodeGenVisitor::getFileAndLineState(astnodes::Node* node)
+void DirectCodeGenVisitor::outputFileAndLineState(astnodes::Node* node)
 {
     std::stringstream str;
-    // TODO implement this correctly
-    //str << ".ULINE " << node->line << " \"" << node->file << "\"" << std::endl;
-    return str.str();
+    asm_current << ".ULINE " << std::dec << node->line << " \"" << node->file << "\"" << std::endl;
 }
 
 std::string DirectCodeGenVisitor::getAssembly()
@@ -299,6 +297,9 @@ void DirectCodeGenVisitor::visit(astnodes::Program * program)
 
 void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefinition)
 {
+    // output file and line information
+    outputFileAndLineState(functionDefinition);
+    
     std::stringstream asmStr;
     asmStr << std::endl;
     
@@ -310,7 +311,6 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     // print function header
     asmStr << "; === BEGIN  function: " << functionDefinition->name << "  BEGIN ==="<< std::endl;
     
-    asmStr << getFileAndLineState(functionDefinition);
     // Output a safety boundary if the assembler supports
     // it and we want to output in debug mode.
     if (isDebug)
@@ -401,8 +401,8 @@ void DirectCodeGenVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
 
 void DirectCodeGenVisitor::visit(astnodes::GotoStatement * gotoStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(gotoStatement);
+    // output file and line information
+    outputFileAndLineState(gotoStatement);
     // jump to the label:
     asm_current << "    SET PC, " << gotoStatement->lbl->label << std::endl;
 }
@@ -410,8 +410,8 @@ void DirectCodeGenVisitor::visit(astnodes::GotoStatement * gotoStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::ContinueStatement * continueStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(continueStatement);
+    // output file and line information
+    outputFileAndLineState(continueStatement);
     // jump to the label
     asm_current << "    SET PC, " << continueStatement->label->label << std::endl;
 }
@@ -419,8 +419,8 @@ void DirectCodeGenVisitor::visit(astnodes::ContinueStatement * continueStatement
 
 void DirectCodeGenVisitor::visit(astnodes::BreakStatement * breakStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(breakStatement);
+    // output file and line information
+    outputFileAndLineState(breakStatement);
     // jump to the label
     asm_current << "    SET PC, " << breakStatement->label->label << std::endl;
 }
@@ -428,8 +428,8 @@ void DirectCodeGenVisitor::visit(astnodes::BreakStatement * breakStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(defaultStatement);
+    // output file and line information
+    outputFileAndLineState(defaultStatement);
     // jump to the label
     asm_current << ":" << defaultStatement->lbl->label << std::endl;
     
@@ -440,6 +440,9 @@ void DirectCodeGenVisitor::visit(astnodes::DefaultStatement * defaultStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::CaseStatement * caseStatement)
 {
+    // output file and line information
+    outputFileAndLineState(caseStatement);
+    
     // output assigned label
     asm_current << ":" << caseStatement->caselabel << std::endl;
     
@@ -469,8 +472,8 @@ void DirectCodeGenVisitor::visit(astnodes::ExternalDeclaration * externalDeclara
 
 void DirectCodeGenVisitor::visit(astnodes::ReturnStatement * returnStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(returnStatement);
+    // output file and line information
+    outputFileAndLineState(returnStatement);
     
     if (returnStatement->returnSize > 0)
     {
@@ -519,8 +522,8 @@ void DirectCodeGenVisitor::visit(astnodes::ReturnStatement * returnStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::ForStatement * forStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(forStatement);
+    // output file and line information
+    outputFileAndLineState(forStatement);
     
     // Do the initalization statement.
     forStatement->initExpr->accept(*this);
@@ -561,8 +564,8 @@ void DirectCodeGenVisitor::visit(astnodes::ForStatement * forStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::DoWhileStatement * doWhileStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(doWhileStatement);
+    // output file and line information
+    outputFileAndLineState(doWhileStatement);
     
     // Output the start label.
     asm_current << ":" << doWhileStatement->startLbl->label << std::endl;
@@ -593,8 +596,8 @@ void DirectCodeGenVisitor::visit(astnodes::DoWhileStatement * doWhileStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::WhileStatement * whileStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(whileStatement);
+    // output file and line information
+    outputFileAndLineState(whileStatement);
     
     // Output the start label.
     asm_current << ":" << whileStatement->startLbl->label << std::endl;
@@ -626,8 +629,8 @@ void DirectCodeGenVisitor::visit(astnodes::WhileStatement * whileStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::SwitchStatement * switchStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(switchStatement);
+    // output file and line information
+    outputFileAndLineState(switchStatement);
     
     // first compile the controlling expression
     switchStatement->expr->accept(*this);
@@ -686,8 +689,8 @@ void DirectCodeGenVisitor::visit(astnodes::SwitchStatement * switchStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::IfStatement * ifStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(ifStatement);
+    // output file and line information
+    outputFileAndLineState(ifStatement);
     
     // compile the conditional expression
     ifStatement->condExpr->accept(*this);
@@ -729,8 +732,8 @@ void DirectCodeGenVisitor::visit(astnodes::IfStatement * ifStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::ExpressionStatement * expressionStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(expressionStatement);
+    // output file and line information
+    outputFileAndLineState(expressionStatement);
     // just pass through
     expressionStatement->allChildrenAccept(*this);
     
@@ -747,8 +750,8 @@ void DirectCodeGenVisitor::visit(astnodes::EmptyStatement * emptyStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::BlockStatement * blockStatement)
 {
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(blockStatement);
+    // output file and line information
+    outputFileAndLineState(blockStatement);
     
     // compile the statements 
     blockStatement->allChildrenAccept(*this);
@@ -757,8 +760,8 @@ void DirectCodeGenVisitor::visit(astnodes::BlockStatement * blockStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::LabelStatement * labelStatement)
 {    
-    // Add file and line information.
-    asm_current << this->getFileAndLineState(labelStatement);
+    // output file and line information
+    outputFileAndLineState(labelStatement);
     
     // Output the end label.
     asm_current << ":" << labelStatement->label << std::endl;
@@ -777,6 +780,9 @@ void DirectCodeGenVisitor::visit(astnodes::LabelStatement * labelStatement)
 
 void DirectCodeGenVisitor::visit(astnodes::Declaration * declaration)
 {
+    // output file and line information
+    outputFileAndLineState(declaration);
+    
     // visit all the declarators
     if (!declaration->isParamDecl)
     {
@@ -824,6 +830,9 @@ void DirectCodeGenVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifier
 
 void DirectCodeGenVisitor::visit(astnodes::IdentifierDeclarator * identifierDeclarator)
 {
+    // output file and line information
+    outputFileAndLineState(identifierDeclarator);
+    
     if (!identifierDeclarator->isVariableDeclaration)
         return;
     
@@ -901,6 +910,9 @@ void DirectCodeGenVisitor::visit(astnodes::Pointer * pointer)
 
 void DirectCodeGenVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 {
+    // output file and line information
+    outputFileAndLineState(arrayDeclarator);
+    
     // nothing to do
     arrayDeclarator->baseDeclarator->accept(*this);
 }
@@ -910,6 +922,9 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
 
 void DirectCodeGenVisitor::visit(astnodes::FunctionDeclarator * functionDeclarator)
 {
+    // output file and line information
+    outputFileAndLineState(functionDeclarator);
+    
     // nothing to do
     functionDeclarator->baseDeclarator->accept(*this);
 }
@@ -1067,6 +1082,7 @@ void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
     
     // Ideas:
     //  - terminal 
+    
     
     // get value position from identifier
     types::Type* type = identifier->valType->type;
@@ -2455,6 +2471,9 @@ void DirectCodeGenVisitor::visit(astnodes::Enumerator * enumerator)
 
 void DirectCodeGenVisitor::visit(astnodes::AssemblyStatement * assemblyStatement)
 {
+    // output file and line information
+    outputFileAndLineState(assemblyStatement);
+    
     asm_current << assemblyStatement->asmString << std::endl;
 }
 
