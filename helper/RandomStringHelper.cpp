@@ -12,7 +12,6 @@
 
 #include "RandomStringHelper.h"
 #include <algorithm>
-#include <locale>
 #include <iterator>
 #include <cstdlib>
 
@@ -41,10 +40,12 @@ std::string RandomStringHelper::randString(std::string::size_type sz)
 // Generates a random character.
 char RandomStringHelper::randChar()
 {
-    unsigned char c;
-    std::locale my_locale;
-    while (!std::isalnum(c = static_cast<unsigned char>(rand() % 256), my_locale)) ;
-    return c;
+    static const char alphanum[] =
+    "0123456789"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz";
+    
+    return alphanum[rand() % (sizeof(alphanum) - 1)];
 }
 
 std::string RandomStringHelper::getUniqueString(std::string::size_type length)
