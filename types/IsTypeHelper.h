@@ -139,6 +139,12 @@ namespace dcpucc
             /// @returns        True if the type is NullPointer, false otherwise.
             static bool isNullPointer(Type * type);
             
+            ///
+            /// @brief          Returns whether the given type is a BitField.
+            /// @param type     The type to be checked.
+            /// @returns        True if the type is BitField, false otherwise.
+            static bool isBitField(Type * type);
+            
             
             ///
             /// @brief          Returns whether the given type is a SignedLong.

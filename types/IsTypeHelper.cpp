@@ -220,6 +220,19 @@ bool IsTypeHelper::isNullPointer(Type * type)
 }
 
 
+bool IsTypeHelper::isBitField(Type * type)
+{
+    class : public TypeVisitor
+    {
+    public:
+        virtual bool visit(BitField * t)
+        {
+            return true;
+        }
+    } tv;
+    return type->accept(tv);
+}
+
 bool IsTypeHelper::isSignedLong(Type * type)
 {
     class : public TypeVisitor

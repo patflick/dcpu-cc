@@ -10,19 +10,22 @@
 ///
 
 #include "StructUnionType.h"
+#include "BitField.h"
+#include <errors/InternalCompilerException.h>
 
-
+using namespace dcpucc;
 using namespace dcpucc::types;
-
-
-
 
 void StructUnionType::addMember(std::string name, Type* type)
 {
     if (isUnion)
         m_offsets[name] = 0;
     else
+    {
+        if (curBitField)
+            addPaddingToNextWord();
         m_offsets[name] = size;
+    }
     m_types[name] = type;
     if (isUnion)
     {
@@ -33,6 +36,44 @@ void StructUnionType::addMember(std::string name, Type* type)
     {
         size += type->getWordSize();
     }
+}
+
+void StructUnionType::addBitfieldMember(std::string name, BitField* type)
+{
+    if (isUnion)
+        throw new errors::InternalCompilerException("added bitfield to union");
+    
+    // TODO add this somewhere global
+    unsigned int bitsPerWord = 16;
+    
+    if (!curBitField)
+    {
+        curBitFieldOffset = 0;
+    }
+    
+    unsigned int bitlen = type->length;
+    
+    if (curBitFieldOffset + bitlen > bitsPerWord)
+    {
+        this->addPaddingToNextWord();
+    }
+    
+    type->offset = curBitFieldOffset;
+    curBitFieldOffset += bitlen;
+    curBitField = true;
+    
+    m_offsets[name] = size;
+    m_types[name] = type;
+}
+
+void StructUnionType::addPaddingToNextWord()
+{
+    if (isUnion)
+        throw new errors::InternalCompilerException("added bitfield to union");
+    if (curBitField)
+        size += 1;
+    curBitField = false;
+    curBitFieldOffset = 0;
 }
 
 bool StructUnionType::hasMember(std::string name)

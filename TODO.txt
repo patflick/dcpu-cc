@@ -1,0 +1,13 @@
+the major things that still need implementing:
+
+1. enums
+2. different assemblers/ toolchains
+3. unified identation + output of source lines
+4. fix block scopes getting local allocated space
+      ( 5. bit fields in structs  ) DONE 
+6. 32 bit ints
+7. properly handle local static variables
+8. multidimensional initializers;
+9. update user documentation
+10. Conditional Operator
+

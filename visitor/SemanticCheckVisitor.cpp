@@ -794,6 +794,8 @@ void SemanticCheckVisitor::visit(astnodes::NoIdentifierDeclarator * noIdentifier
     {
         addError(noIdentifierDeclarator, ERR_CC_FUNC_PARAM_NO_NAME);
     }
+    
+    m_curStructMemName = std::string("");
 }
 
 void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDeclarator)
@@ -830,19 +832,8 @@ void SemanticCheckVisitor::visit(astnodes::IdentifierDeclarator * identifierDecl
     // insert into symbol table based on storage specs
     if (m_declState == DECLSTATE_STRUCT)
     {
-        if (!actualDeclType->isComplete())
-        {
-            addError(identifierDeclarator, ERR_CC_STRUCT_MEM_INCOMPLETE, declName);
-            return;
-        }
-        
-        if(m_curStructDecl->hasMember(declName))
-        {
-            addError(identifierDeclarator, ERR_CC_STRUCT_MEM_REDECL, declName);
-            return;
-        }
-        
-        m_curStructDecl->addMember(declName, actualDeclType);
+        // not much to do:
+        m_curStructMemName = identifierDeclarator->name;
     }
     else if (types::IsTypeHelper::isFunctionType(actualDeclType))
     {
@@ -1182,6 +1173,124 @@ void SemanticCheckVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
     arrayDeclarator->baseDeclarator->accept(*this);
 }
 
+
+/* 3.5.4.2 Array declarators */
+
+void SemanticCheckVisitor::visit(astnodes::StructMemberDeclarator * structMem)
+{
+    // first add pointers to the type 
+    if (structMem->pointers != NULL)
+        for (astnodes::Pointers::iterator i = structMem->pointers->begin(); i != structMem->pointers->end(); ++i)
+            (*i)->acceptPostRecursive(*this);
+        
+    
+    long size = -1;
+    // get the bitfield size (if there is one)
+    if (structMem->constExpr != NULL)
+    {
+        // first visit the expression with this visitor
+        structMem->constExpr->accept(*this);
+        
+        // get size 
+        if (! valuetypes::IsValueTypeHelper::isCValue(structMem->constExpr->valType))
+        {
+            addError(structMem, ERR_CC_STRUCT_BITFIELD_NON_CONST);
+            return;
+        }
+        
+        ConstExprEvalVisitor ceval;
+        structMem->constExpr->accept(ceval);
+        size = valuetypes::ConstHelper::getIntegralConst(structMem->constExpr->valType);
+        
+        /* check that the size is not negative */
+        if (size < 0)
+        {
+            addError(structMem, ERR_CC_STRUCT_BITFIELD_NEG);
+            return;
+        }
+        
+        /* check that the size is not too big */
+        // TODO use some global set bit size
+        if (size > 16)
+        {
+            addError(structMem, ERR_CC_STRUCT_BITFIELD_TOO_BIG);
+            return;
+        }
+        
+        if (this->m_curStructDecl->isUnion)
+        {
+            addError(structMem, ERR_CC_UNION_BITFIELD);
+            return;
+        }
+    }
+    
+    if (structMem->baseDeclarator != NULL)
+    {
+        // visit base declarator recursively
+        structMem->baseDeclarator->accept(*this);
+        
+        // get declaration type
+        types::Type* declType = this->m_curDeclType;
+        std::string name = m_curStructMemName;
+        
+        if (structMem->constExpr != NULL)
+        {
+            if (!types::IsTypeHelper::isUnsignedInt(declType)
+                && !types::IsTypeHelper::isSignedInt(declType))
+            {
+                addError(structMem, ERR_CC_STRUCT_BITFIELD_NO_INT);
+                return;
+            }
+            
+            if(m_curStructDecl->hasMember(name))
+            {
+                addError(structMem, ERR_CC_STRUCT_MEM_REDECL, name);
+                return;
+            }
+            
+            // add the bitfield type to struct
+            types::BitField* bitfield = new types::BitField(size);
+            m_curStructDecl->addBitfieldMember(name, bitfield);
+        }
+        else
+        {
+            // this is the "normal" case without bit fields
+            if (!declType->isComplete())
+            {
+                addError(structMem, ERR_CC_STRUCT_MEM_INCOMPLETE, name);
+                return;
+            }
+            
+            if(m_curStructDecl->hasMember(name))
+            {
+                addError(structMem, ERR_CC_STRUCT_MEM_REDECL, name);
+                return;
+            }
+            
+            m_curStructDecl->addMember(name, declType);
+        }
+    }
+    else
+    {
+        types::Type* declType = this->m_curDeclType;
+        
+        if (!types::IsTypeHelper::isUnsignedInt(declType)
+            && !types::IsTypeHelper::isSignedInt(declType))
+        {
+            addError(structMem, ERR_CC_STRUCT_BITFIELD_NO_INT);
+            return;
+        }
+        
+        // this is an unnamed padding bitfield
+        if (size != 0)
+        {
+            addError(structMem, ERR_CC_STRUCT_UNNAMED_BITFIELD);
+            return;
+        }
+        // add padding to next word
+        m_curStructDecl->addPaddingToNextWord();
+    }
+}
 
 /* 3.5.4.3 Function declarators */
 
@@ -1654,6 +1763,10 @@ void SemanticCheckVisitor::visit(astnodes::StructUnionSpecifier * structUnionSpe
         // visit all declarators
         structUnionSpecifier->allChildrenAccept(*this);
         
+        // add maybe missing padding
+        if (!structType->isUnion)
+            structType->addPaddingToNextWord();
+        
         // set struct to be complete now
         structType->complete = true;
         
@@ -2074,6 +2187,13 @@ void SemanticCheckVisitor::visit(astnodes::StructureResolutionOperator * structu
     // assign offset
     structureResolutionOperator->offset = offset;
     structureResolutionOperator->fieldSize = fieldType->getWordSize();
+    
+    // check if this might have been a bitfield
+    if (types::IsTypeHelper::isBitField(fieldType))
+    {
+        structureResolutionOperator->isBitField = true;
+        structureResolutionOperator->bitFieldType = fieldType;
+    }
 }
 
 
@@ -2807,7 +2927,16 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         /* 3.3.16.1 Simple assignment */
         
         case ASSIGN_EQUAL:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
+            if (types::IsTypeHelper::isBitField(lhsType)
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                assignmentOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, new types::SignedInt());
+                assignmentOperator->rhsExpr->accept(*this);
+                assignmentOperator->lhsBitField = true;
+            }
+            else if((types::IsTypeHelper::isArithmeticType(lhsType))
                 && types::IsTypeHelper::isArithmeticType(rhsType))
             {
                 // both are arithmetic types
@@ -2846,7 +2975,16 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             
         case ADD_ASSIGN:
         case SUB_ASSIGN:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
+            if (types::IsTypeHelper::isBitField(lhsType)
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                assignmentOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, new types::SignedInt());
+                assignmentOperator->rhsExpr->accept(*this);
+                assignmentOperator->lhsBitField = true;
+            }
+            else if((types::IsTypeHelper::isArithmeticType(lhsType))
                 && types::IsTypeHelper::isArithmeticType(rhsType))
             {
                 // both are arithmetic types
@@ -2879,7 +3017,16 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             
         case MUL_ASSIGN:
         case DIV_ASSIGN:
-            if((types::IsTypeHelper::isArithmeticType(lhsType))
+            if (types::IsTypeHelper::isBitField(lhsType)
+                && types::IsTypeHelper::isArithmeticType(rhsType))
+            {
+                assignmentOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, new types::SignedInt());
+                assignmentOperator->rhsExpr->accept(*this);
+                assignmentOperator->lhsBitField = true;
+            }
+            else if((types::IsTypeHelper::isArithmeticType(lhsType))
                 && types::IsTypeHelper::isArithmeticType(rhsType))
             {
                 // both are arithmetic types
@@ -2905,7 +3052,16 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
         case AND_ASSIGN:
         case XOR_ASSIGN:
         case OR_ASSIGN:
-            if((types::IsTypeHelper::isIntegralType(lhsType))
+            if (types::IsTypeHelper::isBitField(lhsType)
+                && types::IsTypeHelper::isIntegralType(rhsType))
+            {
+                assignmentOperator->valType = new valuetypes::RValue(new types::SignedInt());
+                assignmentOperator->commonType = lhsType;
+                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, new types::SignedInt());
+                assignmentOperator->rhsExpr->accept(*this);
+                assignmentOperator->lhsBitField = true;
+            }
+            else if((types::IsTypeHelper::isIntegralType(lhsType))
                 && types::IsTypeHelper::isIntegralType(rhsType))
             {
                 // both are arithmetic types

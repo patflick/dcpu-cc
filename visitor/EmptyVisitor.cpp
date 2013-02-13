@@ -327,6 +327,10 @@ void EmptyVisitor::visit(astnodes::TypeConversionOperator * typeConversionOperat
 {
 }
 
+void EmptyVisitor::visit(astnodes::StructMemberDeclarator * structMem)
+{
+}
+
 ///
 /// @}
 ///

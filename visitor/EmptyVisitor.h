@@ -467,6 +467,12 @@ namespace dcpucc
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeConversionOperator    The node to visit this visitor
             virtual void visit(astnodes::TypeConversionOperator * typeConversionOperator);
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param typeConversionOperator    The node to visit this visitor
+            virtual void visit(astnodes::StructMemberDeclarator * structMem);
         };
         
     } // namespace dcpucc

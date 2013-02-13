@@ -45,6 +45,7 @@
 #include "declaration/Pointer.h"
 #include "declaration/Pointers.h"
 #include "declaration/StorageSpecifier.h"
+#include "declaration/StructMemberDeclarator.h"
 #include "declaration/StructUnionSpecifier.h"
 #include "declaration/TypeBaseSpecifier.h"
 #include "declaration/TypeName.h"

@@ -20,6 +20,7 @@ SET (NODES_DECL_HEADERS
     astnodes/declaration/Pointer.h
     astnodes/declaration/Pointers.h
     astnodes/declaration/StorageSpecifier.h
+    astnodes/declaration/StructMemberDeclarator.h
     astnodes/declaration/StructUnionSpecifier.h
     astnodes/declaration/TypeBaseSpecifier.h
     astnodes/declaration/TypeName.h
@@ -41,6 +42,7 @@ set (NODES_DECL_SOURCE
     astnodes/declaration/NoIdentifierDeclarator.cpp
     astnodes/declaration/Pointer.cpp
     astnodes/declaration/StorageSpecifier.cpp
+    astnodes/declaration/StructMemberDeclarator.cpp
     astnodes/declaration/StructUnionSpecifier.cpp
     astnodes/declaration/TypeBaseSpecifier.cpp
     astnodes/declaration/TypeName.cpp

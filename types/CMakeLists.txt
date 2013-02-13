@@ -8,6 +8,7 @@ SET (TYPES_HEADER
     types/ArithmeticConversion.h
     types/ArithmeticType.h
     types/ArrayType.h
+    types/BitField.h
     types/Double.h
     types/EnumType.h
     types/Float.h
@@ -42,6 +43,7 @@ set (TYPES_SOURCE
     types/ArithmeticConversion.cpp
     types/ArithmeticType.cpp
     types/ArrayType.cpp
+    types/BitField.cpp
     types/Double.cpp
     types/EnumType.cpp
     types/Float.cpp

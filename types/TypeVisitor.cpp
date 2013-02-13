@@ -78,6 +78,11 @@ bool TypeVisitor::visit(NullPointer * nullPointer)
     return false;
 }
 
+bool TypeVisitor::visit(BitField * bitField)
+{
+    return false;
+}
+
 bool TypeVisitor::visit(SignedLong * signedLong)
 {
     return false;

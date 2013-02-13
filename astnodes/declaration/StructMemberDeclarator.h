@@ -4,19 +4,20 @@
 ///
 
 ///
-/// @file       StructureResolutionOperator.h
-/// @brief      Declaration of the StructureResolutionOperator AST node.
+/// @file       StructMemberDeclarator.h
+/// @brief      Declaration of the StructMemberDeclarator AST node.
 /// @author     Patrick Flick
 ///
 
 #include <astnodes/Node.h>
 
-#ifndef __DCPU_CC_AST_NODES_STRUCTURERESOLUTIONOPERATOR_H
-#define __DCPU_CC_AST_NODES_STRUCTURERESOLUTIONOPERATOR_H
+#ifndef __DCPU_CC_AST_NODES_STRUCTMEMBERDECLARATOR_H
+#define __DCPU_CC_AST_NODES_STRUCTMEMBERDECLARATOR_H
 
 // include needed nodes
+#include "Declarator.h"
 #include <astnodes/expression/Expression.h>
-#include <types/Type.h>
+
 
 namespace dcpucc
 {
@@ -24,10 +25,10 @@ namespace dcpucc
     {
 
         ///
-        /// @class      StructureResolutionOperator
-        /// @brief      The StructureResolutionOperator AST node.
+        /// @class      StructMemberDeclarator
+        /// @brief      The StructMemberDeclarator AST node.
         ///
-        class StructureResolutionOperator : public Expression
+        class StructMemberDeclarator : public Declarator
         {
         private:
             ///
@@ -43,27 +44,20 @@ namespace dcpucc
             void allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & visitor);
             
         public:
-            Expression * lhsExpr;
-            std::string fieldName;
-            bool isPointered;
-            
-            unsigned int offset;
-            unsigned int fieldSize;
+            Declarator * baseDeclarator;
+            Expression * constExpr;
             bool isBitField;
-            types::Type* bitFieldType;
+            unsigned int bitFieldSize;
 
             
         public:
             ///
-            /// @brief      The constructor of the StructureResolutionOperator AST node.
-            /// @param lhsExpr TODO: FILLOUT
-            /// @param fieldName TODO: FILLOUT
-            /// @param isPointered TODO: FILLOUT
-
+            /// @brief      The constructor of the StructMemberDeclarator AST node.
+            /// @param baseDeclarator TODO: FILLOUT
+            /// @param constExpr TODO: FILLOUT
             ///
-            StructureResolutionOperator(Expression * lhsExpr, std::string fieldName, bool isPointered)
-            : lhsExpr(lhsExpr), fieldName(fieldName), isPointered(isPointered),
-              offset(0), isBitField(false), bitFieldType(NULL) {}
+            StructMemberDeclarator(Declarator * baseDeclarator, Expression * constExpr)
+                : baseDeclarator(baseDeclarator), constExpr(constExpr), isBitField(false), bitFieldSize(0) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.
@@ -101,9 +95,9 @@ namespace dcpucc
             void allChildrenAccept(dcpucc::visitor::Visitor & visitor);
             
             ///
-            /// @brief      The destructor of the StructureResolutionOperator AST node.
+            /// @brief      The destructor of the StructMemberDeclarator AST node.
             ///
-            virtual ~StructureResolutionOperator();
+            virtual ~StructMemberDeclarator();
         };
 
     } // namespace dcpucc

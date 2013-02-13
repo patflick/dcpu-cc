@@ -12,6 +12,7 @@
 #include "GetTypeImplVisitor.h"
 #include "SignedInt16.h"
 #include "UnsignedInt16.h"
+#include "BitField16.h"
 #include <errors/InternalCompilerException.h>
 
 using namespace dcpucc::codegen;
@@ -114,6 +115,12 @@ bool GetTypeImplVisitor::visit(EnumType * enumType)
 bool GetTypeImplVisitor::visit(PointerType * pointerType)
 {
     this->typeImpl = this->uint16;
+    return true;
+}
+
+bool GetTypeImplVisitor::visit(BitField * bitfield)
+{
+    this->typeImpl = new BitField16(bitfield->offset, bitfield->length);
     return true;
 }
 

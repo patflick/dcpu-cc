@@ -16,6 +16,7 @@
 
 // include needed nodes
 #include <astnodes/expression/Expression.h>
+#include <types/Type.h>
 
 
 namespace dcpucc
@@ -50,6 +51,8 @@ namespace dcpucc
             bool ptrop;
             unsigned int pointerSize;
             types::Type* commonType;
+            
+            bool lhsBitField;
 
             
         public:
@@ -61,7 +64,8 @@ namespace dcpucc
 
             ///
             AssignmentOperator(Expression * lhsExrp, int optoken, Expression * rhsExpr)
-            : lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr) {}
+            : lhsExrp(lhsExrp), optoken(optoken), rhsExpr(rhsExpr), ptrop(false),
+            pointerSize(0), commonType(NULL), lhsBitField(false) {}
             
             ///
             /// @brief          The accept method of the Visitor pattern.

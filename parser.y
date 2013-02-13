@@ -727,12 +727,16 @@ struct_declarator_list
 struct_declarator
         : declarator
         {
-            $$ = $1;
+            $$ = new StructMemberDeclarator($1, NULL);
         }
-/* No support for bit fields (well, at least not yet)
         | COLON constant_expression
+        {
+            $$ = new StructMemberDeclarator(NULL, $2);
+        }
         | declarator COLON constant_expression
-*/
+        {
+            $$ = new StructMemberDeclarator($1, $3);
+        }
         ;
 
 

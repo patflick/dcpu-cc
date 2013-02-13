@@ -27,6 +27,7 @@
 
 #include "ValuePosition.h"
 #include "typeimpl/TypeConversions.h"
+#include "typeimpl/BitField16.h"
 
 // only include the int tokens
 #define YYSTYPE int
@@ -917,6 +918,13 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayDeclarator * arrayDeclarator)
     arrayDeclarator->baseDeclarator->accept(*this);
 }
 
+/* Struct Member declarator */
+
+void DirectCodeGenVisitor::visit(astnodes::StructMemberDeclarator * structMem)
+{
+    // nothing to do here
+}
+
 
 /* 3.5.4.3 Function declarators */
 
@@ -1803,6 +1811,17 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
     if (structureResolutionOperator->returnRValue)
     {
         newVP = derefOperand(newVP, REG_TMP_L);
+        
+        if (structureResolutionOperator->isBitField)
+        {
+            BitField16* bfImpl = (BitField16*) getTypeImplementation(structureResolutionOperator->bitFieldType);
+            ValuePosition* tmpVP = getTmp(1);
+            asm_current << "SET " << tmpVP->toAtomicOperand() << ", " << newVP->toAtomicOperand() << std::endl;
+            asm_current << "AND " << tmpVP->toAtomicOperand() << ", " << bfImpl->mask_field << std::endl;
+            asm_current << "SHR " << tmpVP->toAtomicOperand() << ", " << bfImpl->shift_by << std::endl;
+            maybeFreeTemporary(newVP);
+            newVP = tmpVP;
+        }
     }
     
     // set value position
@@ -2308,12 +2327,26 @@ void DirectCodeGenVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
     
     switch (assignmentOperator->optoken)
     {
-        
         /* 3.3.16.1 Simple assignment */
         
         case ASSIGN_EQUAL:
-            rhsValpos = makeAtomicReadable(rhsValpos);
-            copyValue(rhsValpos, lhsOperandVP);
+            
+            if (assignmentOperator->lhsBitField)
+            {
+                // get bitfield type implementation
+                BitField16* bfImpl = (BitField16*) this->getTypeImplementation(assignmentOperator->commonType);
+                rhsValpos = makeAtomicModifyable(rhsValpos);
+                asm_current << "SHL " << rhsValpos->toAtomicOperand() << ", " << bfImpl->shift_by << std::endl;
+                asm_current << "AND " << rhsValpos->toAtomicOperand() << ", " << bfImpl->mask_field << std::endl;
+                asm_current << "AND " << lhsOperandVP->toAtomicOperand() << ", " << bfImpl->mask_other << std::endl;
+                asm_current << "BOR " << lhsOperandVP->toAtomicOperand() << ", " << rhsValpos->toAtomicOperand() << std::endl;
+                maybeFreeTemporary(rhsValpos);
+            }
+            else
+            {
+                rhsValpos = makeAtomicReadable(rhsValpos);
+                copyValue(rhsValpos, lhsOperandVP);
+            }
             break;
             
             

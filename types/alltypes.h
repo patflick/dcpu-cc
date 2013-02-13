@@ -30,6 +30,7 @@
 #include "AggregateType.h"
 #include "ArithmeticType.h"
 #include "ArrayType.h"
+#include "BitField.h"
 #include "Double.h"
 #include "EnumType.h"
 #include "Float.h"

@@ -587,3 +587,11 @@ void PrintAstVisitor::visit(astnodes::TypeConversionOperator * typeConv)
     typeConv->allChildrenAccept(*this);
     decreaseIdentation();
 }
+
+void PrintAstVisitor::visit(astnodes::StructMemberDeclarator * structMem)
+{
+    printAstName("StructMemberDeclarator");
+    increaseIdentation();
+    structMem->allChildrenAccept(*this);
+    decreaseIdentation();
+}

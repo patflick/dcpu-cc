@@ -97,6 +97,7 @@ namespace dcpucc
             std::string m_functionName;
             std::string m_currentFunctionName;
             types::StructUnionType* m_curStructDecl;
+            std::string m_curStructMemName;
             
             
             /* TODO this needs to be removed once work is done on this */
@@ -544,6 +545,12 @@ namespace dcpucc
             /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
             /// @param typeConversionOperator    The node to visit this visitor
             virtual void visit(astnodes::TypeConversionOperator * typeConversionOperator);
+            
+            ///
+            /// @brief      Visit function of the visitor pattern.
+            /// @sa         http://en.wikipedia.org/wiki/Visitor_pattern
+            /// @param typeConversionOperator    The node to visit this visitor
+            virtual void visit(astnodes::StructMemberDeclarator * structMem);
         };
         
     } // namespace dcpucc

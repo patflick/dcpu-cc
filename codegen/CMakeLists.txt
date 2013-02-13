@@ -5,6 +5,7 @@ SET (CODEGEN_HEADER
     codegen/Assembler.h
     codegen/DirectCodeGenVisitor.h
     codegen/ValuePosition.h
+    codegen/typeimpl/BitField16.h
     codegen/typeimpl/GetTypeImplVisitor.h
     codegen/typeimpl/TypeImplementation.h
     codegen/typeimpl/TypeConversions.h
@@ -19,6 +20,7 @@ set (CODEGEN_SOURCE
     codegen/Assembler.cpp
     codegen/DirectCodeGenVisitor.cpp
     codegen/ValuePosition.cpp
+    codegen/typeimpl/BitField16.cpp
     codegen/typeimpl/GetTypeImplVisitor.cpp
     codegen/typeimpl/Int16.cpp
     codegen/typeimpl/TypeConversions.cpp
