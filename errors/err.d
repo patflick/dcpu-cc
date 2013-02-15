@@ -30,11 +30,11 @@ ERR_CC_INVALID_UNARY_OPERAND                         cc-invalid-unary-operand   
 ERR_CC_MALFORMED_ASM_BLOCK                           cc-malformed-asm-block                   "Malformed assembler in inline asm, check that every '<' is accompanied by another '>'."
 ERR_CC_VAR_NOT_ATOMIC_ADR                            cc-var-not-atomic-adr                    "Cannot get atomic address of '%s'. Make sure that only variables in the local scope are accessed."
 ERR_CC_VAR_ASM_REF                                   cc-var-asm-ref                           "Cannot reference a local variable in __asm."
-ERR_CC_EXPECTED_SCALAR_FOR                           cc-expected-scalar-for                   "Expected scalar type for conditinal expression in for statement"
-ERR_CC_EXPECTED_SCALAR_WHILE                         cc-expected-scalar-while                 "Expected scalar type for conditinal expression in while statement"
-ERR_CC_EXPECTED_SCALAR_DOWHILE                       cc-expected-scalar-dowhile               "Expected scalar type for conditinal expression in do-while statement"
+ERR_CC_EXPECTED_SCALAR_FOR                           cc-expected-scalar-for                   "Expected scalar type for conditional expression in for statement"
+ERR_CC_EXPECTED_SCALAR_WHILE                         cc-expected-scalar-while                 "Expected scalar type for conditional expression in while statement"
+ERR_CC_EXPECTED_SCALAR_DOWHILE                       cc-expected-scalar-dowhile               "Expected scalar type for conditional expression in do-while statement"
 
-ERR_CC_EXPECTED_SCALAR_IF                            cc-expected-scalar-if                    "Expected scalar type for conditinal expression in if statement"
+ERR_CC_EXPECTED_SCALAR_IF                            cc-expected-scalar-if                    "Expected scalar type for conditional expression in if statement"
 ERR_CC_EXPECTED_INTEGRAL_SWITCH                      cc-expected-integral-switch              "Expected integral type for controlling expression in switch statement"
 ERR_CC_DUPLICATE_LABEL                               cc-duplicate-label                       "duplicate label ‘%s’"
 
