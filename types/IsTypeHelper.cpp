@@ -114,7 +114,8 @@ bool IsTypeHelper::isIntegralType(Type * type)
         || IsTypeHelper::isUnsignedInt(type)
         || IsTypeHelper::isSignedLong(type)
         || IsTypeHelper::isUnsignedLong(type)
-        || IsTypeHelper::isEnumType(type))
+        || IsTypeHelper::isEnumType(type)
+        || IsTypeHelper::isBitField(type))
     {
         return true;
     }

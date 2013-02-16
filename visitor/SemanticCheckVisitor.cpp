@@ -238,6 +238,10 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     
     this->m_declState = DECLSTATE_LOCAL;
     
+    // reset function locals size
+    this->m_functionMaxLocalSize = 0;
+    this->m_currentLocalSize = 0;
+    
     // give the block its scope
     functionDefinition->block->scope = funScope;
     // analyze the declarations and statements in the block
@@ -250,7 +254,7 @@ void SemanticCheckVisitor::visit(astnodes::FunctionDefinition * functionDefiniti
     functionDefinition->name = name;
     
     // set the parameter and locals size
-    functionDefinition->stackSize = funScope->getLocalStackSize();
+    functionDefinition->stackSize = this->m_functionMaxLocalSize;
     functionDefinition->paramSize = funScope->getParameterStackSize();
     
     // call goto label resolval visitor here:
@@ -538,12 +542,27 @@ void SemanticCheckVisitor::visit(astnodes::BlockStatement * blockStatement)
     // create new scope, or if this is the main block of a function
     // then use the scope already filled with the function parameters
     if (blockStatement->scope == NULL)
+    {
+        m_currentLocalSize = m_symbolTable->getCurrentScope().getLocalStackSize();
         blockStatement->scope = m_symbolTable->beginNewScope();
+        m_symbolTable->getCurrentScope().setLocalStackOffset(m_currentLocalSize);
+    }
     else
+    {
         m_symbolTable->beginScope(blockStatement->scope);
+    }
     
-    // analyse the statements 
+    // analyze the statements 
     blockStatement->allChildrenAccept(*this);
+    
+    uint16_t size = m_symbolTable->getCurrentScope().getLocalStackSize() - m_currentLocalSize;
+    
+    if (size + m_currentLocalSize > m_functionMaxLocalSize)
+    {
+        m_functionMaxLocalSize = size + m_currentLocalSize;
+    }
+    
+    m_currentLocalSize -= size;
     
     // end the scope
     m_symbolTable->endScope();
@@ -2932,7 +2951,8 @@ void SemanticCheckVisitor::visit(astnodes::AssignmentOperator * assignmentOperat
             {
                 assignmentOperator->valType = new valuetypes::RValue(new types::SignedInt());
                 assignmentOperator->commonType = lhsType;
-                assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, new types::SignedInt());
+                if (!types::IsTypeHelper::isBitField(rhsType))
+                    assignmentOperator->rhsExpr = new astnodes::TypeConversionOperator(assignmentOperator->rhsExpr , rhsType, new types::SignedInt());
                 assignmentOperator->rhsExpr->accept(*this);
                 assignmentOperator->lhsBitField = true;
             }

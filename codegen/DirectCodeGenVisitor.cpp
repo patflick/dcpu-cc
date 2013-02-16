@@ -532,7 +532,7 @@ void DirectCodeGenVisitor::visit(astnodes::ForStatement * forStatement)
     // Output the start label.
     asm_current << ":" << forStatement->startLbl->label << std::endl;
     
-    // translate the check expression
+    // translate the check expressio
     forStatement->condExpr->accept(*this);
     
     ValuePosition* valPos = forStatement->condExpr->expr->valPos;
@@ -551,9 +551,12 @@ void DirectCodeGenVisitor::visit(astnodes::ForStatement * forStatement)
     asm_current << ":" << forStatement->continueLbl->label << std::endl;
     
     // Do the loop statement.
-    forStatement->loopExpr->accept(*this);
-    
-    maybeFreeTemporary(forStatement->loopExpr->valPos);
+    if (forStatement->loopExpr != NULL)
+    {
+        forStatement->loopExpr->accept(*this);
+        
+        maybeFreeTemporary(forStatement->loopExpr->valPos);
+    }
     
     // Jump back up to the start to do the evaluation.
     asm_current << "    SET PC, " << forStatement->startLbl->label << std::endl;
@@ -1105,6 +1108,13 @@ void DirectCodeGenVisitor::visit(astnodes::Identifier * identifier)
     if (identifier->returnRValue)
     {
         valPos = derefOperand(valPos, REG_TMP_L);
+        if (valPos->isModifyableTemp())
+        {
+            ValuePosition* tmpCpy = getTmp(valPos->getWordSize());
+            this->copyValue(valPos, tmpCpy);
+            maybeFreeTemporary(valPos);
+            valPos = tmpCpy;
+        }
     }
     identifier->valPos = valPos;
 }
@@ -1646,6 +1656,13 @@ void DirectCodeGenVisitor::visit(astnodes::ArrayAccessOperator * arrayAccessOper
     if (arrayAccessOperator->returnRValue)
     {
         lhsVP = derefOperand(lhsVP, REG_TMP_L);
+        if (lhsVP->isModifyableTemp())
+        {
+            ValuePosition* tmpCpy = getTmp(lhsVP->getWordSize());
+            this->copyValue(lhsVP, tmpCpy);
+            maybeFreeTemporary(lhsVP);
+            lhsVP = tmpCpy;
+        }
     }
     
     // return this value
@@ -1822,6 +1839,16 @@ void DirectCodeGenVisitor::visit(astnodes::StructureResolutionOperator * structu
             maybeFreeTemporary(newVP);
             newVP = tmpVP;
         }
+        else
+        {
+            if (newVP->isModifyableTemp())
+            {
+                ValuePosition* tmpCpy = getTmp(newVP->getWordSize());
+                this->copyValue(newVP, tmpCpy);
+                maybeFreeTemporary(newVP);
+                newVP = tmpCpy;
+            }
+        }
     }
     
     // set value position
@@ -1950,6 +1977,13 @@ void DirectCodeGenVisitor::visit(astnodes::DerefOperator * derefOperator)
     if (derefOperator->returnRValue)
     {
         valPos = derefOperand(valPos, REG_TMP_L);
+        if (valPos->isModifyableTemp())
+        {
+            ValuePosition* tmpCpy = getTmp(valPos->getWordSize());
+            this->copyValue(valPos, tmpCpy);
+            maybeFreeTemporary(valPos);
+            valPos = tmpCpy;
+        }
     }
     
     derefOperator->valPos = valPos;

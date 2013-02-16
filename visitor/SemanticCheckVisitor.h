@@ -46,6 +46,8 @@ namespace dcpucc
             
             /* the symbol table */
             symboltable::SymbolTable* m_symbolTable;
+            uint16_t m_functionMaxLocalSize;
+            uint16_t m_currentLocalSize;
             
             /* break and continue label management */
             std::deque<std::pair<astnodes::LabelStatement*, astnodes::LabelStatement*> > m_loopStack;

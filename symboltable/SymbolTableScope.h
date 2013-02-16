@@ -64,6 +64,8 @@ namespace dcpucc
             bool isGlobalScope();
             
             void clearScope();
+            void setLocalStackOffset(uint16_t offset);
+            
             
             bool contains(std::string name);
             bool containsRec(std::string name);

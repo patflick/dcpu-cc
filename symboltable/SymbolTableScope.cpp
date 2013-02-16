@@ -22,6 +22,11 @@ bool SymbolTableScope::isGlobalScope()
     return this->prevScope == NULL;
 }
 
+void SymbolTableScope::setLocalStackOffset(uint16_t offset)
+{
+    this->m_localStackSize = offset;
+}
+
 void SymbolTableScope::clearScope()
 {
     this->m_globalsSize = 0;

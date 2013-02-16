@@ -44,12 +44,14 @@ void ForStatement::allChildrenAcceptPostRecursive(dcpucc::visitor::Visitor & vis
 // calls accept(visitor) for all children nodes of this AST node
 void ForStatement::allChildrenAccept(dcpucc::visitor::Visitor & visitor)
 {
-    // TODO implement this to call .accept(visitor) for all children nodes
-    this->initExpr->accept(visitor);
-    this->condExpr->accept(visitor);
-    this->loopExpr->accept(visitor);
-    this->statement->accept(visitor);
-
+    if (this->initExpr != NULL)
+        this->initExpr->accept(visitor);
+    if (this->condExpr != NULL)
+        this->condExpr->accept(visitor);
+    if (this->loopExpr != NULL)
+        this->loopExpr->accept(visitor);
+    if (this->statement != NULL)
+        this->statement->accept(visitor);
 }
 
 // implements the visitor pattern
