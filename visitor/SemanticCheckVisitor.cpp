@@ -2300,6 +2300,13 @@ void SemanticCheckVisitor::visit(astnodes::AddressOfOperator * addressOfOperator
     valuetypes::ValueType* vtype = addressOfOperator->expr->valType;
     types::Type* type = vtype->type;
     
+    
+    if (valuetypes::IsValueTypeHelper::isFunctionDesignator(vtype))
+    {
+        addressOfOperator->valType = new valuetypes::RValue(new types::PointerType(type));
+        return;
+    }
+    
     if (!valuetypes::IsValueTypeHelper::isLValue(vtype))
     {
         addError(addressOfOperator, ERR_CC_ADRESS_OF_NON_LVALUE);
@@ -2342,6 +2349,15 @@ void SemanticCheckVisitor::visit(astnodes::DerefOperator * derefOperator)
     }
     types::PointerType* ptrType = types::IsTypeHelper::getPointerType(type);
     types::Type* baseType = ptrType->baseType;
+    
+    if (types::IsTypeHelper::isFunctionType(baseType))
+    {
+        // deref a function pointer does nothing
+        derefOperator->returnRValue = false; // no deref
+        derefOperator->valType = new valuetypes::RValue(ptrType);
+        derefOperator->newSize = 1;
+        return;
+    }
     
     derefOperator->newSize = baseType->getWordSize();
     
