@@ -1745,7 +1745,7 @@ void DirectCodeGenVisitor::visit(astnodes::MethodCall * methodCall)
     asm_current <<  "    JSR, " << lhsValPos->toAtomicOperand() << std::endl;
     
     // clean up the stack after the call
-    asm_current << "    ADD SP, " << parametersize << std::endl;
+    asm_current << "    ADD SP, 0x" << std::hex << parametersize << std::endl;
     
     if (restoreC)
         asm_current << "SET C, POP" << std::endl;
