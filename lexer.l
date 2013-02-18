@@ -53,6 +53,9 @@ U                       (u|U)
 %x IN_STRING
 %x AT_ASM
 %x IN_ASM_BLOCK
+%x IN_ASM_COMMENT
+%x IN_ASM_STRING
+%x IN_ASM_CHAR
 %x IN_COMMENT
 %x IN_COMMENT_LINE
 
@@ -109,12 +112,31 @@ U                       (u|U)
 
     /* Inline assembly */
 "__asm"                 { count(); BEGIN(AT_ASM); }
-<AT_ASM>\{              { count(); BEGIN(IN_ASM_BLOCK); string_return = AT_ASM; }
+<AT_ASM>\{              { count(); BEGIN(IN_ASM_BLOCK); yylval.string = new std::string(); }
 <AT_ASM>\n              { count(); }
 <AT_ASM>[ \t]+          /* ignore whitespace */;
 <AT_ASM>[^\{]           { count(); return ERROR; }
-<IN_ASM_BLOCK>\}        { count(); BEGIN(INITIAL); string_return = INITIAL; }
-<IN_ASM_BLOCK>[^\}]*    { count(); yylval.string = new std::string(yytext); return ASSEMBLY; }
+
+<IN_ASM_BLOCK>;         { count(); BEGIN(IN_ASM_COMMENT); *yylval.string += yytext; }
+<IN_ASM_BLOCK>\'        { count(); BEGIN(IN_ASM_CHAR); *yylval.string += yytext; }
+<IN_ASM_BLOCK>\"        { count(); BEGIN(IN_ASM_STRING); *yylval.string += yytext; }
+<IN_ASM_BLOCK>\}        { count(); BEGIN(INITIAL); return ASSEMBLY; }
+<IN_ASM_BLOCK>\n         { count();  *yylval.string += yytext; }
+<IN_ASM_BLOCK>.         { count();  *yylval.string += yytext; }
+
+    /* comments in ASM block */
+<IN_ASM_COMMENT>\n      { count();  BEGIN(IN_ASM_BLOCK); *yylval.string += "\n"; }
+<IN_ASM_COMMENT>.       { count();  *yylval.string += yytext; }
+
+    /* character literals in ASM blocks */
+<IN_ASM_CHAR>\'         { count(); BEGIN(IN_ASM_BLOCK); *yylval.string += yytext; }
+<IN_ASM_CHAR>\\\'       { count(); *yylval.string += "\\'"; }
+<IN_ASM_CHAR>.          { count(); *yylval.string += yytext; }
+
+    /* string literals in ASM blocks */
+<IN_ASM_STRING>\"      { count(); BEGIN(IN_ASM_BLOCK); *yylval.string += yytext; }
+<IN_ASM_STRING>\\\"    { count(); *yylval.string += "\\\""; }
+<IN_ASM_STRING>.       { count(); *yylval.string += yytext; }
 
 
     /* Identifier or possibly typedef */
