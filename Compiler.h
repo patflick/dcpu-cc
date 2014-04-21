@@ -11,10 +11,12 @@
 #ifndef DTCC_COMPILER_H
 #define DTCC_COMPILER_H
 
-#include <visitor/SemanticCheckVisitor.h>
-#include <codegen/DirectCodeGenVisitor.h>
+#include <cstdlib>
 #include <list>
 #include <string>
+
+#include <visitor/SemanticCheckVisitor.h>
+#include <codegen/DirectCodeGenVisitor.h>
 
 #define DTCC_COMPILER_INPUT_STRING 1
 #define DTCC_COMPILER_INPUT_STREAM 2
@@ -42,7 +44,7 @@ namespace dcpucc
         /// @brief Input function for the lexer.
         /// DO NOT call from the outside.
         /// For internal usage only.
-        bool getInput(char*, int&, int);
+        bool getInput(char*, size_t&, size_t);
         
         /// @brief Compiles the input stream.
         /// @param input The input stream to be compiled.

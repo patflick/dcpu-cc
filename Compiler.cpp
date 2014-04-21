@@ -48,10 +48,11 @@ input_str_ctr(0), m_asmOutput(std::string(""))
 
 
 /// @brief Input function for the lexer.
-bool Compiler::getInput(char* buf, int& result, int max_size)
+bool Compiler::getInput(char* buf, size_t& result, size_t max_size)
 {
     if (this->input_type == DTCC_COMPILER_INPUT_STRING)
     {
+        // read one input character at a time
         if (this->input_str_ctr < this->input_str.size())
         {
             buf[0] = this->input_str[this->input_str_ctr++];

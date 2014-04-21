@@ -27,10 +27,14 @@ bool handle_lineinfo();
 
 #define YY_INPUT(buf,result,max_size) \
 { \
-    if (!compiler->getInput(buf, result, max_size))\
+    size_t chars_read = 0;\
+    size_t size_to_read = max_size;\
+    if (!compiler->getInput(buf, chars_read, size_to_read))\
     { \
         result = YY_NULL;\
-    } \
+    } else { \
+        result = chars_read;\
+    }\
 }
 
 
